@@ -1,0 +1,38 @@
+
+1. What is an HTTP Request?
+---------------------------------------------------------------------------------|
+An HTTP request is a message sent by a client (like a web browser or an API      |
+client) to a server, asking for data or performing an action. The server then    |
+processes the request and sends back an HTTP response.                           |
+																				 |
+HTTP (Hypertext Transfer Protocol) is the foundation of web communication.       |
+---------------------------------------------------------------------------------|
+
+2. Basic Structure of an HTTP Request
+---------------------------------------------------------------------------------|
+																				 |
+An HTTP request consists of:                                                     |
+																				 |
+	1- Request Line → Contains the method, URL, and HTTP version.                |
+																				 |
+	2- Headers → Additional information about the request.                       |
+																				 |
+	3- Body (Optional) → Used for sending data in methods like POST and PUT      |
+																				 |
+	Example HTTP Request:                                                        |
+                                                                                 |
+	GET /index.html HTTP/1.1                                                     |
+	Host: www.example.com                                                        |
+	User-Agent: Mozilla/5.0                                                      |
+	Accept: text/html                                                            |
+---------------------------------------------------------------------------------|
+
+
+3. HTTP Methods (Verbs)
+---------------------------------------------------------------------------------|
+
+
+
+
+
+
