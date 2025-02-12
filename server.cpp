@@ -121,7 +121,9 @@ private:
         }
 
         // Print the received request
-        std::cout << "Received Request:\n" << buffer << std::endl;
+        // std::cout << "Received Request:\n" << buffer << std::endl;
+        std::cout << "Received Request:\n" << std::endl;
+      
 //********************************************
 //********************************************
         GETRequestHandler GETrequest;

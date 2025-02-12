@@ -16,6 +16,7 @@ bool HTTPRequest::parseRequest(const std::string& rawRequest)
 	std::istringstream requestStream(rawRequest);
 		std::string requestLine;
 		
+		std::cout << "********************************: " <<  std::endl;
 		// Parse Request-Line
 		if (!std::getline(requestStream, requestLine))
 			return false;
@@ -32,10 +33,15 @@ bool HTTPRequest::parseRequest(const std::string& rawRequest)
 		// Verify it's a GET request
 		if (method != "GET")
 			return false;
-		
+		std::cout << "********************************: " <<  std::endl;
+		std::cout << "Method: " << method << std::endl;
+		std::cout << "Path: " << path << std::endl;
+		std::cout << "Version: " << version << std::endl;
+
 		// Parse headers
 		std::string headerLine;
-		while (std::getline(requestStream, headerLine) && headerLine != "\r" && headerLine != "") {
+		while (std::getline(requestStream, headerLine) && headerLine != "\r" && headerLine != "") 
+		{
 			// Remove carriage return if present
 			if (!headerLine.empty() && headerLine[headerLine.length()-1] == '\r')
 				headerLine = headerLine.substr(0, headerLine.length()-1);
@@ -48,6 +54,12 @@ bool HTTPRequest::parseRequest(const std::string& rawRequest)
 			std::string value = trim(headerLine.substr(colonPos + 1));
 			headers[key] = value;
 		}
+		std::cout << "Headers:\n";
+		for (std::map<std::string, std::string>::const_iterator it = headers.begin(); it != headers.end(); ++it)
+			std::cout << "|"<< it->first <<  "|" << ": " << "|"<< it->second <<  "|" << std::endl;
+		std::cout << "-------------------------- \n" <<  std::endl;
+		std::cout << "|\rhamza|" <<  std::endl;
+		std::cout << "-------------------------- \n" <<  std::endl;
 		
 		return true;
 }
