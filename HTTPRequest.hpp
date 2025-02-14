@@ -1,11 +1,27 @@
 
-#ifndef REQUESTPARS_HPP
-#define REQUESTPARS_HPP
 
-#include <string>
+#ifndef HTTPREQUEST_HPP
+#define HTTPREQUEST_HPP
+
 #include <map>
 #include <sstream>
 #include <iostream>
+#include <vector>
+#include <string>
+#include <cstring>
+#include <cerrno>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <poll.h>
+#include <exception>
+
+typedef struct StatusCode {
+	std::size_t code;
+	std::string message;
+} StatusCode;
 
 class HTTPRequest 
 {
@@ -13,30 +29,59 @@ class HTTPRequest
 		std::string method;
 		std::string path;
 		std::string version;
+		std::string extension;
+		// int statusCode;
+
+		StatusCode statusCode;
+
 		std::map<std::string, std::string> headers;
 		
-		// Helper function to trim whitespace
-		std::string trim(const std::string& str)
-		{
-			size_t first = str.find_first_not_of(" \t\n\r");
-			size_t last = str.find_last_not_of(" \t\n\r");
-			if (first == std::string::npos || last == std::string::npos)
-				return "";
-			return str.substr(first, last - first + 1);
-		}
 
 	public:
 		HTTPRequest();
 		~HTTPRequest();
 		bool parseRequest(const std::string& rawRequest) ;
+		std::string trim(const std::string& str);
 		
 		// Getters
 		std::string getMethod() const ;
 		std::string getpath() const ;
 		std::string getVersion() const ;
+		std::string getExtension() const ;
 		std::string getHeader(const std::string& key) const ;
+		int getStatusCode() const ;
+		const std::map<std::string, std::string>& getHeaders() const {
+        	return headers;
+    	}
+	void sendErrorResponse(int errorCode) {
+        std::string errorMessage = "";
+    
+    	switch (errorCode) {
+			case 400: errorMessage = "400 Bad Request"; break;
+			case 403: errorMessage = "403 Forbidden"; break;
+			case 404: errorMessage = "404 Not Found"; break;
+			case 405: errorMessage = "405 Method Not Allowed"; break;
+			case 411: errorMessage = "411 Length Required"; break;
+			case 413: errorMessage = "413 Payload Too Large"; break;
+			case 414: errorMessage = "414 URI Too Long"; break;
+			case 500: errorMessage = "500 Internal Server Error"; break;
+			case 505: errorMessage = "505 HTTP Version Not Supported"; break;
+			default: errorMessage = "500 Internal Server Error"; break;
+    	}
+    		// message = errorMessage;
+			// // statusCode = errorCode;
+			statusCode.message = errorMessage;
+		}
+		// Setters
+		// void setStatusCode(int code) ;
+
+		// void setStatusCodeMessage(const std::string& message) {
+		// 	statusCode.message = message;
+		// }
+
+		std::string getStatusCodeMessage() const;
 		
-		bool validateGETRequest() const ;
+		
 };
 // GET /index.html HTTP/1.1\r\n
 // Host: localhost:8080\r\n

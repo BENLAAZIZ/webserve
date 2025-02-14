@@ -1,159 +1,153 @@
-#include <iostream>
-#include <string>
-#include <cstring>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/select.h>
-#include <vector>
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
+/*   Updated: 2025/02/13 22:01:59 by hben-laz         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-#include "GETRequestHandler.hpp"
+#include "Server.hpp"
 
+Server::~Server() {
+    for (std::size_t i = 0; i < pollfds.size(); i++) {
+        close(pollfds[i].fd);
+    }
+}
 
-#define BUFFER_SIZE
-class HTTPServer {
-private:
-    int server_fd;
-    struct sockaddr_in address;
-    std::vector<int> client_sockets;
-    char buffer[1024];
-    fd_set read_fds;
-    int max_fd;
+void Server::setNonBlocking(int fd) {
+    fcntl(fd, F_SETFL, O_NONBLOCK);
+}
+        
+Server::Server(int port) {
+    struct sockaddr_in server_addr;
+    
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_fd < 0)
+        throw std::runtime_error("Socket creation failed");
+    
+    int reuse = 1;
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
+        throw std::runtime_error("Setsockopt failed");
 
-public:
-    HTTPServer(int port) {
-        // Create socket
-        server_fd = socket(AF_INET, SOCK_STREAM, 0);
-        if (server_fd < 0) {
-            throw std::runtime_error("Socket creation failed");
-        }
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_port = htons(port);
+    server_addr.sin_addr.s_addr = INADDR_ANY;
 
-        // Set socket options
-        int opt = 1;
-        if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-            throw std::runtime_error("Setsockopt failed");
-        }
+    if (bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
+        throw std::runtime_error("Bind failed");
 
-        // Configure address
-        address.sin_family = AF_INET;
-        address.sin_addr.s_addr = INADDR_ANY;
-        address.sin_port = htons(port);
+    if (listen(server_fd, MAX_CLIENTS) < 0)
+        throw std::runtime_error("Listen Failed");
+    
+    setNonBlocking(server_fd);
 
-        // Bind socket
-        if (bind(server_fd, (struct sockaddr*)&address, sizeof(address)) < 0) {
-            throw std::runtime_error("Bind failed");
-        }
-
-        // Listen
-        if (listen(server_fd, 3) < 0) {
-            throw std::runtime_error("Listen failed");
-        }
-
-        // Set socket to non-blocking
-        fcntl(server_fd, F_SETFL, O_NONBLOCK);
-        max_fd = server_fd;
+    struct pollfd pfd;
+    pfd.fd = server_fd;
+    pfd.events = POLLIN;
+    pollfds.push_back(pfd);
+    
+    std::cout << "Server listening on port " << port << std::endl;
+}
+        
+void Server::handleNewConnection() {
+    struct sockaddr_in client_addr;
+    socklen_t client_len = sizeof(client_addr);
+    int client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &client_len);
+    if (client_fd < 0) {
+        std::cerr << "Accept failed: " << strerror(errno) << std::endl;
+        return ;
     }
 
-    void run() 
-    {
-        while (true) {
-            // std::cout<<"her\n";
-            // Clear and set file descriptors
-            FD_ZERO(&read_fds);
-            FD_SET(server_fd, &read_fds);
-            
-            // Add client sockets to fd_set
-            for (size_t i = 0; i < client_sockets.size(); i++) {
-                FD_SET(client_sockets[i], &read_fds);
-                if (client_sockets[i] > max_fd)
-                    max_fd = client_sockets[i];
-            }
+    setNonBlocking(client_fd);
 
-            // Wait for activity
-            int activity = select(max_fd + 1, &read_fds, NULL, NULL, NULL);
-            if (activity < 0) {
-                std::cout << "Select error" << std::endl;
-                continue;
-            }
+    struct pollfd pfd;
+    pfd.fd = client_fd;
+    pfd.events = POLLIN;
+    pollfds.push_back(pfd);
 
-            // Check for new connections
-            if (FD_ISSET(server_fd, &read_fds)) {
+    std::cout << "New connection fd: " << client_fd <<  " from " 
+              << inet_ntoa(client_addr.sin_addr)
+              << ":" << ntohs(client_addr.sin_port) << std::endl;
+}
+
+void Server::handleClientData(std::size_t index) {
+    char buffer[BUFFER_SIZE];
+    int client_fd = pollfds[index].fd;
+    
+    std::size_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE - 1, 0);
+    if (bytes_read <= 0) {
+        if (bytes_read == 0) {
+            std::cout << "client disconnected fd: " << client_fd << std::endl;
+            if (requests.size() > 0)// add this condition to avoid segfault
+                requests.erase(requests.begin() + index - 1);
+            std::cout << "nbr of clients after: " << requests.size()<<  std::endl;
+        }
+        else if (bytes_read < 0)
+            std::cerr << "Receive a message from a socket failed: " << strerror(errno) << std::endl;
+        close(client_fd);
+        pollfds.erase(pollfds.begin() + index);
+        return ;
+    }
+    buffer[bytes_read] = '\0';
+  
+    // std::cout << "nbr of clients: " << requests.size()  + 1<<  std::endl;
+
+    //parse request
+    HTTPRequest request;
+    // request.parseRequest(buffer);
+	// std::cout << "---------extension-----------: "  << std::endl;
+    //client disconnected fd:
+
+    if (!request.parseRequest(buffer)) {
+        request.sendErrorResponse(request.getStatusCode());
+
+        std::cout << "code: " << request.getStatusCode() << std::endl;
+        std::cout << "message: " << request.getStatusCodeMessage() << std::endl;
+        return;
+    }
+    std::cout << buffer<<  std::endl;
+
+    if (request.getMethod() == "POST") {
+        // std::find("\r\n\r\n", buffer);
+    }
+
+//     else 
+//         requests.push_back(request);
+//   std::cout << "----------------------------------------\n"; 
+//     for (std::size_t i = 0; i < requests.size(); i++) {
+
+//         std::cout << "request nbr : " << i << std::endl;
+//         std::cout << "Method: " << requests[i].getMethod() << std::endl;
+// 		std::cout << "Path: " << requests[i].getpath() << std::endl;
+// 		std::cout << "Version: " << requests[i].getVersion() << std::endl;
+// 		std::cout << "extension: " << requests[i].getExtension() << std::endl << "headers: ";
+//         for (std::map<std::string, std::string>::const_iterator it = requests[i].getHeaders().begin(); it != requests[i].getHeaders().end(); ++it)
+//             std::cout << it->first << ": "<< it->second << std::endl;
+//         std::cout << "==================================================\n";    
+//     }
+}
+
+void Server::run() {
+    while (1) {
+        int poll_count = poll(&pollfds[0], pollfds.size(), -1);
+        if (poll_count < 0) {
+            std::cerr << "Poll failed: " << strerror(errno) << std::endl;
+            continue ;
+        }
+        for (std::size_t i = 0; i < pollfds.size(); ++i) {
+            if (!(pollfds[i].revents & POLLIN))
+                continue ;
+                    
+            if (pollfds[i].fd == server_fd)
                 handleNewConnection();
-            }
-
-            // Check existing connections for data
-            for (size_t i = 0; i < client_sockets.size(); i++) {
-                if (FD_ISSET(client_sockets[i], &read_fds)) {
-                    handleClientRequest(i);
-                }
-            }
+            else
+                handleClientData(i);
         }
     }
-
-private:
-    void handleNewConnection() {
-        socklen_t addrlen = sizeof(address);
-        int new_socket = accept(server_fd, (struct sockaddr*)&address, &addrlen);
-        
-        if (new_socket < 0) {
-            // std::cout << "Accept failed" << std::endl;
-            return;
-        }
-
-        // Set new socket to non-blocking
-        fcntl(new_socket, F_SETFL, O_NONBLOCK);
-        
-        // Add to client sockets vector
-        client_sockets.push_back(new_socket);
-        // std::cout << "New connection established" << std::endl;
-    }
-
-    void handleClientRequest(size_t index) {
-        memset(buffer, 0, sizeof(buffer));
-        int valread = read(client_sockets[index], buffer, sizeof(buffer));
-        
-        if (valread <= 0) {
-            // Connection closed or error
-            close(client_sockets[index]);
-            client_sockets.erase(client_sockets.begin() + index);
-            return;
-        }
-
-        // Print the received request
-        // std::cout << "Received Request:\n" << buffer << std::endl;
-        std::cout << "Received Request:\n" << std::endl;
-      
-//********************************************
-//********************************************
-        GETRequestHandler GETrequest;
-        GETrequest.handleRequest(buffer);
-//********************************************
-//********************************************
-
-        // Send a basic response
-        std::string response = "HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\nHello, World!";
-        send(client_sockets[index], response.c_str(), response.length(), 0);
-    }
-};
-
-int main() {
-    try {
-        HTTPServer server(8080);
-        std::cout << "Server started on port 8080" << std::endl;
-        server.run();
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return 1;
-    }
-    return 0;
 }
 
 
-    // std::string trim(const std::string& str) {
-    //     size_t first = str.find_first_not_of(" \t\n\r");
-    //     size_t last = str.find_last_not_of(" \t\n\r");
-    //     if (first == std::string::npos || last == std::string::npos)
-    //         return "";
-    //     return str.substr(first, last - first + 1);
-    // }

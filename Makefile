@@ -1,29 +1,22 @@
-NAME = ex01
-
-CPP = c++
-
-FLAGS = -Wall -Wextra -Werror -std=c++98
-
-RM = rm -f
-
-SRCS = server.cpp request.cpp GETRequestHandler.cpp
- 
-OBJS = $(SRCS:.cpp=.o)
+NAME= webserv
+CPP= c++
+CFLAGS= -Wall -Wextra -Werror -std=c++98
+SRC= webserv.cpp Server.cpp HTTPRequest.cpp
+OBJ= $(SRC:%.cpp=%.o)
 
 all: $(NAME)
 
+$(NAME): $(OBJ)
+	$(CPP) $(CFLAGS) $(OBJ) -o $(NAME)
 
-$(NAME): $(OBJS)
-	$(CPP) $(FLAGS) $(OBJS) -o $(NAME)
-
-%.o: %.cpp  GETRequestHandler.hpp requestPars.hpp
-	$(CPP) $(FLAGS) -c $< -o $@
+%.o: %.cpp Server.hpp HTTPRequest.hpp
+	$(CPP) $(CFLAGS) -c $< -o $@
 
 clean:
-	$(RM) $(OBJS)
+	rm -f $(OBJ)
 
 fclean: clean
-	$(RM) $(NAME)
+	rm -f $(NAME)
 
 re: fclean all
 
