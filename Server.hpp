@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aben-cha <aben-cha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/13 18:03:09 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/13 12:50:18 by aben-cha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,8 +34,6 @@ class Server {
         void handleNewConnection();
         void handleClientData(std::size_t index);
         void run();
-        // std::string sendErrorResponse(int errorCode);
-        // void sendErrorResponse(int errorCode, std::string& message);
 };
 
 #endif

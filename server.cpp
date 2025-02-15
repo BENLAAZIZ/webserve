@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/13 22:01:59 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/14 20:39:36 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,9 +82,6 @@ void Server::handleClientData(std::size_t index) {
     if (bytes_read <= 0) {
         if (bytes_read == 0) {
             std::cout << "client disconnected fd: " << client_fd << std::endl;
-            if (requests.size() > 0)// add this condition to avoid segfault
-                requests.erase(requests.begin() + index - 1);
-            std::cout << "nbr of clients after: " << requests.size()<<  std::endl;
         }
         else if (bytes_read < 0)
             std::cerr << "Receive a message from a socket failed: " << strerror(errno) << std::endl;
@@ -93,42 +90,21 @@ void Server::handleClientData(std::size_t index) {
         return ;
     }
     buffer[bytes_read] = '\0';
-  
-    // std::cout << "nbr of clients: " << requests.size()  + 1<<  std::endl;
-
+    std::cout << "nbr of clients: " << requests.size()  + 1<<  std::endl;
     //parse request
-    HTTPRequest request;
-    // request.parseRequest(buffer);
-	// std::cout << "---------extension-----------: "  << std::endl;
-    //client disconnected fd:
 
+    HTTPRequest request;
+    std::cout << buffer <<  std::endl << std::endl;
     if (!request.parseRequest(buffer)) {
         request.sendErrorResponse(request.getStatusCode());
-
-        std::cout << "code: " << request.getStatusCode() << std::endl;
-        std::cout << "message: " << request.getStatusCodeMessage() << std::endl;
         return;
     }
-    std::cout << buffer<<  std::endl;
+
 
     if (request.getMethod() == "POST") {
         // std::find("\r\n\r\n", buffer);
+        // std::cout << "POST request" << std::endl;
     }
-
-//     else 
-//         requests.push_back(request);
-//   std::cout << "----------------------------------------\n"; 
-//     for (std::size_t i = 0; i < requests.size(); i++) {
-
-//         std::cout << "request nbr : " << i << std::endl;
-//         std::cout << "Method: " << requests[i].getMethod() << std::endl;
-// 		std::cout << "Path: " << requests[i].getpath() << std::endl;
-// 		std::cout << "Version: " << requests[i].getVersion() << std::endl;
-// 		std::cout << "extension: " << requests[i].getExtension() << std::endl << "headers: ";
-//         for (std::map<std::string, std::string>::const_iterator it = requests[i].getHeaders().begin(); it != requests[i].getHeaders().end(); ++it)
-//             std::cout << it->first << ": "<< it->second << std::endl;
-//         std::cout << "==================================================\n";    
-//     }
 }
 
 void Server::run() {
@@ -149,5 +125,3 @@ void Server::run() {
         }
     }
 }
-
-
