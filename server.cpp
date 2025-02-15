@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
+/*   server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/14 20:39:36 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/15 21:54:58 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,24 +87,77 @@ void Server::handleClientData(std::size_t index) {
             std::cerr << "Receive a message from a socket failed: " << strerror(errno) << std::endl;
         close(client_fd);
         pollfds.erase(pollfds.begin() + index);
+        // clientBuffers.erase(client_fd);  // Clean up client buffer
         return ;
     }
     buffer[bytes_read] = '\0';
+    // clientBuffers[client_fd] += buffer; // Append new data to client's buffer
+    // std::cout << "client buffer: " << clientBuffers[client_fd] << std::endl;
     std::cout << "nbr of clients: " << requests.size()  + 1<<  std::endl;
     //parse request
 
-    HTTPRequest request;
-    std::cout << buffer <<  std::endl << std::endl;
-    if (!request.parseRequest(buffer)) {
-        request.sendErrorResponse(request.getStatusCode());
-        return;
-    }
+    // HTTPRequest request;
+    // if (!request.parseRequest(buffer)) {
+    //     request.sendErrorResponse(request.getStatusCode());
+    //     return;
+    // }
+    // std::cout << buffer <<  std::endl << std::endl;
 
 
-    if (request.getMethod() == "POST") {
-        // std::find("\r\n\r\n", buffer);
-        // std::cout << "POST request" << std::endl;
-    }
+    // if (request.getMethod() == "POST") {
+    //     // std::find("\r\n\r\n", buffer);
+    //     // std::cout << "POST request" << std::endl;
+    // }
+
+
+    std::size_t lineEnd;
+while (1) {
+		lineEnd = clientBuffers[client_fd].find("\r\n");
+        if (lineEnd == std::string::npos)
+            break ;
+        std::string line = clientBuffers[client_fd].substr(0, lineEnd);
+        clientBuffers[client_fd] = clientBuffers[client_fd].substr(lineEnd + 2);
+        // Parse request line first
+		if (requests[client_fd].getMethod().empty()) {
+			std::cout << "******" << std::endl;
+			if (!requests[client_fd].parseRequestLine(line)) {
+				requests[client_fd].sendErrorResponse(requests[client_fd].getStatusCode());
+				clientBuffers.erase(client_fd);
+				return;
+			}
+			continue;
+		}
+        // Parse headers
+        if (!line.empty()) {
+			requests[client_fd].parseHeader(line);
+			continue;
+		}
+		
+
+		// Empty line detected → End of headers
+		std::size_t content_Length = requests[client_fd].getContentLength();
+		if (requests[client_fd].getMethod() == "POST" && content_Length > 0) {
+			// Body starts immediately after headers
+			if (clientBuffers[client_fd].size() >= content_Length) {
+				requests[client_fd].setBody(clientBuffers[client_fd].substr(0, content_Length));
+				clientBuffers[client_fd].erase(0, content_Length);
+				handleRequest(client_fd, requests[client_fd]); // Fully received request
+				clientBuffers.erase(client_fd);
+				// requests.erase(client_fd);
+				requests[client_fd] = HTTPRequest(); // Reset request object for next request
+			}
+			return; // Wait for more body data
+		}
+        // Headers processed → Handle request (GET, DELETE, etc.)
+		handleRequest(client_fd, requests[client_fd]);
+		clientBuffers.erase(client_fd);
+		// requests.erase(client_fd);
+		
+		requests[client_fd] = HTTPRequest(); // Reset request object for next request
+		
+		return;
+	}     
+    
 }
 
 void Server::run() {

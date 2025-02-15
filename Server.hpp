@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aben-cha <aben-cha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/13 12:50:18 by aben-cha         ###   ########.fr       */
+/*   Updated: 2025/02/15 21:44:20 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,7 @@ class Server {
         std::vector<struct pollfd> pollfds;
         void setNonBlocking(int fd);
         std::vector<HTTPRequest> requests;
+        std::map<int, std::string> clientBuffers; // Store accumulated request data for each client
     public:
         // Server(const Server& copy);
         // Server& operator=(const Server& copy);
@@ -34,6 +35,7 @@ class Server {
         void handleNewConnection();
         void handleClientData(std::size_t index);
         void run();
+        void handleRequest(int client_fd, HTTPRequest &request);
 };
 
 #endif
