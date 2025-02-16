@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/16 18:47:37 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/16 22:24:34 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,21 +118,22 @@ void Server::handleClientData(std::size_t index) {
 	// Process data line by line
 
 	// std::size_t lineEnd;
-	while (1)
+	while (1) 
 	{
-		 // Find next line ending
+		// Find next line ending
 		size_t lineEnd = clientBuffers[client_fd].find("\r\n");
-		if (lineEnd == std::string::npos) 
-		{
+		if (lineEnd == std::string::npos) {
+			// std::cout << "No complete line found, wait for more data" << std::endl;
 			break; // No complete line found, wait for more data
 		}
-		 // Extract the line
-		std::string line = clientBuffers[client_fd].substr(0, lineEnd);
-		// Remove processed line from buffer (including \r\n)
-		clientBuffers[client_fd].erase(0, lineEnd + 2);
+		// std::cout << "Complete line found, process it" << std::endl;
+		// std::cout << "Line: " << clientBuffers[client_fd].substr(0, lineEnd) << std::endl;
 
-		 // 1️ Parse request line (first line)
-		if (requests[client_fd].getMethod().empty())
+		std::string line = clientBuffers[client_fd].substr(0, lineEnd);
+		clientBuffers[client_fd].erase(0, lineEnd + 2); // Remove processed line
+
+		// 1 Parse request line (first line)
+		if (requests[client_fd].getMethod().empty()) 
 		{
 			std::istringstream iss(line);
 			std::string method, path, version;
@@ -155,54 +156,85 @@ void Server::handleClientData(std::size_t index) {
 			requests[client_fd].setVersion(version);
 
 			std::cout << "Method: " << method << "\nPath: " << path << "\nVersion: " << version << std::endl;
-			std::cout << " ------------------- " << std::endl;
 		}
-		else
-		{
+
 		// 2️ Parse headers (starting from second line)
+		else 
+		{
 			if (line.empty()) 
 			{
 				// End of headers reached, validate Host header
-				
-				if (requests[client_fd].getHeaders().find("Host") == requests[client_fd].getHeaders().end()) 
-				{
+				if (requests[client_fd].getHeaders().find("Host") == requests[client_fd].getHeaders().end()) {
+					std::cout << " host = " << requests[client_fd].getHeader("Host") << std::endl;
 					requests[client_fd].sendErrorResponse(400); // Bad Request: Missing Host Header
+					std::cout << "-- Host header missing 400 --" << std::endl;
 					return;
 				}
-			}
-			// Handle POST request body
-			 if (requests[client_fd].getMethod() == "POST")
-			{
-				std::string contentLength = requests[client_fd].getHeader("Content-Length");
-				if (contentLength.empty()) {
-					requests[client_fd].sendErrorResponse(411); // Length Required
-					return;
+
+				// Handle POST request body
+				if (requests[client_fd].getMethod() == "POST") {
+					std::string contentLength = requests[client_fd].getHeader("Content-Length");
+					if (contentLength.empty()) {
+						requests[client_fd].sendErrorResponse(411); // Length Required
+						std::cout << "-- Content-Length header missing 411 --" << std::endl;
+						return;
+					}
+					requests[client_fd].setContentLength(std::atoi(contentLength.c_str()));
+				} else {
+					// Process GET or DELETE request immediately
+					handleRequest(client_fd, requests[client_fd]);
+					requests[client_fd] = HTTPRequest(); // Reset for next request
 				}
-				requests[client_fd].setContentLength(std::atoi(contentLength.c_str()));
+				break;
 			}
-			else 
+			// Validate Host header (must be second line)
+			std::string hostHeader;
+			if (requests[client_fd].getHeaders().empty() && line.substr(0, 5) != "Host:")
 			{
-				// Process GET or DELETE request immediately
-				handleRequest(client_fd, requests[client_fd]);
-				requests[client_fd] = HTTPRequest(); // Reset for next request
+				hostHeader = line.substr(0, 5);
+				std::cout << "---> Host header: " << hostHeader << std::endl;
+				requests[client_fd].sendErrorResponse(400); // Bad Request: Invalid second line
+				std::cout << "-- Invalid second line 400 --" << std::endl;
+				return;
 			}
-			break;
+			// 3️ Store header in map
+			size_t colonPos = line.find(":");
+			if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
+				requests[client_fd].sendErrorResponse(400); // Bad Request: Malformed header
+				std::cout << "-- Malformed header 400 --" << std::endl;
+				return;
+			}
+
+			std::string key = line.substr(0, colonPos);
+			std::string value = line.substr(colonPos + 1);
+			value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
+
+			requests[client_fd].setHeader(key, value);
+			std::cout << "Header: " << key << " = " << value << std::endl;
 		}
-		// Validate Host header (must be second line)
-		if (requests[client_fd].getHeaders().empty() && line.substr(0, 5) != "Host:") 
-		{
-			requests[client_fd].sendErrorResponse(400); // Bad Request: Invalid second line
-			return;
-		}
-		// 3 Store header in map
-
-
-
-
-
-
-
-		
+	// aficher all request client
+	std::cout << "================================================" << std::endl;
+	std::cout << "Request: " << requests[client_fd].getMethod() << " " << requests[client_fd].getpath() << std::endl;
 	}
 
+	
+}
+
+void Server::handleRequest(int client_fd, HTTPRequest &request) {
+    std::string method = request.getMethod();
+    std::string path = request.getpath();
+	(void)client_fd;
+
+    // std::cout << "  Handling request: " << method << " " << path << std::endl;
+	// std::cout << " -------------------------------- " << std::endl;
+
+    if (method == "GET") {
+        // handleGetRequest(client_fd, request);
+    } else if (method == "POST") {
+        // handlePostRequest(client_fd, request);
+    } else if (method == "DELETE") {
+        // handleDeleteRequest(client_fd, request);
+    } else {
+        request.sendErrorResponse(405); // Method Not Allowed
+    }
 }

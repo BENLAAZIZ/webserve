@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/16 16:31:23 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/16 22:11:07 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,8 @@ class Server {
         void handleClientData(std::size_t index);
         void run();
         void handleRequest(int client_fd, HTTPRequest &request);
+
+        std::string toUpperCase(const std::string& str);
 };
 
 #endif

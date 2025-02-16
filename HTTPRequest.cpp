@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/16 17:57:37 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/16 20:38:50 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,3 +189,7 @@ void HTTPRequest::setVersion(const std::string& version)
 
 void HTTPRequest::setContentLength(int contentLength) 
 { this->contentLength = contentLength; }
+
+void HTTPRequest::setHeader(const std::string& key, const std::string& value) {
+    headers[key] = value;
+}

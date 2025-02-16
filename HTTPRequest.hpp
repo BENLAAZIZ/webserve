@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 20:06:18 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/16 18:06:55 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/16 20:39:34 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,6 +81,8 @@ class HTTPRequest
 		void setVersion(const std::string& version);
 
 		void setContentLength(int contentLength);
+
+		void setHeader(const std::string& key, const std::string& value);
 };
 
 	
