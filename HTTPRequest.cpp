@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/15 10:30:46 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/16 16:33:52 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,72 +45,80 @@ HTTPRequest& HTTPRequest::operator=(const HTTPRequest& other)
 	return *this;
 }
 
-bool HTTPRequest::parseRequest(const std::string& rawRequest)
-{
-	std::istringstream requestStream(rawRequest);
-		std::string requestLine;
+// bool HTTPRequest::parseRequest(const std::string& rawRequest)
+// {
+// 	std::istringstream requestStream(rawRequest);
+// 		std::string requestLine;
 		
-		// Parse Request-Line
-		if (!std::getline(requestStream, requestLine))
-		{
-			statusCode.code = 400; // bad Request
-			return false;
-		}
-		// Remove carriage return if present
-		if (!requestLine.empty() && requestLine[requestLine.length()-1] == '\r')
-			requestLine = requestLine.substr(0, requestLine.length()-1);
-		// Parse method, path, and version
-		std::istringstream requestLineStream(requestLine);
-		if (!(requestLineStream >> method >> path >> version))
-		{
-			statusCode.code = 400;
-			return false;
-		}
-		//============check first line of request================
-		if (method != "GET" && method != "POST" && method != "DELETE") 
-		{
-			statusCode.code = 405; // Method Not Allowed
-			return false;
-		}
-		// 2. Check HTTP version (must be HTTP/1.1)
-		if (path.empty() || path[0] != '/')
-		{
-			statusCode.code = 400;
-			return false;
-		}
-		if (version != "HTTP/1.1")
-		{
-			statusCode.code = 505; // HTTP Version Not Supported
-			return false;
-		}
-		std::size_t pos = path.rfind('.');
-		if (pos != std::string::npos)
-			extension = path.substr(pos + 1);
-		std::string headerLine;
-		while (std::getline(requestStream, headerLine) && headerLine != "\r" && headerLine != "") 
-		{
-			// Remove carriage return if present
-			if (!headerLine.empty() && headerLine[headerLine.length()-1] == '\r')
-				headerLine = headerLine.substr(0, headerLine.length()-1);
-			// Parse header
-			size_t colonPos = headerLine.find(':');
-			if (colonPos == std::string::npos)
-			{
-				statusCode.code = 400;
-				return false;
-			}
-			std::string key = trim(headerLine.substr(0, colonPos));
-			std::string value = trim(headerLine.substr(colonPos + 1));
-			headers[key] = value;
-		}
-		// Check for mandatory headers in HTTP/1.1
-		if (headers.find("Host") == headers.end())
-		{
-			statusCode.code = 400;
-			return false;
-		}
-		return true;
-}
+// 		// Parse Request-Line
+// 		if (!std::getline(requestStream, requestLine))
+// 		{
+// 			statusCode.code = 400; // bad Request
+// 			return false;
+// 		}
+// 		// Remove carriage return if present
+// 		if (!requestLine.empty() && requestLine[requestLine.length()-1] == '\r')
+// 			requestLine = requestLine.substr(0, requestLine.length()-1);
+// 		// Parse method, path, and version
+// 		std::istringstream requestLineStream(requestLine);
+// 		if (!(requestLineStream >> method >> path >> version))
+// 		{
+// 			statusCode.code = 400;
+// 			return false;
+// 		}
+// 		//============check first line of request================
+// 		if (method != "GET" && method != "POST" && method != "DELETE") 
+// 		{
+// 			statusCode.code = 405; // Method Not Allowed
+// 			return false;
+// 		}
+// 		// 2. Check HTTP version (must be HTTP/1.1)
+// 		if (path.empty() || path[0] != '/')
+// 		{
+// 			statusCode.code = 400;
+// 			return false;
+// 		}
+// 		if (version != "HTTP/1.1")
+// 		{
+// 			statusCode.code = 505; // HTTP Version Not Supported
+// 			return false;
+// 		}
+// 		std::size_t pos = path.rfind('.');
+// 		if (pos != std::string::npos)
+// 			extension = path.substr(pos + 1);
+// 		std::string headerLine;
+// 		while (std::getline(requestStream, headerLine) && headerLine != "\r" && headerLine != "") 
+// 		{
+// 			// Remove carriage return if present
+// 			if (!headerLine.empty() && headerLine[headerLine.length()-1] == '\r')
+// 				headerLine = headerLine.substr(0, headerLine.length()-1);
+// 			// Parse header
+// 			size_t colonPos = headerLine.find(':');
+// 			if (colonPos == std::string::npos)
+// 			{
+// 				statusCode.code = 400;
+// 				return false;
+// 			}
+// 			std::string key = trim(headerLine.substr(0, colonPos));
+// 			std::string value = trim(headerLine.substr(colonPos + 1));
+// 			headers[key] = value;
+// 		}
+// 		// Check for mandatory headers in HTTP/1.1
+// 		if (headers.find("Host") == headers.end())
+// 		{
+// 			statusCode.code = 400;
+// 			return false;
+// 		}
+// 		return true;
+// }
+
+
+
+//--------------------------------------------------------------------------------------------
+
+
+
+//--------------------------------------------------------------------------------------------
 
 std::string HTTPRequest::trim(const std::string& str)
 {
@@ -168,3 +176,13 @@ void HTTPRequest::sendErrorResponse(int errorCode)
     	}
 		statusCode.message = errorMessage;
 }
+
+//*************
+void HTTPRequest::setMethod(const std::string& method) 
+{ this->method = method; }
+
+void HTTPRequest::setPath(const std::string& path) 
+{ this->path = path; }
+
+void HTTPRequest::setVersion(const std::string& version) 
+{ this->version = version; }
