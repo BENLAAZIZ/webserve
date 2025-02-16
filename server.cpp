@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/16 22:24:34 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/16 22:41:21 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,11 +161,11 @@ void Server::handleClientData(std::size_t index) {
 		// 2️ Parse headers (starting from second line)
 		else 
 		{
+
 			if (line.empty()) 
 			{
 				// End of headers reached, validate Host header
 				if (requests[client_fd].getHeaders().find("Host") == requests[client_fd].getHeaders().end()) {
-					std::cout << " host = " << requests[client_fd].getHeader("Host") << std::endl;
 					requests[client_fd].sendErrorResponse(400); // Bad Request: Missing Host Header
 					std::cout << "-- Host header missing 400 --" << std::endl;
 					return;
