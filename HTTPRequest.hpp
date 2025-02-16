@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 20:06:18 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/16 16:33:12 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/16 18:06:55 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,8 @@ class HTTPRequest
 		std::string extension;
 		StatusCode statusCode;
 		std::map<std::string, std::string> headers;
+		// const std::map<std::string, std::string>& getHeaders() const;
+		int contentLength;
 		std::string body; 
 		bool bodyFlag;
 
@@ -77,6 +79,8 @@ class HTTPRequest
 		void setMethod(const std::string& method);
 		void setPath(const std::string& path);
 		void setVersion(const std::string& version);
+
+		void setContentLength(int contentLength);
 };
 
 	
