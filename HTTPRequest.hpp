@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 20:06:18 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/18 11:23:07 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/18 18:02:59 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ class HTTPRequest
 		int contentLength;
 		std::string body; 
 		bool bodyFlag;
+		bool flag_end_of_headers;
 
 	public:
 		HTTPRequest();
@@ -74,6 +75,9 @@ class HTTPRequest
 		void setBodyFlag(bool flag) ;
 
 		bool getBodyFlag() const ;
+
+		bool getFlagEndOfHeaders() const;
+		void setFlagEndOfHeaders(bool flag);
 
 		//-----------------------------
 		void setMethod(const std::string& method);

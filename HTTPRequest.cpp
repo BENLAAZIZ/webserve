@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/18 12:29:56 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/18 18:30:10 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,8 @@ HTTPRequest::HTTPRequest()
 	extension = ""; 
 	statusCode.code = 200; // default status code
 	statusCode.message = "OK";
+	contentLength = 0;
+	flag_end_of_headers = false;
 }
 
 HTTPRequest::~HTTPRequest()
@@ -191,6 +193,9 @@ const std::map<std::string, std::string>& HTTPRequest::getHeaders() const {
 
 std::string HTTPRequest::getStatusCodeMessage() const 
 { return statusCode.message; }
+
+void HTTPRequest::setBody(const std::string& body) 
+{ this->body = body; }
 		
 
 void HTTPRequest::sendErrorResponse(int errorCode) 
@@ -227,3 +232,9 @@ void HTTPRequest::setContentLength(int contentLength)
 void HTTPRequest::setHeader(const std::string& key, const std::string& value) {
     headers[key] = value;
 }
+
+void HTTPRequest::setFlagEndOfHeaders(bool flag) 
+{ flag_end_of_headers = flag; }
+
+bool HTTPRequest::getFlagEndOfHeaders() const 
+{ return flag_end_of_headers; }
