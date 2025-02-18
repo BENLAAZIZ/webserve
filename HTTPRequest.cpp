@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/17 21:24:21 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/18 12:29:56 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,41 @@ HTTPRequest& HTTPRequest::operator=(const HTTPRequest& other)
 
 //--------------------------------------------------------------------------------------------
 
+bool HTTPRequest::parseFirstLine(const std::string& line)
+{
+	
+			std::istringstream iss(line);
+			std::string method, path, version;
+			if (!(iss >> method >> path >> version)) {
+				// sendErrorResponse(400);
+				// std::cout << "400 Bad Request" << std::endl;
+				this->statusCode.code = 400;
+				std::cout << "400 Bad Request" << std::endl;
+				return false;
+				// break;
+			}
 
+			if (method != "GET" && method != "POST" && method != "DELETE") {
+				// sendErrorResponse(405);
+				this->statusCode.code = 405;
+				return false;
+			}
+			if (path.empty() || path[0] != '/' || version != "HTTP/1.1") {
+				// sendErrorResponse(400);
+				this->statusCode.code = 400;
+				std::cout << "400 Bad Request" << std::endl;
+				return false;
+			}
+
+			// Store method, path, version
+			setMethod(method);
+			setPath(path);
+			setVersion(version);
+
+			std::cout << "Method: |" << method << "|\nPath: |" << path << "|\nVersion: |" << version << "|" << std::endl;
+	
+		return true;
+}
 
 //--------------------------------------------------------------------------------------------
 

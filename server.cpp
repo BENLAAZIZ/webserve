@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/17 21:53:36 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/18 12:35:02 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,132 +217,118 @@ void Server::run() {
 // 	std::cout << "Request: " << requests[client_fd].getMethod() << " " << requests[client_fd].getpath() << std::endl;
 // 	}
 
-	
 // }
 
 void Server::handleClientData(std::size_t index) {
-    char buffer[BUFFER_SIZE];
-    int client_fd = pollfds[index].fd;
+	char buffer[BUFFER_SIZE];
+	int client_fd = pollfds[index].fd;
 
-    std::size_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE - 1, 0);
-    if (bytes_read <= 0) {
-        if (bytes_read == 0) {
-            std::cout << "Client disconnected fd: " << client_fd << std::endl;
-        } else {
-            std::cerr << "Receive error: " << strerror(errno) << std::endl;
-        }
-        close(client_fd);
-        pollfds.erase(pollfds.begin() + index);
-        clientBuffers.erase(client_fd);  // Clean up client buffer
-        return;
-    }
+	std::size_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE - 1, 0);
+	if (bytes_read <= 0) {
+		if (bytes_read == 0) {
+			std::cout << "Client disconnected fd: " << client_fd << std::endl;
+		} else {
+			std::cerr << "Receive error: " << strerror(errno) << std::endl;
+		}
+		close(client_fd);
+		pollfds.erase(pollfds.begin() + index);
+		clientBuffers.erase(client_fd);  // Clean up client buffer
+		return;
+	}
 
-    buffer[bytes_read] = '\0';
-    clientBuffers[client_fd] += buffer; // Append new data to client's buffer
+	buffer[bytes_read] = '\0';
+	clientBuffers[client_fd] += buffer; // Append new data to client's buffer
+	
+	while (1) {
+		size_t lineEnd = clientBuffers[client_fd].find("\r\n");
+		if (lineEnd == std::string::npos) {
+			break; // Wait for more data
+		}
+		std::string line = clientBuffers[client_fd].substr(0, lineEnd);
+		clientBuffers[client_fd].erase(0, lineEnd + 2); // Remove processed line
 
-    while (true) {
-        size_t lineEnd = clientBuffers[client_fd].find("\r\n");
-        if (lineEnd == std::string::npos) {
-            break; // Wait for more data
-        }
 
-        std::string line = clientBuffers[client_fd].substr(0, lineEnd);
-        clientBuffers[client_fd].erase(0, lineEnd + 2); // Remove processed line
-
-        std::cout << "--- Client " << client_fd << " Line: " << line << std::endl;
-
-        // 1. Parse the Request Line (First Line)
-        if (requests[client_fd].getMethod().empty()) {
-            std::istringstream iss(line);
-            std::string method, path, version;
-            if (!(iss >> method >> path >> version)) {
-                requests[client_fd].sendErrorResponse(400);
+		if (requests[client_fd].getMethod().empty()) 
+		{
+			if (!requests[client_fd].parseFirstLine(line)) {
+				// requests[client_fd].sendErrorResponse(400);
 				std::cout << "400 Bad Request" << std::endl;
-                return;
-            }
+				break;
+			}
+		}
 
-            if (method != "GET" && method != "POST" && method != "DELETE") {
-                requests[client_fd].sendErrorResponse(405);
-                return;
-            }
-            if (path.empty() || path[0] != '/' || version != "HTTP/1.1") {
-                requests[client_fd].sendErrorResponse(400);
-                return;
-            }
-
-            // Store method, path, version
-            requests[client_fd].setMethod(method);
-            requests[client_fd].setPath(path);
-            requests[client_fd].setVersion(version);
-
-            std::cout << "Method: |" << method << "|\nPath: |" << path << "|\nVersion: |" << version << "|" << std::endl;
-        } 
-        
-        // 2. Parse Headers (Following Lines)
-        else {
-            // End of headers, check for Host header
+		// 2. Parse Headers (Following Lines)
+		else {
+			// End of headers, check for Host header
 			std::string hostHeader;
-            if (line.empty()) {
-                if (requests[client_fd].getHeaders().find("Host") == requests[client_fd].getHeaders().end()) {
-                    requests[client_fd].sendErrorResponse(400); // Bad Request: Missing Host Header
-                    std::cout << "-- Host header missing 400 --" << std::endl;
-                    return;
-                }
+			if (line.empty()) // End of headers
+			{
+				if (requests[client_fd].getHeaders().find("host") == requests[client_fd].getHeaders().end()) {
+					requests[client_fd].sendErrorResponse(400); // Bad Request: Missing Host Header
+					std::cout << "-- Host header missing 400 --" << std::endl;
+					return;
+				}
+				// Handle POST request body
+				if (requests[client_fd].getMethod() == "POST") {
+					std::string contentLength = requests[client_fd].getHeader("Content-Length");
+					if (contentLength.empty()) {
+						requests[client_fd].sendErrorResponse(411); // Length Required
+						std::cout << "-- Content-Length header missing 411 --" << std::endl;
+						return;
+					}
+					requests[client_fd].setContentLength(std::atoi(contentLength.c_str()));
+				} else {
+					// Process GET or DELETE request immediately
+					handleRequest(client_fd, requests[client_fd]);
+					requests[client_fd] = HTTPRequest(); // Reset for next request
+				}
+				break;
+			}
+			// 3. Store Header in Map
+			size_t colonPos = line.find(":");
+			if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
+				requests[client_fd].sendErrorResponse(400); // Malformed header
+				std::cout << "-- Ma lformed header 400 --" << std::endl;
+				return;
+			}
+			hostHeader = line.substr(0, colonPos);
+			std::string key;
+			std::transform(hostHeader.begin(), hostHeader.end(), hostHeader.begin(), ::tolower);
+			if (hostHeader == "host")
+			{
+				key = hostHeader.substr(0, colonPos);
+				std::cout << "Host header: " << key << std::endl;
+			}
+			else
+				key = line.substr(0, colonPos);
+			std::string value = line.substr(colonPos + 1);
+			value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
 
-                // Handle POST request body
-                if (requests[client_fd].getMethod() == "POST") {
-                    std::string contentLength = requests[client_fd].getHeader("Content-Length");
-                    if (contentLength.empty()) {
-                        requests[client_fd].sendErrorResponse(411); // Length Required
-                        std::cout << "-- Content-Length header missing 411 --" << std::endl;
-                        return;
-                    }
-                    requests[client_fd].setContentLength(std::atoi(contentLength.c_str()));
-                } else {
-                    // Process GET or DELETE request immediately
-                    handleRequest(client_fd, requests[client_fd]);
-                    requests[client_fd] = HTTPRequest(); // Reset for next request
-                }
-                break;
-            }
-
-            // 3. Store Header in Map
-            size_t colonPos = line.find(":");
-            if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
-                requests[client_fd].sendErrorResponse(400); // Malformed header
-                std::cout << "-- Malformed header 400 --" << std::endl;
-                return;
-            }
-
-            std::string key = line.substr(0, colonPos);
-            std::string value = line.substr(colonPos + 1);
-            value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
-
-            requests[client_fd].setHeader(key, value);
-            std::cout << "Header: " << key << " = " << value << std::endl;
-        }
-    }
-	// aficher all request client
-	std::cout << "================================================" << std::endl;
-	std::cout << "Request: " << requests[client_fd].getMethod() << " " << requests[client_fd].getpath() << std::endl;
+			requests[client_fd].setHeader(key, value);
+			std::cout << "Header: " << key << " = " << value << std::endl;
+		}
+	}
 }
 
 
 void Server::handleRequest(int client_fd, HTTPRequest &request) {
-    std::string method = request.getMethod();
-    std::string path = request.getpath();
+	std::string method = request.getMethod();
+	std::string path = request.getpath();
 	(void)client_fd;
 
-    // std::cout << "  Handling request: " << method << " " << path << std::endl;
-	// std::cout << " -------------------------------- " << std::endl;
+	// std::cout << "  Handling request: " << method << " " << path << std::endl;
+	std::cout << " -------------------------------- " << std::endl;
 
-    if (method == "GET") {
-        // handleGetRequest(client_fd, request);
-    } else if (method == "POST") {
-        // handlePostRequest(client_fd, request);
-    } else if (method == "DELETE") {
-        // handleDeleteRequest(client_fd, request);
-    } else {
-        request.sendErrorResponse(405); // Method Not Allowed
-    }
+	if (method == "GET") {
+		// request.handleGetRequest(client_fd);
+	} else if (method == "POST") {
+		// handlePostRequest(client_fd, request);
+	} else if (method == "DELETE") {
+		// handleDeleteRequest(client_fd, request);
+	} else {
+		request.sendErrorResponse(405); // Method Not Allowed
+	}
 }
+
+
+

@@ -12,10 +12,14 @@ int main() {
     ages["hoast"] = 1000;
 
     // // Check if a key exists
-    if (ages.find("host") != ages.end()) {
-        std::cout << "host exist" << std::endl;
-    }
+    // if (ages.find("host") != ages.end()) {
+    //     std::cout << "host exist" << std::endl;
+    // }
 
+    std::string h = "host";
+    std::string b;
+    b = h;
+    std::cout << "b = " << b << std::endl;
     // key= "alice"
     // value
 
