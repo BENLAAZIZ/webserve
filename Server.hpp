@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/20 19:19:52 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/20 22:39:04 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 
 
 #define PORT 8080
-#define BUFFER_SIZE 10
+#define BUFFER_SIZE 40
 #define MAX_CLIENTS 1000
 
 class Server {
@@ -28,8 +28,8 @@ class Server {
         // std::vector<HTTPRequest> requests;
         std::map<int, HTTPRequest> requests;
         std::map<int, std::string> clientBuffers; // Store accumulated request data for each client
-        bool flag_end_of_headers;
-        bool flag_body;
+        // bool flag_end_of_headers;
+        // bool flag_body;
         
     public:
         // Server(const Server& copy);

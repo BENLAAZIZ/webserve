@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 20:06:18 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/20 18:24:05 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/20 22:13:52 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,8 @@ class HTTPRequest
 		bool bodyFlag;
 		bool flag_end_of_headers;
 
-	int statusCode;
-    bool headersParsed;
+		int statusCode;
+		bool headersParsed;
 
 
 	public:
@@ -77,12 +77,12 @@ class HTTPRequest
 		void setBody(const std::string& body);
 		std::string getBody() const;
 		//***************
-		void setBodyFlag(bool flag) ;
+		// void setBodyFlag(bool flag) ;
 
-		bool getBodyFlag() const ;
+		// bool getBodyFlag() const ;
 
-		bool getFlagEndOfHeaders() const;
-		void setFlagEndOfHeaders(bool flag);
+		// bool getFlagEndOfHeaders() const;
+		// void setFlagEndOfHeaders(bool flag);
 
 		//-----------------------------
 		void setMethod(const std::string& method);
@@ -101,6 +101,11 @@ class HTTPRequest
 
 		void printRequest();
 		bool parseRequest(const std::string &rawRequest);
+
+		bool getFlagEndOfHeaders() const;
+		void setFlagEndOfHeaders(bool flag);
+		bool getBodyFlag() const;
+		void setBodyFlag(bool flag);
 };
 
 	

@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/20 18:27:27 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/20 22:12:54 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ HTTPRequest::HTTPRequest()
 	contentLength = 0;
 	flag_end_of_headers = false;
 	headersParsed = false;
+	bodyFlag = false;
 }
 
 HTTPRequest::~HTTPRequest()
@@ -250,4 +251,22 @@ bool HTTPRequest::getFlagEndOfHeaders() const
 std::size_t HTTPRequest::getContentLength() const
 {
 	return contentLength;
+}
+
+// bool HTTPRequest::getFlagEndOfHeaders() const
+// {
+// 	return flag_end_of_headers;
+// }
+
+// void HTTPRequest::setFlagEndOfHeaders(bool flag)
+// {
+// 	flag_end_of_headers = flag;
+// }
+bool HTTPRequest::getBodyFlag() const
+{
+	return bodyFlag;
+}
+void HTTPRequest::setBodyFlag(bool flag)
+{
+	bodyFlag = flag;
 }
