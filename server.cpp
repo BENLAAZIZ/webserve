@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/20 16:56:40 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/20 19:27:19 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -356,19 +356,24 @@ void Server::handleClientData(std::size_t index) {
 	clientBuffers[client_fd] += buffer; // Append new data to client's buffer
 
 	// Check for end of headers ("\r\n\r\n")
-size_t headerEndPos = clientBuffers[client_fd].find("\r\n\r\n");
+	size_t headerEndPos = clientBuffers[client_fd].find("\r\n\r\n");
 	if (headerEndPos != std::string::npos) {
 		flag_end_of_headers = true;
 		// Extract body (if any) after \r\n\r\n
-		std::size_t bodyStartPos = headerEndPos + 4; // Move past \r\n\r\n
-		if (bodyStartPos < clientBuffers[client_fd].size()) {
-			requests[client_fd].setBody(clientBuffers[client_fd].substr(bodyStartPos));
-			clientBuffers[client_fd].erase(bodyStartPos); // Remove body from buffer
-		}
+		// std::size_t bodyStartPos = headerEndPos + 4; // Move past \r\n\r\n
+		// if (bodyStartPos < clientBuffers[client_fd].size()) {
+		// 	requests[client_fd].setBody(requests[client_fd].getBody() + clientBuffers[client_fd].substr(bodyStartPos));
+		// 	clientBuffers[client_fd].erase(bodyStartPos); // Remove body from buffer
+		// }
 	}
 
+	// if (flag_end_of_headers) {
+	// 	std::cout << "End of headers found" << std::endl;
+	// }
+	
+
 	// Process data line by line
-	while (1) {
+	while (1 && !flag_body) {
 		size_t lineEnd = clientBuffers[client_fd].find("\r\n");
 		if (lineEnd == std::string::npos) {
 			// std::cout << "No complete line found, wait for more data" << std::endl;
@@ -393,9 +398,6 @@ size_t headerEndPos = clientBuffers[client_fd].find("\r\n\r\n");
 					return;
 				}
 
-
-
-
 				// Handle POST request body
 
 				// if (requests[client_fd].getMethod() == "POST") {
@@ -414,6 +416,7 @@ size_t headerEndPos = clientBuffers[client_fd].find("\r\n\r\n");
 				// 		std::cout << "**Content-Length:** " << requests[client_fd].getContentLength() << std::endl;
 				// 	}
 				// } 
+
 				break;
 			}
 
@@ -433,19 +436,12 @@ size_t headerEndPos = clientBuffers[client_fd].find("\r\n\r\n");
 		}
 	}
 
-	// Wait until full body is received before processing request
-	// if (requests[client_fd].getMethod() == "POST" && clientBuffers[client_fd].size() < requests[client_fd].getContentLength()) {
-	// 	std::cout << "-- Waiting for full request body --" << std::endl;
-	// 	return;
-	// }
-
 	// Process GET, DELETE, or complete POST request
 	if (flag_end_of_headers) {
+
 		// handleRequest(client_fd, requests[client_fd]);
-		std::cout << "================================================" << std::endl;
-		std::cout << clientBuffers[client_fd] << std::endl;
-		std::cout << "================================================" << std::endl;
 		requests[client_fd] = HTTPRequest(); // Reset for next request
 		flag_end_of_headers = false;
 	}
+		
 }

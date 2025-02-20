@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/20 16:01:45 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/20 19:19:52 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ class Server {
         std::map<int, HTTPRequest> requests;
         std::map<int, std::string> clientBuffers; // Store accumulated request data for each client
         bool flag_end_of_headers;
+        bool flag_body;
+        
     public:
         // Server(const Server& copy);
         // Server& operator=(const Server& copy);

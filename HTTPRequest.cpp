@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/20 16:01:12 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/20 18:27:27 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,14 +157,14 @@ bool HTTPRequest::parseFirstLine(const std::string& line)
 
 //--------------------------------------------------------------------------------------------
 
-std::string HTTPRequest::trim(const std::string& str)
-{
-	size_t first = str.find_first_not_of(" \t\n\r");
-	size_t last = str.find_last_not_of(" \t\n\r");
-	if (first == std::string::npos || last == std::string::npos)
-		return "";
-	return str.substr(first, last - first + 1);
-}
+// std::string HTTPRequest::trim(const std::string& str)
+// {
+// 	size_t first = str.find_first_not_of(" \t\n\r");
+// 	size_t last = str.find_last_not_of(" \t\n\r");
+// 	if (first == std::string::npos || last == std::string::npos)
+// 		return "";
+// 	return str.substr(first, last - first + 1);
+// }
 
 // Getters
 std::string HTTPRequest::getMethod() const 
@@ -197,6 +197,9 @@ std::string HTTPRequest::getStatusCodeMessage() const
 
 void HTTPRequest::setBody(const std::string& body) 
 { this->body = body; }
+
+std::string HTTPRequest::getBody() const 
+{ return body;}
 		
 
 void HTTPRequest::sendErrorResponse(int errorCode) 

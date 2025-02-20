@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 20:06:18 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/19 18:44:57 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/20 18:24:05 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -75,6 +75,7 @@ class HTTPRequest
 		bool parseHeader(const std::string& line);
 		std::size_t getContentLength() const;
 		void setBody(const std::string& body);
+		std::string getBody() const;
 		//***************
 		void setBodyFlag(bool flag) ;
 
