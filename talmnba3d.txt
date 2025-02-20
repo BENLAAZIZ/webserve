@@ -1,0 +1,84 @@
+
+void Server::handleClientData(std::size_t index) {
+    char buffer[BUFFER_SIZE];
+    int client_fd = pollfds[index].fd;
+
+    std::size_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE - 1, 0);
+    if (bytes_read <= 0) {
+        if (bytes_read == 0) {
+            std::cout << "Client disconnected fd: " << client_fd << std::endl;
+        } else {
+            std::cerr << "Receive error: " << strerror(errno) << std::endl;
+        }
+        close(client_fd);
+        pollfds.erase(pollfds.begin() + index);
+        clientBuffers.erase(client_fd);
+        requests.erase(client_fd);
+        return;
+    }
+
+    buffer[bytes_read] = '\0';
+    clientBuffers[client_fd] += buffer; // Append received data to buffer
+
+    // Check if headers are completely received
+    size_t headersEnd = clientBuffers[client_fd].find("\r\n\r\n");
+    if (headersEnd != std::string::npos) {
+        // Extract headers
+        std::string headers = clientBuffers[client_fd].substr(0, headersEnd);
+        clientBuffers[client_fd].erase(0, headersEnd + 4); // Remove headers from buffer
+        flag_end_of_headers = true;
+
+        // Process headers
+        std::istringstream headerStream(headers);
+
+		// parse first line
+		if (requests[client_fd].getMethod().empty())
+		{
+			std::string firstLine;
+			std::getline(headerStream, firstLine);
+			if (!requests[client_fd].parseFirstLine(firstLine)) {
+				requests[client_fd].sendErrorResponse(400);
+				std::cout << "400 Bad Request" << std::endl;
+			return;
+		}
+		std::cout << "Method: " << requests[client_fd].getMethod() << "\nPath: " << requests[client_fd].getpath() << "\nVersion: " << requests[client_fd].getVersion() << std::endl;
+		}
+		
+        std::string line;
+        while (std::getline(headerStream, line) && line != "\r") {
+            size_t colonPos = line.find(":");
+            if (colonPos != std::string::npos) {
+                std::string key = line.substr(0, colonPos);
+                std::string value = line.substr(colonPos + 1);
+                value.erase(0, value.find_first_not_of(" ")); // Trim spaces
+                std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+                requests[client_fd].setHeader(key, value);
+            }
+        }
+
+        // Check if Content-Length or Chunked Transfer Encoding exists
+        std::string contentLengthStr = requests[client_fd].getHeader("content-length");
+        std::string transferEncoding = requests[client_fd].getHeader("transfer-encoding");
+
+        if (!contentLengthStr.empty()) {
+            int contentLength = std::stoi(contentLengthStr);
+            requests[client_fd].setContentLength(contentLength);
+            if (clientBuffers[client_fd].size() >= (size_t)contentLength) {
+                requests[client_fd].setBody(clientBuffers[client_fd].substr(0, contentLength));
+                clientBuffers[client_fd].erase(0, contentLength);
+                // handleRequest(client_fd, requests[client_fd]); // Process request
+                requests[client_fd] = HTTPRequest(); // Reset for next request
+            }
+        } else if (transferEncoding == "chunked") {
+            // requests[client_fd].setChunked(true);
+			std::cout << "Chunked Transfer Encoding" << std::endl;
+        } else {
+            // No body, process request immediately
+            // handleRequest(client_fd, requests[client_fd]);
+            requests[client_fd] = HTTPRequest(); // Reset for next request
+		std::cout << "================================================" << std::endl;
+        }
+		// std::cout << "Request: " << requests[client_fd].getMethod() << " " << requests[client_fd].getpath() << std::endl;
+    }
+	
+}

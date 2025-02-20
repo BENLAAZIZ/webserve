@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/18 18:30:10 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/20 16:01:12 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,10 +18,11 @@ HTTPRequest::HTTPRequest()
 	path = "";
 	version = "";
 	extension = ""; 
-	statusCode.code = 200; // default status code
-	statusCode.message = "OK";
+	sstatusCode.code = 200; // default status code
+	sstatusCode.message = "OK";
 	contentLength = 0;
 	flag_end_of_headers = false;
+	headersParsed = false;
 }
 
 HTTPRequest::~HTTPRequest()
@@ -126,20 +127,20 @@ bool HTTPRequest::parseFirstLine(const std::string& line)
 			if (!(iss >> method >> path >> version)) {
 				// sendErrorResponse(400);
 				// std::cout << "400 Bad Request" << std::endl;
-				this->statusCode.code = 400;
-				std::cout << "400 Bad Request" << std::endl;
+				this->sstatusCode.code = 400;
+				std::cout << "400 Bad Request 1" << std::endl;
 				return false;
 				// break;
 			}
 
 			if (method != "GET" && method != "POST" && method != "DELETE") {
 				// sendErrorResponse(405);
-				this->statusCode.code = 405;
+				this->sstatusCode.code = 405;
 				return false;
 			}
 			if (path.empty() || path[0] != '/' || version != "HTTP/1.1") {
 				// sendErrorResponse(400);
-				this->statusCode.code = 400;
+				this->sstatusCode.code = 400;
 				std::cout << "400 Bad Request" << std::endl;
 				return false;
 			}
@@ -179,7 +180,7 @@ std::string HTTPRequest::getExtension() const
 { return extension; }
 
 int HTTPRequest::getStatusCode() const 
-{ return statusCode.code; }
+{ return sstatusCode.code; }
 
 std::string HTTPRequest::getHeader(const std::string& key) const
 {
@@ -192,7 +193,7 @@ const std::map<std::string, std::string>& HTTPRequest::getHeaders() const {
 }
 
 std::string HTTPRequest::getStatusCodeMessage() const 
-{ return statusCode.message; }
+{ return sstatusCode.message; }
 
 void HTTPRequest::setBody(const std::string& body) 
 { this->body = body; }
@@ -213,7 +214,7 @@ void HTTPRequest::sendErrorResponse(int errorCode)
 			case 505: errorMessage = "505 HTTP Version Not Supported"; break;
 			default: errorMessage = "500 Internal Server Error"; break;
     	}
-		statusCode.message = errorMessage;
+		sstatusCode.message = errorMessage;
 }
 
 //*************
@@ -238,3 +239,12 @@ void HTTPRequest::setFlagEndOfHeaders(bool flag)
 
 bool HTTPRequest::getFlagEndOfHeaders() const 
 { return flag_end_of_headers; }
+
+
+
+
+//--------------------------------------------------------------------------------------------
+std::size_t HTTPRequest::getContentLength() const
+{
+	return contentLength;
+}

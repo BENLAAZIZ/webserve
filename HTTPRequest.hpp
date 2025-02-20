@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 20:06:18 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/18 18:02:59 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/19 18:44:57 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ class HTTPRequest
 		std::string path;
 		std::string version;
 		std::string extension;
-		StatusCode statusCode;
+		StatusCode sstatusCode;
 		std::map<std::string, std::string> headers;
 		// const std::map<std::string, std::string>& getHeaders() const;
 		int contentLength;
@@ -49,12 +49,16 @@ class HTTPRequest
 		bool bodyFlag;
 		bool flag_end_of_headers;
 
+	int statusCode;
+    bool headersParsed;
+
+
 	public:
 		HTTPRequest();
 		~HTTPRequest();
 		HTTPRequest(const HTTPRequest& other);
 		HTTPRequest& operator=(const HTTPRequest& other);
-		bool parseRequest(const std::string& rawRequest) ;
+		// bool parseRequest(const std::string& rawRequest) ;
 		std::string trim(const std::string& str);
 		// Getters
 		std::string getMethod() const ;
@@ -67,7 +71,7 @@ class HTTPRequest
 		std::string getStatusCodeMessage() const;
 		void sendErrorResponse(int errorCode);
 		//*************
-		bool parseRequestLine(const std::string& line);
+		// bool parseRequestLine(const std::string& line);
 		bool parseHeader(const std::string& line);
 		std::size_t getContentLength() const;
 		void setBody(const std::string& body);
@@ -89,6 +93,13 @@ class HTTPRequest
 		void setHeader(const std::string& key, const std::string& value);
 
 		bool parseFirstLine(const std::string& line);
+
+
+
+
+
+		void printRequest();
+		bool parseRequest(const std::string &rawRequest);
 };
 
 	
