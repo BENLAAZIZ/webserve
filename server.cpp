@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/20 22:32:33 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/20 22:47:00 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -418,46 +418,47 @@ void Server::handleClientData(std::size_t index) {
 		// }
 	}
 	// body
-	else if (requests[client_fd].getFlagEndOfHeaders())
-	{
-		if (!requests[client_fd].getBodyFlag())
-		{
-			// Check for end of body
-			size_t bodyEndPos = clientBuffers[client_fd].find("\r\n\r\n");
-			if (bodyEndPos != std::string::npos) {
-				requests[client_fd].setBodyFlag(true);
-				std::cout << "End of bodys" << std::endl;
-			}
+	// if (requests[client_fd].getFlagEndOfHeaders())
+	// {
+	// 	if (!requests[client_fd].getBodyFlag())
+	// 	{
+	// 		// Check for end of body
+	// 		size_t bodyEndPos = clientBuffers[client_fd].find("\r\n\r\n");
+	// 		if (bodyEndPos != std::string::npos) {
+	// 			requests[client_fd].setBodyFlag(true);
+	// 			std::cout << "End of bodys" << std::endl;
+	// 		}
 
-			while (1) 
-			{
-				size_t lineEnd = clientBuffers[client_fd].find("\r\n");
-				if (lineEnd == std::string::npos) {	
-					break; // Wait for more data
-				}
-				std::string line = clientBuffers[client_fd].substr(0, lineEnd);
-				clientBuffers[client_fd].erase(0, lineEnd + 2); // Remove processed line
+	// 		while (1) 
+	// 		{
+	// 			size_t lineEnd = clientBuffers[client_fd].find("\r\n");
+	// 			if (lineEnd == std::string::npos) {	
+	// 				break; // Wait for more data
+	// 			}
+	// 			std::string line = clientBuffers[client_fd].substr(0, lineEnd);
+	// 			clientBuffers[client_fd].erase(0, lineEnd + 2); // Remove processed line
 
-					if (line.empty()) {
-						std::cout << "End of body" << std::endl;
+	// 				if (line.empty()) {
+	// 					std::cout << "End of body" << std::endl;
 						
-						// Handle POST request body
-						requests[client_fd].setBody(requests[client_fd].getBody() + line);	
-						break;
-					}
-					requests[client_fd].setBody(requests[client_fd].getBody() + line);
-			}
-		}
-	}
+	// 					// Handle POST request body
+	// 					requests[client_fd].setBody(requests[client_fd].getBody() + line);	
+	// 					break;
+	// 				}
+	// 				requests[client_fd].setBody(requests[client_fd].getBody() + line);
+	// 		}
+	// 	}
+	// }
 		
 		// Process GET, DELETE, or complete POST request
-	if (requests[client_fd].getFlagEndOfHeaders() && requests[client_fd].getBodyFlag()) {
+	// if (requests[client_fd].getFlagEndOfHeaders() && requests[client_fd].getBodyFlag()) {
+	if (requests[client_fd].getFlagEndOfHeaders()) {
 
 			// handleRequest(client_fd, requests[client_fd]);
 			std::cout << "==================================================" << std::endl;
 			std::cout << "Body: " << requests[client_fd].getBody() << std::endl;
-			requests[client_fd] = HTTPRequest(); // Reset for next request
 			requests[client_fd].setFlagEndOfHeaders(false);
+			requests[client_fd] = HTTPRequest(); // Reset for next request
 		}
 		
 }

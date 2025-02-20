@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/20 22:39:04 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/20 22:44:29 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,11 +25,9 @@ class Server {
         int server_fd;
         std::vector<struct pollfd> pollfds;
         void setNonBlocking(int fd);
-        // std::vector<HTTPRequest> requests;
         std::map<int, HTTPRequest> requests;
         std::map<int, std::string> clientBuffers; // Store accumulated request data for each client
-        // bool flag_end_of_headers;
-        // bool flag_body;
+
         
     public:
         // Server(const Server& copy);

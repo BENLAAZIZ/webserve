@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 20:06:18 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/20 22:13:52 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/20 22:44:01 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,8 +58,6 @@ class HTTPRequest
 		~HTTPRequest();
 		HTTPRequest(const HTTPRequest& other);
 		HTTPRequest& operator=(const HTTPRequest& other);
-		// bool parseRequest(const std::string& rawRequest) ;
-		std::string trim(const std::string& str);
 		// Getters
 		std::string getMethod() const ;
 		std::string getpath() const ;
@@ -71,18 +69,11 @@ class HTTPRequest
 		std::string getStatusCodeMessage() const;
 		void sendErrorResponse(int errorCode);
 		//*************
-		// bool parseRequestLine(const std::string& line);
-		bool parseHeader(const std::string& line);
+
 		std::size_t getContentLength() const;
 		void setBody(const std::string& body);
 		std::string getBody() const;
 		//***************
-		// void setBodyFlag(bool flag) ;
-
-		// bool getBodyFlag() const ;
-
-		// bool getFlagEndOfHeaders() const;
-		// void setFlagEndOfHeaders(bool flag);
 
 		//-----------------------------
 		void setMethod(const std::string& method);
@@ -95,12 +86,6 @@ class HTTPRequest
 
 		bool parseFirstLine(const std::string& line);
 
-
-
-
-
-		void printRequest();
-		bool parseRequest(const std::string &rawRequest);
 
 		bool getFlagEndOfHeaders() const;
 		void setFlagEndOfHeaders(bool flag);
