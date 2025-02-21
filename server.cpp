@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/20 22:47:00 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/21 16:17:26 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -375,7 +375,8 @@ void Server::handleClientData(std::size_t index) {
 
 			if (requests[client_fd].getMethod().empty() || requests[client_fd].getpath().empty() || requests[client_fd].getVersion().empty()) {
 				if (!requests[client_fd].parseFirstLine(line)) {
-					std::cout << "400 Bad Request" << std::endl;
+					requests[client_fd].sendErrorResponse(requests[client_fd].getStatusCode());
+					std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
 					return;
 				}
 				std::cout << "----------------->First Line method: |" << requests[client_fd].getMethod() << "|" << std::endl;
@@ -386,23 +387,30 @@ void Server::handleClientData(std::size_t index) {
 					if (requests[client_fd].getHeaders().find("host") == requests[client_fd].getHeaders().end()) {
 						requests[client_fd].sendErrorResponse(400);
 						std::cout << "-- Host header missing 400 --" << std::endl;
+						std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
 						return;
 					}
-
-
 					break;
 				}
-
 				size_t colonPos = line.find(":");
 				if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
 					requests[client_fd].sendErrorResponse(400);
 					std::cout << "-- Malformed header 400 --" << std::endl;
+					std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
 					return;
 				}
-				std::string key = line.substr(0, colonPos);
-				std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+				std::string hostHeader = line.substr(0, colonPos);
+				std::string key;
+				std::transform(hostHeader.begin(), hostHeader.end(), hostHeader.begin(), ::tolower);
+				if (hostHeader == "host")
+				{
+					key = hostHeader.substr(0, colonPos);
+					std::cout << "Host header: " << key << std::endl;
+				}
+				else
+					key = line.substr(0, colonPos);
 				std::string value = line.substr(colonPos + 1);
-				value.erase(0, value.find_first_not_of(" "));
+				value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
 
 				requests[client_fd].setHeader(key, value);
 				std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;

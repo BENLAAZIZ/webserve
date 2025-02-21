@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/21 15:55:45 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/21 16:10:52 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,19 +223,14 @@ bool HTTPRequest::parseFirstLine(const std::string& line)
 	std::string method, path, version;
 	if (!(iss >> method >> path >> version)) {
 		this->statusCode.code = 400;
-		std::cout << "400 Bad Request 1" << std::endl;
 		return false;
-		// break;
 	}
 	if (method != "GET" && method != "POST" && method != "DELETE") {
-		// sendErrorResponse(405);
 		this->statusCode.code = 405;
 		return false;
 	}
 	if (path.empty() || path[0] != '/' || version != "HTTP/1.1") {
-		// sendErrorResponse(400);
 		this->statusCode.code = 400;
-		std::cout << "400 Bad Request" << std::endl;
 		return false;
 	}
 
