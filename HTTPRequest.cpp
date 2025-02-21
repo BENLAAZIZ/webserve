@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/21 16:10:52 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/21 16:56:17 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,4 +241,64 @@ bool HTTPRequest::parseFirstLine(const std::string& line)
 
 	std::cout << "Method: |" << method << "|\nPath: |" << path << "|\nVersion: |" << version << "|" << std::endl;
 	return true;
+}
+
+
+
+// bool HTTPRequest::parseHeader(const std::string& line)
+bool HTTPRequest::parseHeader(std::string& line_buf)
+{
+	// Check for end of headers ("\r\n\r\n")
+	size_t headerEndPos = line_buf.find("\r\n\r\n");
+		if (headerEndPos != std::string::npos) {
+			setFlagEndOfHeaders(true);
+			std::cout << "End of headers" << std::endl;
+		}
+		// Process data line by line
+		while (1) {
+			size_t lineEnd = line_buf.find("\r\n");
+			if (lineEnd == std::string::npos) {
+				break; // Wait for more data
+			}
+			std::string line = line_buf.substr(0, lineEnd);
+			line_buf.erase(0, lineEnd + 2); // Remove processed line
+			// Remove processed line
+
+			if (getMethod().empty() || getpath().empty() || getVersion().empty()) {
+				if (!parseFirstLine(line)) {
+					return false;
+				}
+				std::cout << "----------------->First Line method: |" << getMethod() << "|" << std::endl;
+			}
+			else {
+				if (line.empty()) {
+					std::cout << "End of headers" << std::endl;
+					if (getHeaders().find("host") == getHeaders().end()) {
+						this->statusCode.code = 400;
+						std::cout << "-- Host header missing 400 --" << std::endl;
+						return false;
+					}
+					break;
+				}
+				size_t colonPos = line.find(":");
+				if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
+					this->statusCode.code = 400;
+					std::cout << "-- Malformed header 400 --" << std::endl;
+					return false;
+				}
+				std::string hostHeader = line.substr(0, colonPos);
+				std::string key;
+				std::transform(hostHeader.begin(), hostHeader.end(), hostHeader.begin(), ::tolower);
+				if (hostHeader == "host")
+					key = hostHeader.substr(0, colonPos);
+				else
+					key = line.substr(0, colonPos);
+				std::string value = line.substr(colonPos + 1);
+				value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
+
+				setHeader(key, value);
+				std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+			}	
+		}
+		return true;
 }

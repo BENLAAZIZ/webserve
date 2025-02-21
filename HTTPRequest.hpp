@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 20:06:18 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/21 15:52:53 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/21 16:40:27 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,6 +85,7 @@ class HTTPRequest
 
 		void		sendErrorResponse(int errorCode);
 		bool		parseFirstLine(const std::string& line);
+		bool		parseHeader(std::string& line);
 
 
 };

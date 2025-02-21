@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/21 16:17:26 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/21 16:54:42 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -355,75 +355,12 @@ void Server::handleClientData(std::size_t index) {
 	buffer[bytes_read] = '\0';
 	clientBuffers[client_fd] += buffer; // Append new data to client's buffer
 
-	// Check for end of headers ("\r\n\r\n")
 	if(!requests[client_fd].getFlagEndOfHeaders())
 	{
-		size_t headerEndPos = clientBuffers[client_fd].find("\r\n\r\n");
-		if (headerEndPos != std::string::npos) {
-			requests[client_fd].setFlagEndOfHeaders(true);
-			std::cout << "End of headers" << std::endl;
-		}
-
-		// Process data line by line
-		while (1) {
-			size_t lineEnd = clientBuffers[client_fd].find("\r\n");
-			if (lineEnd == std::string::npos) {
-				break; // Wait for more data
+			if (!requests[client_fd].parseHeader(clientBuffers[client_fd])) {
+				requests[client_fd].sendErrorResponse(requests[client_fd].getStatusCode());
+				std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
 			}
-			std::string line = clientBuffers[client_fd].substr(0, lineEnd);
-			clientBuffers[client_fd].erase(0, lineEnd + 2); // Remove processed line
-
-			if (requests[client_fd].getMethod().empty() || requests[client_fd].getpath().empty() || requests[client_fd].getVersion().empty()) {
-				if (!requests[client_fd].parseFirstLine(line)) {
-					requests[client_fd].sendErrorResponse(requests[client_fd].getStatusCode());
-					std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
-					return;
-				}
-				std::cout << "----------------->First Line method: |" << requests[client_fd].getMethod() << "|" << std::endl;
-			}
-			else {
-				if (line.empty()) {
-					std::cout << "End of headers" << std::endl;
-					if (requests[client_fd].getHeaders().find("host") == requests[client_fd].getHeaders().end()) {
-						requests[client_fd].sendErrorResponse(400);
-						std::cout << "-- Host header missing 400 --" << std::endl;
-						std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
-						return;
-					}
-					break;
-				}
-				size_t colonPos = line.find(":");
-				if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
-					requests[client_fd].sendErrorResponse(400);
-					std::cout << "-- Malformed header 400 --" << std::endl;
-					std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
-					return;
-				}
-				std::string hostHeader = line.substr(0, colonPos);
-				std::string key;
-				std::transform(hostHeader.begin(), hostHeader.end(), hostHeader.begin(), ::tolower);
-				if (hostHeader == "host")
-				{
-					key = hostHeader.substr(0, colonPos);
-					std::cout << "Host header: " << key << std::endl;
-				}
-				else
-					key = line.substr(0, colonPos);
-				std::string value = line.substr(colonPos + 1);
-				value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
-
-				requests[client_fd].setHeader(key, value);
-				std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
-			}
-		}
-
-		// Process GET, DELETE, or complete POST request
-		// if (requests[client_fd].getFlagEndOfHeaders()) {
-
-		// 	// handleRequest(client_fd, requests[client_fd]);
-		// 	requests[client_fd] = HTTPRequest(); // Reset for next request
-		// 	requests[client_fd].setFlagEndOfHeaders(false);
-		// }
 	}
 	// body
 	// if (requests[client_fd].getFlagEndOfHeaders())
@@ -458,8 +395,7 @@ void Server::handleClientData(std::size_t index) {
 	// 	}
 	// }
 		
-		// Process GET, DELETE, or complete POST request
-	// if (requests[client_fd].getFlagEndOfHeaders() && requests[client_fd].getBodyFlag()) {
+// Process GET, DELETE, or complete POST request
 	if (requests[client_fd].getFlagEndOfHeaders()) {
 
 			// handleRequest(client_fd, requests[client_fd]);
@@ -468,5 +404,6 @@ void Server::handleClientData(std::size_t index) {
 			requests[client_fd].setFlagEndOfHeaders(false);
 			requests[client_fd] = HTTPRequest(); // Reset for next request
 		}
+	
 		
 }
