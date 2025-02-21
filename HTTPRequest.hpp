@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 20:06:18 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/20 22:44:01 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/21 15:52:53 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,26 +30,25 @@
 
 typedef struct StatusCode 
 {
-	std::size_t code;
-	std::string message;
+	std::size_t	code;
+	std::string	message;
 } StatusCode;
 
 class HTTPRequest 
 {
 	private:
-		std::string method;
-		std::string path;
-		std::string version;
-		std::string extension;
-		StatusCode sstatusCode;
+		std::string	method;
+		std::string	path;
+		std::string	version;
+		std::string	extension;
+		StatusCode statusCode;
 		std::map<std::string, std::string> headers;
-		// const std::map<std::string, std::string>& getHeaders() const;
 		int contentLength;
-		std::string body; 
+		std::string	body; 
 		bool bodyFlag;
 		bool flag_end_of_headers;
 
-		int statusCode;
+		// int statusCode;
 		bool headersParsed;
 
 
@@ -59,38 +58,35 @@ class HTTPRequest
 		HTTPRequest(const HTTPRequest& other);
 		HTTPRequest& operator=(const HTTPRequest& other);
 		// Getters
-		std::string getMethod() const ;
-		std::string getpath() const ;
-		std::string getVersion() const ;
-		std::string getExtension() const ;
-		int getStatusCode() const ;
-		std::string getHeader(const std::string& key) const ;
-		const std::map<std::string, std::string>& getHeaders() const ;
-		std::string getStatusCodeMessage() const;
-		void sendErrorResponse(int errorCode);
-		//*************
+		std::string	getMethod() const;
+		std::string	getpath() const;
+		std::string	getVersion() const;
+		std::string	getExtension() const;
+		std::string	getHeader(const std::string& key) const;
+		std::string	getStatusCodeMessage() const;
+		std::string	getBody() const;
+		std::size_t	getContentLength() const;
+		bool		getFlagEndOfHeaders() const;
+		bool		getBodyFlag() const;
+		int			getStatusCode() const ;
+		const std::map<std::string, std::string>& getHeaders() const;
 
-		std::size_t getContentLength() const;
-		void setBody(const std::string& body);
-		std::string getBody() const;
-		//***************
-
-		//-----------------------------
-		void setMethod(const std::string& method);
-		void setPath(const std::string& path);
-		void setVersion(const std::string& version);
-
-		void setContentLength(int contentLength);
-
-		void setHeader(const std::string& key, const std::string& value);
-
-		bool parseFirstLine(const std::string& line);
+		// Setters
+		void		setMethod(const std::string& method);
+		void		setPath(const std::string& path);
+		void		setVersion(const std::string& version);
+		void		setHeader(const std::string& key, const std::string& value);
+		void		setBody(const std::string& body);
+		void		setContentLength(int contentLength);
+		void		setFlagEndOfHeaders(bool flag);
+		void		setBodyFlag(bool flag);
 
 
-		bool getFlagEndOfHeaders() const;
-		void setFlagEndOfHeaders(bool flag);
-		bool getBodyFlag() const;
-		void setBodyFlag(bool flag);
+
+		void		sendErrorResponse(int errorCode);
+		bool		parseFirstLine(const std::string& line);
+
+
 };
 
 	
