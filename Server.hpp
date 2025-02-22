@@ -6,9 +6,10 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/21 16:05:18 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/22 17:45:52 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
@@ -17,29 +18,29 @@
 
 
 #define PORT 8080
-#define BUFFER_SIZE 30000
+#define BUFFER_SIZE 10
 #define MAX_CLIENTS 1000
 
-class Server {
-    private:
-        int server_fd;
-        std::vector<struct pollfd> pollfds;
-        void setNonBlocking(int fd);
-        std::map<int, HTTPRequest> requests;
-        std::map<int, std::string> clientBuffers; // Store accumulated request data for each client
+	class Server {
+	private:
+		int server_fd;
+		std::vector<struct pollfd> poll_fds;
+		void setNonBlocking(int fd);
+		std::map<int, HTTPRequest> requests;
+		std::map<int, std::string> clientBuffers; // Store accumulated request data for each client
 
-        
-    public:
-        // Server(const Server& copy);
-        // Server& operator=(const Server& copy);
-        ~Server();
-        Server(int port);
-        void handleNewConnection();
-        void handleClientData(std::size_t index);
-        void run();
-        void handleRequest(int client_fd, HTTPRequest &request);
+		
+	public:
+		// Server(const Server& copy);
+		// Server& operator=(const Server& copy);
+		~Server();
+		Server(int port);
+		void handleNewConnection();
+		void handleClientData(std::size_t index);
+		void run();
+		void handleRequest(int client_fd, HTTPRequest &request);
 
-        // std::string toUpperCase(const std::string& str);
+		// std::string toUpperCase(const std::string& str);
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/22 12:00:24 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/22 18:36:43 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,10 +20,11 @@ HTTPRequest::HTTPRequest()
 	// extension = ""; 
 	statusCode.code = 200; // default status code
 	statusCode.message = "OK";
-	contentLength = 0;
+	content_length = 0;
 	flag_end_of_headers = false;
 	headersParsed = false;
 	bodyFlag = false;
+	transferEncodingExist = false;
 }
 
 HTTPRequest::~HTTPRequest()
@@ -145,7 +146,7 @@ std::string HTTPRequest::getBody() const
 
 std::size_t HTTPRequest::getContentLength() const
 {
-	return contentLength;
+	return content_length;
 }
 
 bool HTTPRequest::getFlagEndOfHeaders() const 
@@ -157,6 +158,11 @@ bool HTTPRequest::getBodyFlag() const
 }
 int HTTPRequest::getStatusCode() const 
 { return statusCode.code; }
+
+bool HTTPRequest::getTransferEncodingExist() const
+{
+	return transferEncodingExist;
+}
 
 const std::map<std::string, std::string>& HTTPRequest::getHeaders() const { 
 	return headers; 
@@ -177,7 +183,7 @@ void HTTPRequest::setVersion(const std::string& version)
 { this->version = version; }
 
 void HTTPRequest::setContentLength(int contentLength) 
-{ this->contentLength = contentLength; }
+{ this->content_length = contentLength; }
 
 void HTTPRequest::setHeader(const std::string& key, const std::string& value) {
     headers[key] = value;
@@ -190,6 +196,11 @@ void HTTPRequest::setFlagEndOfHeaders(bool flag)
 void HTTPRequest::setBodyFlag(bool flag)
 {
 	bodyFlag = flag;
+}
+
+void HTTPRequest::setTransferEncodingExist(bool flag)
+{
+	transferEncodingExist = flag;
 }
 
 /*=========== sendErrorResponse =============*/
@@ -272,6 +283,25 @@ bool HTTPRequest::parseHeader(std::string& line_buf)
 						std::cout << "-- Host header missing 400 --" << std::endl;
 						return false;
 					}
+					// find content length from headers map
+					if (getMethod() == "POST")
+					{
+						if (getHeaders().find("Content-Length") != getHeaders().end())
+						{
+							
+						}
+						if (getHeaders().find("Transfer-Encoding") != getHeaders().end())
+						{
+							setTransferEncodingExist(true);
+						}
+						if (getHeaders().find("Content-Type") != getHeaders().end())
+						{
+							
+						}
+						
+					}
+					
+					
 					break;
 				}
 				size_t colonPos = line.find(":");

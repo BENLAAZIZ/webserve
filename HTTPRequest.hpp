@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 20:06:18 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/22 12:01:23 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/22 18:03:55 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,8 +43,12 @@ class HTTPRequest
 		std::string	extension;
 		StatusCode statusCode;
 		std::map<std::string, std::string> headers;
-		int contentLength;
 		std::string	body; 
+		std::string content_type;
+		std::string boundary;
+		size_t content_length;
+		bool transferEncodingExist;
+		
 		bool bodyFlag;
 		bool flag_end_of_headers;
 		// int statusCode;
@@ -66,6 +70,7 @@ class HTTPRequest
 		bool		getFlagEndOfHeaders() const;
 		bool		getBodyFlag() const;
 		int			getStatusCode() const ;
+		bool 		getTransferEncodingExist() const;
 		const std::map<std::string, std::string>& getHeaders() const;
 		// Setters
 		void		setMethod(const std::string& method);
@@ -76,6 +81,7 @@ class HTTPRequest
 		void		setContentLength(int contentLength);
 		void		setFlagEndOfHeaders(bool flag);
 		void		setBodyFlag(bool flag);
+		void 		setTransferEncodingExist(bool flag);
 		// Methods
 		void		sendErrorResponse(int errorCode);
 		bool		parseFirstLine(const std::string& line);
