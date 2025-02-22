@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/21 16:56:17 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/22 12:00:24 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,7 +148,6 @@ std::size_t HTTPRequest::getContentLength() const
 	return contentLength;
 }
 
-		
 bool HTTPRequest::getFlagEndOfHeaders() const 
 { return flag_end_of_headers; }
 
@@ -193,7 +192,6 @@ void HTTPRequest::setBodyFlag(bool flag)
 	bodyFlag = flag;
 }
 
-
 /*=========== sendErrorResponse =============*/
 
 void HTTPRequest::sendErrorResponse(int errorCode) 
@@ -216,7 +214,6 @@ void HTTPRequest::sendErrorResponse(int errorCode)
 
 /*=========== parseFirstLine =============*/
 
-
 bool HTTPRequest::parseFirstLine(const std::string& line)
 {
 	std::istringstream iss(line);
@@ -233,7 +230,6 @@ bool HTTPRequest::parseFirstLine(const std::string& line)
 		this->statusCode.code = 400;
 		return false;
 	}
-
 	// Store method, path, version
 	setMethod(method);
 	setPath(path);
@@ -243,9 +239,7 @@ bool HTTPRequest::parseFirstLine(const std::string& line)
 	return true;
 }
 
-
-
-// bool HTTPRequest::parseHeader(const std::string& line)
+/*=========== parseHeader =============*/
 bool HTTPRequest::parseHeader(std::string& line_buf)
 {
 	// Check for end of headers ("\r\n\r\n")
