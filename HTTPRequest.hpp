@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 20:06:18 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/22 18:03:55 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/22 20:36:53 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,11 +66,14 @@ class HTTPRequest
 		std::string	getHeader(const std::string& key) const;
 		std::string	getStatusCodeMessage() const;
 		std::string	getBody() const;
+		std::string	getContent_type() const;
 		std::size_t	getContentLength() const;
+		std::string getBoundary() const;
 		bool		getFlagEndOfHeaders() const;
 		bool		getBodyFlag() const;
 		int			getStatusCode() const ;
 		bool 		getTransferEncodingExist() const;
+
 		const std::map<std::string, std::string>& getHeaders() const;
 		// Setters
 		void		setMethod(const std::string& method);
@@ -82,6 +85,8 @@ class HTTPRequest
 		void		setFlagEndOfHeaders(bool flag);
 		void		setBodyFlag(bool flag);
 		void 		setTransferEncodingExist(bool flag);
+		void		setContent_type(const std::string& content_type);
+		void		setBoundary(const std::string& boundary);
 		// Methods
 		void		sendErrorResponse(int errorCode);
 		bool		parseFirstLine(const std::string& line);

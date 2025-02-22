@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/22 18:36:43 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/22 23:24:40 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -149,6 +149,11 @@ std::size_t HTTPRequest::getContentLength() const
 	return content_length;
 }
 
+std::string HTTPRequest::getBoundary() const
+{
+	return boundary;
+}
+
 bool HTTPRequest::getFlagEndOfHeaders() const 
 { return flag_end_of_headers; }
 
@@ -166,6 +171,11 @@ bool HTTPRequest::getTransferEncodingExist() const
 
 const std::map<std::string, std::string>& HTTPRequest::getHeaders() const { 
 	return headers; 
+}
+
+std::string HTTPRequest::getContent_type() const
+{
+	return content_type;
 }
 
 /*=========== setters =============*/
@@ -201,6 +211,16 @@ void HTTPRequest::setBodyFlag(bool flag)
 void HTTPRequest::setTransferEncodingExist(bool flag)
 {
 	transferEncodingExist = flag;
+}
+
+void HTTPRequest::setContent_type(const std::string& content_type)
+{
+	this->content_type = content_type;
+}
+
+void HTTPRequest::setBoundary(const std::string& boundary)
+{
+	this->boundary = boundary;
 }
 
 /*=========== sendErrorResponse =============*/
@@ -257,7 +277,7 @@ bool HTTPRequest::parseHeader(std::string& line_buf)
 	size_t headerEndPos = line_buf.find("\r\n\r\n");
 		if (headerEndPos != std::string::npos) {
 			setFlagEndOfHeaders(true);
-			std::cout << "End of headers" << std::endl;
+			// std::cout << "End of headers" << std::endl;
 		}
 		// Process data line by line
 		while (1) {
@@ -275,7 +295,8 @@ bool HTTPRequest::parseHeader(std::string& line_buf)
 				}
 				std::cout << "----------------->First Line method: |" << getMethod() << "|" << std::endl;
 			}
-			else {
+			else 
+			{
 				if (line.empty()) {
 					std::cout << "End of headers" << std::endl;
 					if (getHeaders().find("host") == getHeaders().end()) {
@@ -286,22 +307,40 @@ bool HTTPRequest::parseHeader(std::string& line_buf)
 					// find content length from headers map
 					if (getMethod() == "POST")
 					{
-						if (getHeaders().find("Content-Length") != getHeaders().end())
+						if (getHeaders().find("Content-Length") == getHeaders().end())
 						{
-							
+							this->statusCode.code = 411;
+							std::cout << "-- Content-Length header missing 411 --" << std::endl;
+							return false;
+						}
+						else
+						{
+							setContentLength(atoi(getHeader("Content-Length").c_str()));
+							std::cout << "--Content-Length: " << getContentLength() << std::endl;
 						}
 						if (getHeaders().find("Transfer-Encoding") != getHeaders().end())
 						{
+							std::cout << "--Transfer-Encoding: " << getHeader("Transfer-Encoding") << std::endl;
 							setTransferEncodingExist(true);
 						}
 						if (getHeaders().find("Content-Type") != getHeaders().end())
 						{
-							
+							// setContent_type(getHeader("Content-Type"));
+							std::cout << "--Content-Type: " << getContent_type() << std::endl;
+							if (getHeader("Content-Type").find("boundary=") != std::string::npos)
+							{
+								size_t boundary_pos = getHeader("Content-Type").find("boundary=");
+								boundary = getHeader("Content-Type").substr(boundary_pos + 9);
+								setBoundary(boundary);
+								std::cout << "boundary:* " << getBoundary() << std::endl;
+								setContent_type("multipart/form-data");
+							}
+							else
+							{
+								setContent_type(getHeader("Content-Type"));
+							}
 						}
-						
 					}
-					
-					
 					break;
 				}
 				size_t colonPos = line.find(":");
@@ -319,7 +358,6 @@ bool HTTPRequest::parseHeader(std::string& line_buf)
 					key = line.substr(0, colonPos);
 				std::string value = line.substr(colonPos + 1);
 				value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
-
 				setHeader(key, value);
 				std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
 			}	
