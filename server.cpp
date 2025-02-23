@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/22 22:57:01 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/23 21:43:08 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -180,11 +180,14 @@ void Server::run() {
 // }
 
 // ----------------------------------------------
+
+
+
+
 void Server::handleClientData(size_t index) 
 {
 	int client_fd = poll_fds[index].fd;
 	char buffer[BUFFER_SIZE];
-	HTTPRequest request;
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0); // Read 49 bytes at a time
 
 	if (bytes_read < 0) {
@@ -205,11 +208,14 @@ void Server::handleClientData(size_t index)
 	}
 	std::string data(buffer, bytes_read);
 	// std::cout << data;
-	clientBuffers[client_fd] += data; // Append new data to client's buffer
+
+	buffer_data += data; // Append new data to client's buffer
+	
+	// requests[client_fd] = request;
 
 	if(!requests[client_fd].getFlagEndOfHeaders())
 	{
-			if (!requests[client_fd].parseHeader(clientBuffers[client_fd])) {
+			if (!requests[client_fd].parseHeader(buffer_data)) {
 				requests[client_fd].sendErrorResponse(requests[client_fd].getStatusCode());
 				std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
 			}
@@ -219,15 +225,84 @@ void Server::handleClientData(size_t index)
 	// Process GET, DELETE, or complete POST request
 	if (requests[client_fd].getFlagEndOfHeaders()) {
 			// handleRequest(client_fd, requests[client_fd]);
-			std::cout << "==================================================" << std::endl;
-			std::cout << "Body: " << requests[client_fd].getBody() << std::endl;
-			std::cout << "==================================================" << std::endl;
+
+			while (1)
+			{
+				size_t lineEnd = buffer_data.find("\r\n");
+				if (lineEnd == std::string::npos) {
+					break; // Wait for more data
+				}
+				// std::string line = buffer_data.substr(0, lineEnd);
+				buffer_data.erase(0, lineEnd + 2); // Remove processed line
+				std::cout << "Body: " << buffer_data << std::endl;
+			}
 			
-			requests[client_fd].setFlagEndOfHeaders(false);
+			// std::cout << "==================================================" << std::endl;
+			// std::cout << "==================================================" << std::endl;
 			
-			requests[client_fd] = HTTPRequest(); // Reset for next request
+			// requests[client_fd].setFlagEndOfHeaders(false);
+			
+			// requests[client_fd] = HTTPRequest(); // Reset for next request
 		}	
 }
+
+
+
+
+
+//-----------------------------------------------
+
+
+
+
+// void Server::handleClientData(size_t index) 
+// {
+// 	int client_fd = poll_fds[index].fd;
+// 	char buffer[BUFFER_SIZE];
+// 	HTTPRequest request;
+// 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0); // Read 49 bytes at a time
+
+// 	if (bytes_read < 0) {
+// 		if (errno == EWOULDBLOCK || errno == EAGAIN) {
+// 			return; // No data available, wait for next poll()
+// 		}
+// 		std::cerr << "Recv failed: " << strerror(errno) << std::endl;
+// 		close(client_fd);
+// 		poll_fds.erase(poll_fds.begin() + index);
+// 		return;
+// 	}
+	
+// 	if (bytes_read == 0) {
+// 		std::cout << "Client disconnected, closing connection." << std::endl;
+// 		close(client_fd);
+// 		poll_fds.erase(poll_fds.begin() + index);
+// 		return;
+// 	}
+// 	std::string data(buffer, bytes_read);
+// 	// std::cout << data;
+// 	clientBuffers[client_fd] += data; // Append new data to client's buffer
+
+// 	if(!requests[client_fd].getFlagEndOfHeaders())
+// 	{
+// 			if (!requests[client_fd].parseHeader(clientBuffers[client_fd])) {
+// 				requests[client_fd].sendErrorResponse(requests[client_fd].getStatusCode());
+// 				std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
+// 			}
+// 	}
+
+		
+// 	// Process GET, DELETE, or complete POST request
+// 	if (requests[client_fd].getFlagEndOfHeaders()) {
+// 			// handleRequest(client_fd, requests[client_fd]);
+// 			std::cout << "==================================================" << std::endl;
+// 			std::cout << "Body: " << requests[client_fd].getBody() << std::endl;
+// 			std::cout << "==================================================" << std::endl;
+			
+// 			requests[client_fd].setFlagEndOfHeaders(false);
+			
+// 			requests[client_fd] = HTTPRequest(); // Reset for next request
+// 		}	
+// }
 
 
 
