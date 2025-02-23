@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/23 21:25:18 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/23 21:54:55 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 
 
 #define PORT 8080
-#define BUFFER_SIZE 10
+#define BUFFER_SIZE 1000
 #define MAX_CLIENTS 1000
 
 	class Server {

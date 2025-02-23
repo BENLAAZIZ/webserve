@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/23 21:43:08 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/23 22:07:45 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -210,7 +210,7 @@ void Server::handleClientData(size_t index)
 	// std::cout << data;
 
 	buffer_data += data; // Append new data to client's buffer
-	
+	// clientBuffers[client_fd] += data;
 	// requests[client_fd] = request;
 
 	if(!requests[client_fd].getFlagEndOfHeaders())
@@ -225,6 +225,13 @@ void Server::handleClientData(size_t index)
 	// Process GET, DELETE, or complete POST request
 	if (requests[client_fd].getFlagEndOfHeaders()) {
 			// handleRequest(client_fd, requests[client_fd]);
+		if (!requests[client_fd].getBodyFlag())
+		{
+			size_t headerEndPos = buffer_data.find("\r\n\r\n");
+			if (headerEndPos != std::string::npos) {
+				requests[client_fd].setBodyFlag(true);
+				// std::cout << "End of headers" << std::endl;
+			}
 
 			while (1)
 			{
@@ -232,10 +239,19 @@ void Server::handleClientData(size_t index)
 				if (lineEnd == std::string::npos) {
 					break; // Wait for more data
 				}
+
 				// std::string line = buffer_data.substr(0, lineEnd);
 				buffer_data.erase(0, lineEnd + 2); // Remove processed line
 				std::cout << "Body: " << buffer_data << std::endl;
+				if (buffer_data.empty()) {
+					std::cout << "End of body" << std::endl;
+					
+					// Handle POST request body
+					// requests[client_fd].setBody(requests[client_fd].getBody() + buffer_data);	
+					break;
+				}
 			}
+		}
 			
 			// std::cout << "==================================================" << std::endl;
 			// std::cout << "==================================================" << std::endl;
