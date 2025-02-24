@@ -6,11 +6,12 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/24 20:49:19 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/24 21:39:10 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
+#include <fstream>
 
 Server::~Server() {
 	for (size_t i = 0; i < poll_fds.size(); ++i) {
@@ -135,6 +136,29 @@ void Server::handleClientData(size_t index)
 		if (requests[client_fd].getMethod() == "GET") {
 			std::cout << "GET: "  << requests[client_fd].getMethod() << std::endl;
 			// handleGET(client_fd, path);
+			std::string method = requests[client_fd].getMethod();
+			std::string path = requests[client_fd].getpath();
+			std::cout << "Method: " << method << std::endl;
+			std::cout << "Path: " << path << std::endl;
+			std::string file_path = "/Users/hben-laz/Desktop/webserve/docs/html" + path;
+
+			std::ifstream file(file_path.c_str(), std::ios::in | std::ios::binary);
+			if (!file) {
+				requests[client_fd].sendErrorResponse(404);
+				std::string response = "HTTP/1.1 404 Not Found\r\n\r\n";
+				send(client_fd, response.c_str(), response.length(), 0);
+				return;
+			}
+			std::stringstream buffer;
+			buffer << file.rdbuf();
+			std::string file_content = buffer.str();
+			std::string response = "HTTP/1.1 200 OK\r\n";
+			response += "Content-Length: " + std::to_string(file_content.size()) + "\r\n";
+			response += "Content-Type: text/html\r\n\r\n";
+			response += file_content;
+			send(client_fd, response.c_str(), response.length(), 0);
+			std::cout << "Response: " << response << std::endl;
+			
 			return ;
 		} 
 		else if (requests[client_fd].getMethod() == "DELETE") {
