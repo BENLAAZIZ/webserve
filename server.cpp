@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/24 21:58:35 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/24 22:06:41 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,7 +152,7 @@ void Server::handleClientData(size_t index)
 			// }
 			if (!file) {
 				requests[client_fd].sendErrorResponse(404);
-				std::string response = "HTTP/1.1 404 Not Found\r\n\r\n";
+				std::string response = "HTTP/1.1 404 Not Found\r\n\r\n<html><h1>404 Not Found</h1></body>c";
 				send(client_fd, response.c_str(), response.length(), 0);
 				std::cout << "Response: " << response << std::endl;
 				return;
@@ -177,7 +177,7 @@ void Server::handleClientData(size_t index)
 		else {
 			std::cout << "POST : "  << requests[client_fd].getMethod() << std::endl;
 			std::cout << "bb : "  << requests[client_fd].getBoundary() << std::endl;
-			// requests[client_fd] = HTTPRequest(); // Reset for next request
+			requests[client_fd] = HTTPRequest(); // Reset for next request
 			// Method not implemented (POST will be handled later)
 		}
     }	
