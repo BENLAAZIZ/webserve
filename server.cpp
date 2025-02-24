@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/24 21:39:10 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/24 21:58:35 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -143,10 +143,18 @@ void Server::handleClientData(size_t index)
 			std::string file_path = "/Users/hben-laz/Desktop/webserve/docs/html" + path;
 
 			std::ifstream file(file_path.c_str(), std::ios::in | std::ios::binary);
+			// if (requests[client_fd].getStatusCode() != 200) {
+			// 	requests[client_fd].sendErrorResponse(requests[client_fd].getStatusCode());
+			// 	std::string response = "HTTP/1.1 " + std::to_string(requests[client_fd].getStatusCode()) + " " + requests[client_fd].getStatusCodeMessage() + "\r\n\r\n";
+			// 	send(client_fd, response.c_str(), response.length(), 0);
+			// 	std::cout << "Response: " << response << std::endl;
+			// 	return;
+			// }
 			if (!file) {
 				requests[client_fd].sendErrorResponse(404);
 				std::string response = "HTTP/1.1 404 Not Found\r\n\r\n";
 				send(client_fd, response.c_str(), response.length(), 0);
+				std::cout << "Response: " << response << std::endl;
 				return;
 			}
 			std::stringstream buffer;
