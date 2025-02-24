@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aben-cha <aben-cha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:14:14 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/22 16:30:42 by aben-cha         ###   ########.fr       */
+/*   Updated: 2025/02/24 17:08:52 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,9 @@ int main() {
     try {
         // Instead of calling flush() every time, you can disable buffering globally :
 
-        std::cout.setf(std::ios::unitbuf); // Disables buffering completely
+        //std::cout.setf(std::ios::unitbuf); // Disables buffering completely
         // Use flush(); when redirecting output to files to prevent missing data! 🚀
-        // std::cout.flush();  // ✅ Ensures all data is written immediately
+        // //std::cout.flush();  // ✅ Ensures all data is written immediately
 
         Server server(PORT);
         server.run();

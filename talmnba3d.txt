@@ -6,7 +6,7 @@ void Server::handleClientData(std::size_t index) {
     std::size_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE - 1, 0);
     if (bytes_read <= 0) {
         if (bytes_read == 0) {
-            std::cout << "Client disconnected fd: " << client_fd << std::endl;
+            //std::cout << "Client disconnected fd: " << client_fd << std::endl;
         } else {
             std::cerr << "Receive error: " << strerror(errno) << std::endl;
         }
@@ -38,10 +38,10 @@ void Server::handleClientData(std::size_t index) {
 			std::getline(headerStream, firstLine);
 			if (!requests[client_fd].parseFirstLine(firstLine)) {
 				requests[client_fd].sendErrorResponse(400);
-				std::cout << "400 Bad Request" << std::endl;
+				//std::cout << "400 Bad Request" << std::endl;
 			return;
 		}
-		std::cout << "Method: " << requests[client_fd].getMethod() << "\nPath: " << requests[client_fd].getpath() << "\nVersion: " << requests[client_fd].getVersion() << std::endl;
+		//std::cout << "Method: " << requests[client_fd].getMethod() << "\nPath: " << requests[client_fd].getpath() << "\nVersion: " << requests[client_fd].getVersion() << std::endl;
 		}
 		
         std::string line;
@@ -71,14 +71,14 @@ void Server::handleClientData(std::size_t index) {
             }
         } else if (transferEncoding == "chunked") {
             // requests[client_fd].setChunked(true);
-			std::cout << "Chunked Transfer Encoding" << std::endl;
+			//std::cout << "Chunked Transfer Encoding" << std::endl;
         } else {
             // No body, process request immediately
             // handleRequest(client_fd, requests[client_fd]);
             requests[client_fd] = HTTPRequest(); // Reset for next request
-		std::cout << "================================================" << std::endl;
+		//std::cout << "================================================" << std::endl;
         }
-		// std::cout << "Request: " << requests[client_fd].getMethod() << " " << requests[client_fd].getpath() << std::endl;
+		// //std::cout << "Request: " << requests[client_fd].getMethod() << " " << requests[client_fd].getpath() << std::endl;
     }
 	
 }
@@ -98,7 +98,7 @@ void Server::handleClientData(std::size_t index) {
 	std::size_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE - 1, 0);
 	if (bytes_read <= 0) {
 		if (bytes_read == 0) {
-			std::cout << "Client disconnected fd: " << client_fd << std::endl;
+			//std::cout << "Client disconnected fd: " << client_fd << std::endl;
 		} else {
 			std::cerr << "Receive error: " << strerror(errno) << std::endl;
 		}
@@ -129,7 +129,7 @@ void Server::handleClientData(std::size_t index) {
 	}
 
 	// if (flag_end_of_headers) {
-	// 	std::cout << "End of headers found" << std::endl;
+	// 	//std::cout << "End of headers found" << std::endl;
 	// }
 	
 
@@ -137,7 +137,7 @@ void Server::handleClientData(std::size_t index) {
 	while (1 && !flag_body) {
 		size_t lineEnd = clientBuffers[client_fd].find("\r\n");
 		if (lineEnd == std::string::npos) {
-			// std::cout << "No complete line found, wait for more data" << std::endl;
+			// //std::cout << "No complete line found, wait for more data" << std::endl;
 			break; // Wait for more data
 		}
 		std::string line = clientBuffers[client_fd].substr(0, lineEnd);
@@ -145,17 +145,17 @@ void Server::handleClientData(std::size_t index) {
 
 		if (requests[client_fd].getMethod().empty() || requests[client_fd].getpath().empty() || requests[client_fd].getVersion().empty()) {
 			if (!requests[client_fd].parseFirstLine(line)) {
-				std::cout << "400 Bad Request" << std::endl;
+				//std::cout << "400 Bad Request" << std::endl;
 				return;
 			}
-			std::cout << "----------------->First Line method: |" << requests[client_fd].getMethod() << "|" << std::endl;
+			//std::cout << "----------------->First Line method: |" << requests[client_fd].getMethod() << "|" << std::endl;
 		}
 		else {
 			if (line.empty()) {
-				std::cout << "End of headers" << std::endl;
+				//std::cout << "End of headers" << std::endl;
 				if (requests[client_fd].getHeaders().find("host") == requests[client_fd].getHeaders().end()) {
 					requests[client_fd].sendErrorResponse(400);
-					std::cout << "-- Host header missing 400 --" << std::endl;
+					//std::cout << "-- Host header missing 400 --" << std::endl;
 					return;
 				}
 
@@ -163,18 +163,18 @@ void Server::handleClientData(std::size_t index) {
 
 				// if (requests[client_fd].getMethod() == "POST") {
 				// 	if (requests[client_fd].getHeader("Transfer-Encoding") == "chunked") {
-				// 		std::cout << "-- Chunked encoding detected, handling separately --" << std::endl;
+				// 		//std::cout << "-- Chunked encoding detected, handling separately --" << std::endl;
 				// 		// Implement chunked transfer decoding here
 				// 	}
 				// 	else {
 				// 		std::string contentLength = requests[client_fd].getHeader("Content-Length");
 				// 		if (contentLength.empty()) {
 				// 			requests[client_fd].sendErrorResponse(411);
-				// 			std::cout << "-- Content-Length header missing 411 --" << std::endl;
+				// 			//std::cout << "-- Content-Length header missing 411 --" << std::endl;
 				// 			return;
 				// 		}
 				// 		requests[client_fd].setContentLength(std::atoi(contentLength.c_str()));
-				// 		std::cout << "**Content-Length:** " << requests[client_fd].getContentLength() << std::endl;
+				// 		//std::cout << "**Content-Length:** " << requests[client_fd].getContentLength() << std::endl;
 				// 	}
 				// } 
 
@@ -184,7 +184,7 @@ void Server::handleClientData(std::size_t index) {
 			size_t colonPos = line.find(":");
 			if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
 				requests[client_fd].sendErrorResponse(400);
-				std::cout << "-- Malformed header 400 --" << std::endl;
+				//std::cout << "-- Malformed header 400 --" << std::endl;
 				return;
 			}
 			std::string key = line.substr(0, colonPos);
@@ -193,7 +193,7 @@ void Server::handleClientData(std::size_t index) {
 			value.erase(0, value.find_first_not_of(" "));
 
 			requests[client_fd].setHeader(key, value);
-			std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+			//std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
 		}
 	}
 
@@ -239,7 +239,7 @@ void Server::handleClientData(std::size_t index) {
 		// size_t headerEndPos = clientBuffers[client_fd].find("\r\n\r\n");
 		// if (headerEndPos != std::string::npos) {
 		// 	requests[client_fd].setFlagEndOfHeaders(true);
-		// 	std::cout << "End of headers" << std::endl;
+		// 	//std::cout << "End of headers" << std::endl;
 		// }
 
 		// // Process data line by line
@@ -254,18 +254,18 @@ void Server::handleClientData(std::size_t index) {
 		// 	if (requests[client_fd].getMethod().empty() || requests[client_fd].getpath().empty() || requests[client_fd].getVersion().empty()) {
 		// 		if (!requests[client_fd].parseFirstLine(line)) {
 		// 			requests[client_fd].sendErrorResponse(requests[client_fd].getStatusCode());
-		// 			std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
+		// 			//std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
 		// 			return;
 		// 		}
-		// 		std::cout << "----------------->First Line method: |" << requests[client_fd].getMethod() << "|" << std::endl;
+		// 		//std::cout << "----------------->First Line method: |" << requests[client_fd].getMethod() << "|" << std::endl;
 		// 	}
 		// 	else {
 		// 		if (line.empty()) {
-		// 			std::cout << "End of headers" << std::endl;
+		// 			//std::cout << "End of headers" << std::endl;
 		// 			if (requests[client_fd].getHeaders().find("host") == requests[client_fd].getHeaders().end()) {
 		// 				requests[client_fd].sendErrorResponse(400);
-		// 				std::cout << "-- Host header missing 400 --" << std::endl;
-		// 				std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
+		// 				//std::cout << "-- Host header missing 400 --" << std::endl;
+		// 				//std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
 		// 				return;
 		// 			}
 		// 			break;
@@ -273,8 +273,8 @@ void Server::handleClientData(std::size_t index) {
 		// 		size_t colonPos = line.find(":");
 		// 		if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
 		// 			requests[client_fd].sendErrorResponse(400);
-		// 			std::cout << "-- Malformed header 400 --" << std::endl;
-		// 			std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
+		// 			//std::cout << "-- Malformed header 400 --" << std::endl;
+		// 			//std::cout << requests[client_fd].getStatusCodeMessage() << std::endl;
 		// 			return;
 		// 		}
 		// 		std::string hostHeader = line.substr(0, colonPos);
@@ -288,10 +288,10 @@ void Server::handleClientData(std::size_t index) {
 		// 		value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
 
 		// 		requests[client_fd].setHeader(key, value);
-		// 		std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+		// 		//std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
 		// 	}
 			if (!requests[client_fd].parseHeader(clientBuffers[client_fd])) {
-				std::cout << "Error" << std::endl;
+				//std::cout << "Error" << std::endl;
 			}
 		// }
 

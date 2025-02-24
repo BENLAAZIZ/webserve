@@ -1,7 +1,7 @@
 NAME= webserv
 CPP= c++
 CFLAGS= -Wall -Wextra -Werror -std=c++98
-SRC= webserv.cpp server.cpp HTTPRequest.cpp
+SRC= webserv.cpp Server.cpp HTTPRequest.cpp
 OBJ= $(SRC:%.cpp=%.o)
 
 all: $(NAME)

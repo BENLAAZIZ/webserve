@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/23 21:54:55 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/24 17:36:14 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,6 @@
 		HTTPRequest request;
 		std::string buffer_data;
 		std::map<int, HTTPRequest> requests;
-		// std::map<int, std::string> clientBuffers; // Store accumulated request data for each client
 
 		
 	public:
@@ -41,8 +40,6 @@
 		void handleClientData(std::size_t index);
 		void run();
 		void handleRequest(int client_fd, HTTPRequest &request);
-
-		// std::string toUpperCase(const std::string& str);
 };
 
 #endif

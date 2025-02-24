@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/22 23:24:40 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/24 17:25:33 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -266,7 +266,7 @@ bool HTTPRequest::parseFirstLine(const std::string& line)
 	setPath(path);
 	setVersion(version);
 
-	std::cout << "Method: |" << method << "|\nPath: |" << path << "|\nVersion: |" << version << "|" << std::endl;
+	//std::cout << "Method: |" << method << "|\nPath: |" << path << "|\nVersion: |" << version << "|" << std::endl;
 	return true;
 }
 
@@ -277,7 +277,7 @@ bool HTTPRequest::parseHeader(std::string& line_buf)
 	size_t headerEndPos = line_buf.find("\r\n\r\n");
 		if (headerEndPos != std::string::npos) {
 			setFlagEndOfHeaders(true);
-			// std::cout << "End of headers" << std::endl;
+			// //std::cout << "End of headers" << std::endl;
 		}
 		// Process data line by line
 		while (1) {
@@ -293,15 +293,15 @@ bool HTTPRequest::parseHeader(std::string& line_buf)
 				if (!parseFirstLine(line)) {
 					return false;
 				}
-				std::cout << "----------------->First Line method: |" << getMethod() << "|" << std::endl;
+				// std::cout << "----------------->First Line method: |" << getMethod() << "|" << std::endl;
 			}
 			else 
 			{
 				if (line.empty()) {
-					std::cout << "End of headers" << std::endl;
+					//std::cout << "End of headers" << std::endl;
 					if (getHeaders().find("host") == getHeaders().end()) {
 						this->statusCode.code = 400;
-						std::cout << "-- Host header missing 400 --" << std::endl;
+						//std::cout << "-- Host header missing 400 --" << std::endl;
 						return false;
 					}
 					// find content length from headers map
@@ -310,29 +310,29 @@ bool HTTPRequest::parseHeader(std::string& line_buf)
 						if (getHeaders().find("Content-Length") == getHeaders().end())
 						{
 							this->statusCode.code = 411;
-							std::cout << "-- Content-Length header missing 411 --" << std::endl;
+							//std::cout << "-- Content-Length header missing 411 --" << std::endl;
 							return false;
 						}
 						else
 						{
 							setContentLength(atoi(getHeader("Content-Length").c_str()));
-							std::cout << "--Content-Length: " << getContentLength() << std::endl;
+							//std::cout << "--Content-Length: " << getContentLength() << std::endl;
 						}
 						if (getHeaders().find("Transfer-Encoding") != getHeaders().end())
 						{
-							std::cout << "--Transfer-Encoding: " << getHeader("Transfer-Encoding") << std::endl;
+							//std::cout << "--Transfer-Encoding: " << getHeader("Transfer-Encoding") << std::endl;
 							setTransferEncodingExist(true);
 						}
 						if (getHeaders().find("Content-Type") != getHeaders().end())
 						{
 							// setContent_type(getHeader("Content-Type"));
-							std::cout << "--Content-Type: " << getContent_type() << std::endl;
+							//std::cout << "--Content-Type: " << getContent_type() << std::endl;
 							if (getHeader("Content-Type").find("boundary=") != std::string::npos)
 							{
 								size_t boundary_pos = getHeader("Content-Type").find("boundary=");
 								boundary = getHeader("Content-Type").substr(boundary_pos + 9);
 								setBoundary(boundary);
-								std::cout << "boundary:* " << getBoundary() << std::endl;
+								//std::cout << "boundary:* " << getBoundary() << std::endl;
 								setContent_type("multipart/form-data");
 							}
 							else
@@ -341,17 +341,22 @@ bool HTTPRequest::parseHeader(std::string& line_buf)
 							}
 						}
 					}
+					//std::cout << "End of headers" << std::endl;
 					break;
 				}
 				size_t colonPos = line.find(":");
 				if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
 					this->statusCode.code = 400;
-					std::cout << "-- Malformed header 400 --" << std::endl;
+					//std::cout << "-- Malformed header 400 --" << std::endl;
 					return false;
 				}
 				std::string hostHeader = line.substr(0, colonPos);
 				std::string key;
-				std::transform(hostHeader.begin(), hostHeader.end(), hostHeader.begin(), ::tolower);
+				// std::transform(hostHeader.begin(), hostHeader.end(), hostHeader.begin(), ::tolower);
+				// std::string key = line.substr(0, colonPos);
+				for (size_t i = 0; i < hostHeader.length(); i++) {
+					hostHeader[i] = std::tolower(hostHeader[i]); // Convert to lowercase (C++98 safe)
+				}
 				if (hostHeader == "host")
 					key = hostHeader.substr(0, colonPos);
 				else
@@ -359,7 +364,7 @@ bool HTTPRequest::parseHeader(std::string& line_buf)
 				std::string value = line.substr(colonPos + 1);
 				value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
 				setHeader(key, value);
-				std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+				//std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
 			}	
 		}
 		return true;
