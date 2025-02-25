@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/24 17:36:14 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/25 17:51:58 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,8 @@
 		void handleNewConnection();
 		void handleClientData(std::size_t index);
 		void run();
-		void handleRequest(int client_fd, HTTPRequest &request);
+		// void handleRequest(int client_fd, HTTPRequest &request);
+		void handleGET(int client_fd, std::string path);
 };
 
 #endif
