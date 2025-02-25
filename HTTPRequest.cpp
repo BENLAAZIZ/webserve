@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 10:30:42 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/24 17:25:33 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/25 13:29:10 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,10 +14,6 @@
 
 HTTPRequest::HTTPRequest()
 {
-	// method = "";
-	// path = "";
-	// version = "";
-	// extension = ""; 
 	statusCode.code = 200; // default status code
 	statusCode.message = "OK";
 	content_length = 0;

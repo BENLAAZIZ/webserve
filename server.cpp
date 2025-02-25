@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/24 22:06:41 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/25 14:51:25 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,7 +133,9 @@ void Server::handleClientData(size_t index)
 		
 	// Process GET, DELETE, or complete POST request
 	if (requests[client_fd].getFlagEndOfHeaders()) {
-		if (requests[client_fd].getMethod() == "GET") {
+		if (requests[client_fd].getMethod() == "GET") 
+		{
+			
 			std::cout << "GET: "  << requests[client_fd].getMethod() << std::endl;
 			// handleGET(client_fd, path);
 			std::string method = requests[client_fd].getMethod();
@@ -141,15 +143,16 @@ void Server::handleClientData(size_t index)
 			std::cout << "Method: " << method << std::endl;
 			std::cout << "Path: " << path << std::endl;
 			std::string file_path = "/Users/hben-laz/Desktop/webserve/docs/html" + path;
+			std::cout << "File path: " << file_path << std::endl;
 
 			std::ifstream file(file_path.c_str(), std::ios::in | std::ios::binary);
-			// if (requests[client_fd].getStatusCode() != 200) {
-			// 	requests[client_fd].sendErrorResponse(requests[client_fd].getStatusCode());
-			// 	std::string response = "HTTP/1.1 " + std::to_string(requests[client_fd].getStatusCode()) + " " + requests[client_fd].getStatusCodeMessage() + "\r\n\r\n";
-			// 	send(client_fd, response.c_str(), response.length(), 0);
-			// 	std::cout << "Response: " << response << std::endl;
-			// 	return;
-			// }
+			if (requests[client_fd].getStatusCode() != 200) {
+				requests[client_fd].sendErrorResponse(requests[client_fd].getStatusCode());
+				std::string response = "HTTP/1.1 " + std::to_string(requests[client_fd].getStatusCode()) + " " + requests[client_fd].getStatusCodeMessage() + "\r\n\r\n";
+				send(client_fd, response.c_str(), response.length(), 0);
+				std::cout << "Response: " << response << std::endl;
+				return;
+			}
 			if (!file) {
 				requests[client_fd].sendErrorResponse(404);
 				std::string response = "HTTP/1.1 404 Not Found\r\n\r\n<html><h1>404 Not Found</h1></body>c";
@@ -166,7 +169,6 @@ void Server::handleClientData(size_t index)
 			response += file_content;
 			send(client_fd, response.c_str(), response.length(), 0);
 			std::cout << "Response: " << response << std::endl;
-			
 			return ;
 		} 
 		else if (requests[client_fd].getMethod() == "DELETE") {
