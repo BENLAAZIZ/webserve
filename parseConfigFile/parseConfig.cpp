@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parseConfig.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aben-cha <aben-cha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 16:10:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/19 11:49:58 by aben-cha         ###   ########.fr       */
+/*   Updated: 2025/02/26 20:40:24 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -233,17 +233,17 @@ int main(int ac, char **av) {
         // std::cout << "Server Name: " << server.server_name << "\n";
         // std::cout << "Max Body Size: " << server.client_max_body_size << "\n";
         
-        // Print locations
-        for (size_t i = 0; i < server.locations.size(); ++i) {
-            const Location& loc = server.locations[i];
-            std::cout << "\nLocation " << loc.getPath() << ":\n";
-            std::cout << "  Root: " << loc.getRoot() << "\n";
-            std::cout << "  Index: " << loc.getIndex() << "\n";
-            std::cout << "  Allowed Methods:";
-            for (size_t j = 0; j < loc.getAllowedMethods().size(); ++j)
-                std::cout << " " << loc.getAllowedMethods()[j];
-            std::cout << "\n";
-        }
+        // // Print locations
+        // for (size_t i = 0; i < server.locations.size(); ++i) {
+        //     const Location& loc = server.locations[i];
+        //     std::cout << "\nLocation " << loc.getPath() << ":\n";
+        //     std::cout << "  Root: " << loc.getRoot() << "\n";
+        //     std::cout << "  Index: " << loc.getIndex() << "\n";
+        //     std::cout << "  Allowed Methods:";
+        //     for (size_t j = 0; j < loc.getAllowedMethods().size(); ++j)
+        //         std::cout << " " << loc.getAllowedMethods()[j];
+        //     std::cout << "\n";
+        // }
     } catch(const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
         return 1;
@@ -251,12 +251,3 @@ int main(int ac, char **av) {
     return 0;
 }
 
-
-int main() {
-    ConfigParser parser;
-    Server server = parser.parseConfig("webserver.conf");
-    
-
-    
-    return 0;
-}
