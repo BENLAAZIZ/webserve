@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/26 15:24:56 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/26 18:09:32 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -178,7 +178,8 @@ void Server::handleGET(int client_fd, std::string path)
 	response += "Content-Length: " + std::to_string(file_content.size()) + "\r\n";
 	response += "Content-Type: text/html\r\n\r\n";
 	response += file_content;
-	send(client_fd, response.c_str(), response.length(), 0);
 	std::cout << "Response: " << response << std::endl;
+	send(client_fd, response.c_str(), response.length(), 0);
+	std::cout << "GET: " << path << std::endl;
 	
 }
