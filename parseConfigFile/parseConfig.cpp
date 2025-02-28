@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 16:10:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/02/26 20:40:24 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/02/27 17:02:31 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,8 +223,8 @@ int main(int ac, char **av) {
         if (ac != 2) // Default config
             throw std::runtime_error("Invalid Argument.");
         filename = av[1];
-        ConfigParser conf;
-        conf.parseConfig(filename);
+        // ConfigParser conf;
+        // conf.parseConfig(filename);
 
                 // Print parsed configuration
         std::cout << "Server Configuration:\n";
