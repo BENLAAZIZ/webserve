@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Config.hpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/28 21:55:55 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/02/28 22:34:03 by hben-laz         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
@@ -18,7 +6,7 @@
 #include <map>
 #include <set>
 
-class Location {
+struct Location {
 	std::string path;
 	std::string root;
 	std::string index;
@@ -34,15 +22,32 @@ class Location {
 };
 
 class ServerConfig {
-	std::string host;
-	int port;
-	std::vector<std::string> serverNames;
-	std::string root;
-	std::vector<Location> locations;
-	std::map<std::string, std::string> errorPages;
-	size_t clientMaxBodySize;
-	
-	ServerConfig() : port(80), clientMaxBodySize(1048576) {} // Default 1MB
+	public:
+		std::string host;
+		int port;
+		std::vector<std::string> serverNames;
+		std::string root;
+		std::vector<Location> locations;
+		std::map<std::string, std::string> errorPages;
+		size_t clientMaxBodySize;
+		
+		ServerConfig();
+		// get server name
+		std::string getServerName() const;
+		// get host
+		std::string getHost() const;
+		// get port
+		int getPort() const;
+		// get root
+		std::string getRoot() const;
+		// get locations
+		const std::vector<Location>& getLocations() const;
+		// get error pages
+		const std::map<std::string, std::string>& getErrorPages() const;
+		// get client max body size
+		size_t getClientMaxBodySize() const;
+
+
 };
 
 class Config {
@@ -51,7 +56,7 @@ class Config {
 		std::string _configPath;
 		
 		// Parsing helpers
-		bool v();
+		bool parseFile();
 		bool parseServer(std::vector<std::string>& tokens, size_t& pos, ServerConfig& server);
 		bool parseLocation(std::vector<std::string>& tokens, size_t& pos, Location& location);
 		
