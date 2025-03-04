@@ -1,267 +1,199 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Request.cpp                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
+/*   Updated: 2025/03/04 18:01:59 by hben-laz         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+
 #include "Request.hpp"
-#include <iostream>
-#include <sstream>
-#include <algorithm>
 
-Request::Request() : 
-    _parseState(PARSE_START_LINE), 
-    _parsePosition(0),
-    _method(UNKNOWN),
-    _chunkSize(0),
-    _lastChunk(false) {
+Request::Request()
+{
+	statusCode.code = 200; // default status code
+	statusCode.message = "OK";
+	content_length = 0;
+	flag_end_of_headers = false;
+	headersParsed = false;
+	bodyFlag = false;
+	transferEncodingExist = false;
 }
 
-Request::~Request() {
+Request::~Request()
+{
 }
 
-void Request::appendData(const char* data, size_t length) {
-    _buffer.append(data, length);
+Request::Request(const Request& other)
+{
+	*this = other;
 }
 
-void Request::clear() {
-    _parseState = PARSE_START_LINE;
-    _parsePosition = 0;
-    _method = UNKNOWN;
-    _uri.clear();
-    _httpVersion.clear();
-    _headers.clear();
-    _body.clear();
-    _buffer.clear();
-    _chunkSize = 0;
-    _lastChunk = false;
+Request& Request::operator=(const Request& other)
+{
+	if (this != &other)
+	{
+		method = other.method;
+		path = other.path;
+		version = other.version;
+		extension = other.extension;
+		statusCode = other.statusCode;
+		headers = other.headers;
+	}
+	return *this;
 }
 
-bool Request::parse() {
-    bool continueParsingLoop = true;
-    
-    while (continueParsingLoop) {
-        switch (_parseState) {
-            case PARSE_START_LINE:
-                continueParsingLoop = parseStartLine();
-                break;
-            case PARSE_HEADERS:
-                continueParsingLoop = parseHeaders();
-                break;
-            case PARSE_BODY:
-                continueParsingLoop = parseBody();
-                break;
-            case PARSE_CHUNKED_BODY:
-                continueParsingLoop = parseChunkedBody();
-                break;
-            case PARSE_COMPLETE:
-                return true;
-            case PARSE_ERROR:
-                return false;
-        }
-    }
-    
-    return _parseState == PARSE_COMPLETE;
+// Getters
+std::string Request::getMethod() const 
+{ return method; }
+
+std::string Request::getpath() const 
+{ return path; }
+
+std::string Request::getVersion() const 
+{ return version; }
+
+std::string Request::getExtension() const 
+{ return extension; }
+
+std::string Request::getHeader(const std::string& key) const
+{
+	std::map<std::string, std::string>::const_iterator it = headers.find(key);
+	return (it != headers.end()) ? it->second : "";
+}
+std::string Request::getStatusCodeMessage() const 
+{ return statusCode.message; }
+
+std::string Request::getBody() const 
+{ return body;}
+
+std::size_t Request::getContentLength() const
+{
+	return content_length;
 }
 
-bool Request::parseStartLine() {
-    // Find the end of the start line
-    size_t endOfLine = _buffer.find("\r\n", _parsePosition);
-    if (endOfLine == std::string::npos) {
-        return false; // Need more data
-    }
-    
-    // Extract the line
-    std::string startLine = _buffer.substr(_parsePosition, endOfLine - _parsePosition);
-    _parsePosition = endOfLine + 2; // Skip CRLF
-    
-    // Parse method, URI, and HTTP version
-    std::istringstream iss(startLine);
-    std::string methodStr;
-    
-    if (!(iss >> methodStr >> _uri >> _httpVersion)) {
-        _parseState = PARSE_ERROR;
-        return false;
-    }
-    
-    // Convert method string to enum
-    _method = stringToMethod(methodStr);
-    if (_method == UNKNOWN) {
-        _parseState = PARSE_ERROR;
-        return false;
-    }
-    
-    // Move to headers parsing
-    _parseState = PARSE_HEADERS;
-    return true;
+std::string Request::getBoundary() const
+{
+	return boundary;
 }
 
-bool Request::parseHeaders() {
-    // Parse headers until we find an empty line (CRLFCRLF)
-    while (true) {
-        size_t endOfLine = _buffer.find("\r\n", _parsePosition);
-        if (endOfLine == std::string::npos) {
-            return false; // Need more data
-        }
-        
-        // Check if this is the empty line indicating the end of headers
-        if (endOfLine == _parsePosition) {
-            _parsePosition += 2; // Skip the empty line
-            
-            // Check if we expect a body
-            if (_headers.count("Content-Length") > 0) {
-                _parseState = PARSE_BODY;
-            } else if (_headers.count("Transfer-Encoding") > 0 && 
-                      _headers["Transfer-Encoding"].find("chunked") != std::string::npos) {
-                _parseState = PARSE_CHUNKED_BODY;
-            } else {
-                // No body expected, request is complete
-                _parseState = PARSE_COMPLETE;
-            }
-            return true;
-        }
-        
-        // Extract the header line
-        std::string headerLine = _buffer.substr(_parsePosition, endOfLine - _parsePosition);
-        _parsePosition = endOfLine + 2; // Skip CRLF
-        
-        // Find the colon separator
-        size_t colon = headerLine.find(':');
-        if (colon == std::string::npos) {
-            _parseState = PARSE_ERROR;
-            return false;
-        }
-        
-        // Extract key and value
-        std::string key = headerLine.substr(0, colon);
-        std::string value = headerLine.substr(colon + 1);
-        
-        // Trim whitespace
-        value.erase(0, value.find_first_not_of(" \t"));
-        value.erase(value.find_last_not_of(" \t") + 1);
-        
-        // Store header
-        _headers[key] = value;
-    }
-    
-    return true;
+bool Request::getFlagEndOfHeaders() const 
+{ return flag_end_of_headers; }
+
+bool Request::getBodyFlag() const
+{
+	return bodyFlag;
+}
+int Request::getStatusCode() const 
+{ return statusCode.code; }
+
+bool Request::getTransferEncodingExist() const
+{
+	return transferEncodingExist;
 }
 
-bool Request::parseBody() {
-    // Get the expected content length
-    size_t contentLength = std::stoul(_headers["Content-Length"]);
-    
-    // Check if we have enough data
-    size_t availableData = _buffer.size() - _parsePosition;
-    if (availableData < contentLength) {
-        return false; // Need more data
-    }
-    
-    // Extract the body
-    _body = _buffer.substr(_parsePosition, contentLength);
-    _parsePosition += contentLength;
-    
-    // Request is complete
-    _parseState = PARSE_COMPLETE;
-    return true;
+const std::map<std::string, std::string>& Request::getHeaders() const { 
+	return headers; 
 }
 
-bool Request::parseChunkedBody() {
-    while (true) {
-        // If we're starting a new chunk
-        if (_chunkSize == 0 && !_lastChunk) {
-            // Find the chunk size line
-            size_t endOfLine = _buffer.find("\r\n", _parsePosition);
-            if (endOfLine == std::string::npos) {
-                return false; // Need more data
-            }
-            
-            // Extract the chunk size in hex
-            std::string chunkSizeHex = _buffer.substr(_parsePosition, endOfLine - _parsePosition);
-            _parsePosition = endOfLine + 2; // Skip CRLF
-            
-            // Convert hex to decimal
-            std::istringstream iss(chunkSizeHex);
-            iss >> std::hex >> _chunkSize;
-            
-            // Check if this is the last chunk
-            if (_chunkSize == 0) {
-                _lastChunk = true;
-                // Skip the final CRLF
-                if (_buffer.size() - _parsePosition < 2) {
-                    return false; // Need more data
-                }
-                _parsePosition += 2;
-                _parseState = PARSE_COMPLETE;
-                return true;
-            }
-        }
-        
-        // Check if we have enough data for the current chunk
-        if (_buffer.size() - _parsePosition < _chunkSize + 2) {
-            return false; // Need more data
-        }
-        
-        // Extract the chunk data
-        _body.append(_buffer.substr(_parsePosition, _chunkSize));
-        _parsePosition += _chunkSize + 2; // Skip chunk data and CRLF
-        
-        // Reset for next chunk
-        _chunkSize = 0;
-    }
-    
-    return true;
+std::string Request::getContent_type() const
+{
+	return content_type;
 }
 
-RequestMethod Request::stringToMethod(const std::string& method) {
-    if (method == "GET") return GET;
-    if (method == "POST") return POST;
-    if (method == "DELETE") return DELETE;
-    return UNKNOWN;
+/*=========== setters =============*/
+
+void Request::setBody(const std::string& body) 
+{ this->body = body; }
+
+void Request::setMethod(const std::string& method) 
+{ this->method = method; }
+
+void Request::setPath(const std::string& path) 
+{ this->path = path; }
+
+void Request::setVersion(const std::string& version) 
+{ this->version = version; }
+
+void Request::setContentLength(int contentLength) 
+{ this->content_length = contentLength; }
+
+void Request::setHeader(const std::string& key, const std::string& value) {
+    headers[key] = value;
 }
 
-bool Request::isComplete() const {
-    return _parseState == PARSE_COMPLETE;
+void Request::setFlagEndOfHeaders(bool flag) 
+{ flag_end_of_headers = flag; }
+
+
+void Request::setBodyFlag(bool flag)
+{
+	bodyFlag = flag;
 }
 
-bool Request::hasError() const {
-    return _parseState == PARSE_ERROR;
+void Request::setTransferEncodingExist(bool flag)
+{
+	transferEncodingExist = flag;
 }
 
-RequestMethod Request::getMethod() const {
-    return _method;
+void Request::setContent_type(const std::string& content_type)
+{
+	this->content_type = content_type;
 }
 
-const std::string& Request::getUri() const {
-    return _uri;
+void Request::setBoundary(const std::string& boundary)
+{
+	this->boundary = boundary;
 }
 
-const std::string& Request::getHttpVersion() const {
-    return _httpVersion;
+/*=========== sendErrorResponse =============*/
+
+void Request::sendErrorResponse(int errorCode) 
+{
+	std::string errorMessage = "";
+	switch (errorCode) {
+		case 400: errorMessage = "400 Bad Request"; break;
+		case 403: errorMessage = "403 Forbidden"; break;
+		case 404: errorMessage = "404 Not Found"; break;
+		case 405: errorMessage = "405 Method Not Allowed"; break;
+		case 411: errorMessage = "411 Length Required"; break;
+		case 413: errorMessage = "413 Payload Too Large"; break;
+		case 414: errorMessage = "414 URI Too Long"; break;
+		case 500: errorMessage = "500 Internal Server Error"; break;
+		case 505: errorMessage = "505  Version Not Supported"; break;
+		default: errorMessage = "500 Internal Server Error"; break;
+	}
+	statusCode.message = errorMessage;
 }
 
-const std::map<std::string, std::string>& Request::getHeaders() const {
-    return _headers;
+/*=========== parseFirstLine =============*/
+
+bool Request::parseFirstLine(const std::string& line)
+{
+	std::istringstream iss(line);
+	std::string method, path, version;
+	if (!(iss >> method >> path >> version)) {
+		this->statusCode.code = 400;
+		return false;
+	}
+	if (method != "GET" && method != "POST" && method != "DELETE") {
+		this->statusCode.code = 405;
+		return false;
+	}
+	if (path.empty() || path[0] != '/' || version != "/1.1") {
+		this->statusCode.code = 400;
+		return false;
+	}
+	// Store method, path, version
+	setMethod(method);
+	setPath(path);
+	setVersion(version);
+
+	//std::cout << "Method: |" << method << "|\nPath: |" << path << "|\nVersion: |" << version << "|" << std::endl;
+	return true;
 }
 
-std::string Request::getHeader(const std::string& key) const {
-    auto it = _headers.find(key);
-    if (it != _headers.end()) {
-        return it->second;
-    }
-    return "";
-}
-
-const std::string& Request::getBody() const {
-    return _body;
-}
-
-void Request::dump() const {
-    std::cout << "=== Request Dump ===" << std::endl;
-    std::cout << "Method: " << (_method == GET ? "GET" : (_method == POST ? "POST" : (_method == DELETE ? "DELETE" : "UNKNOWN"))) << std::endl;
-    std::cout << "URI: " << _uri << std::endl;
-    std::cout << "HTTP Version: " << _httpVersion << std::endl;
-    
-    std::cout << "Headers:" << std::endl;
-    for (const auto& header : _headers) {
-        std::cout << " - " << header.first << ": " << header.second << std::endl;
-    }
-    
-    std::cout << "Body Length: " << _body.size() << " bytes" << std::endl;
-    std::cout << "Parse State: " << _parseState << std::endl;
-    std::cout << "===================" << std::endl;
-}

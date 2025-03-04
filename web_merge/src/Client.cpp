@@ -121,8 +121,6 @@ bool Client::parse_Header_Request(std::string& line_buf)
 }
 
 
-
-
 void Client::generateResponse_GET_DELETE() {
 	// Route request based on method and URI
 	if (_request.getMethod() == "GET") {
@@ -153,7 +151,7 @@ void Client::handleGetRequest() {
 	}
 	
 	// Prepend document root from config
-	std::string fullPath = _serverConfig.getDocumentRoot() + path;
+	std::string fullPath = _serverConfig.getRoot() + path;
 	
 	// Check if file exists
 	struct stat fileStat;
@@ -162,7 +160,7 @@ void Client::handleGetRequest() {
 		std::ifstream file(fullPath, std::ios::binary);
 		if (file) {
 			// Determine content type based on file extension
-			std::string contentType = getContentType(path);
+			std::string extension = getExtension(path);
 			
 			// Read file content
 			std::string fileContent((std::istreambuf_iterator<char>(file)),
@@ -171,7 +169,7 @@ void Client::handleGetRequest() {
 			// Generate HTTP response
 			std::ostringstream response;
 			response << "HTTP/1.1 200 OK\r\n";
-			response << "Content-Type: " << contentType << "\r\n";
+			response << "Content-Type: " << extension << "\r\n";
 			response << "Content-Length: " << fileContent.size() << "\r\n";
 			if (_keepAlive) {
 				response << "Connection: keep-alive\r\n";

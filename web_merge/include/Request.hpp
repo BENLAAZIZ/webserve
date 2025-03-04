@@ -90,7 +90,6 @@ class Request
 		std::string	path;
 		std::string	version;
 		std::string	extension;
-		StatusCode statusCode;
 		std::map<std::string, std::string> headers;
 		
 		bool bodyFlag;
@@ -98,15 +97,16 @@ class Request
 		// int statusCode;
 		bool headersParsed;
 	public:
+		StatusCode statusCode;
 		std::string	body; 
 		std::string content_type;
 		std::string boundary;
 		size_t content_length;
 		bool transferEncodingExist;
-		HTTPRequest();
-		~HTTPRequest();
-		HTTPRequest(const HTTPRequest& other);
-		HTTPRequest& operator=(const HTTPRequest& other);
+		Request();
+		~Request();
+		Request(const Request& other);
+		Request& operator=(const Request& other);
 		// Getters
 		std::string	getMethod() const;
 		std::string	getpath() const;
