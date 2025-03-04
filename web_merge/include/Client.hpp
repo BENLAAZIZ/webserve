@@ -79,7 +79,7 @@
 #include <netinet/in.h>
 // #include "ServerConfig.hpp"
 #include "Config.hpp"
-#include "Request.hpp"
+#include "../include/Request.hpp"
 #include "Response.hpp"
 
 class Client {
@@ -90,7 +90,7 @@ class Client {
 		struct sockaddr_in _address;
 		std::string _requestBuffer;
 		std::string _responseBuffer;
-		bool _requestComplete;
+		bool request_Header_Complete;
 		bool _responseSent;
 		bool _keepAlive;
 		

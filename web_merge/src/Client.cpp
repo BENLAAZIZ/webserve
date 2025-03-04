@@ -84,7 +84,7 @@
 #include <sys/stat.h>
 
 Client::Client(int socket, struct sockaddr_in address, const ServerConfig& config)
-	: _socket(socket), _address(address), _requestComplete(false), 
+	: _socket(socket), _address(address), request_Header_Complete(false), 
 	  _responseSent(false), _keepAlive(false), _serverConfig(config) {
 }
 
@@ -92,46 +92,46 @@ Client::~Client() {
 	// Socket is closed by the Server class
 }
 
-bool Client::readRequest() {
-	char buffer[4096];
-	ssize_t bytesRead = recv(_socket, buffer, sizeof(buffer) - 1, 0);
+// bool Client::readRequest() {
+// 	char buffer[4096];
+// 	ssize_t bytesRead = recv(_socket, buffer, sizeof(buffer) - 1, 0);
 	
-	if (bytesRead <= 0) {
-		if (bytesRead == 0) {
-			// Client closed connection
-			return false;
-		}
+// 	if (bytesRead <= 0) {
+// 		if (bytesRead == 0) {
+// 			// Client closed connection
+// 			return false;
+// 		}
 		
-		if (errno != EAGAIN && errno != EWOULDBLOCK) {
-			std::cerr << "Error reading from client: " << strerror(errno) << std::endl;
-			return false;
-		}
+// 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
+// 			std::cerr << "Error reading from client: " << strerror(errno) << std::endl;
+// 			return false;
+// 		}
 		
-		// No data available at the moment
-		return true;
-	}
+// 		// No data available at the moment
+// 		return true;
+// 	}
 	
-	// Add received data to buffer
-	buffer[bytesRead] = '\0';
-	_requestBuffer.append(buffer, bytesRead);
+// 	// Add received data to buffer
+// 	buffer[bytesRead] = '\0';
+// 	_requestBuffer.append(buffer, bytesRead);
 	
-	// Check if the request is too large
-	if (_requestBuffer.size() > MAX_REQUEST_SIZE) {
-		std::cerr << "Request too large!" << std::endl;
-		sendErrorResponse(413, "Request Entity Too Large");
-		return false;
-	}
+// 	// Check if the request is too large
+// 	if (_requestBuffer.size() > MAX_REQUEST_SIZE) {
+// 		std::cerr << "Request too large!" << std::endl;
+// 		sendErrorResponse(413, "Request Entity Too Large");
+// 		return false;
+// 	}
 	
-	// Check if we have a complete request
-	if (_requestBuffer.find("\r\n\r\n") != std::string::npos) {
-		_requestComplete = true;
-	}
+// 	// Check if we have a complete request
+// 	if (_requestBuffer.find("\r\n\r\n") != std::string::npos) {
+// 		_requestComplete = true;
+// 	}
 	
-	return true;
-}
+// 	return true;
+// }
 
 bool Client::isRequestComplete() {
-	return _requestComplete;
+	return request_Header_Complete;
 }
 
 bool Client::parse_Header_Request(std::string& line_buf) 
@@ -139,7 +139,7 @@ bool Client::parse_Header_Request(std::string& line_buf)
 	// Check for end of headers ("\r\n\r\n")
 	size_t headerEndPos = line_buf.find("\r\n\r\n");
 	if (headerEndPos != std::string::npos) {
-		this->_requestComplete = true;
+		this->request_Header_Complete = true;
 		// //std::cout << "End of headers" << std::endl;
 	}
 	// Process data line by line
@@ -299,11 +299,11 @@ bool Client::parse_Header_Request(std::string& line_buf)
 
 void Client::generateResponse() {
 	// Route request based on method and URI
-	if (_method == "GET") {
+	if (_request.getMethod() == "GET") {
 		handleGetRequest();
-	} else if (_method == "POST") {
+	} else if (_request.getMethod() == "POST") {
 		handlePostRequest();
-	} else if (_method == "DELETE") {
+	} else if (_request.getMethod() == "DELETE") {
 		handleDeleteRequest();
 	} else {
 		// Method not supported
@@ -313,7 +313,7 @@ void Client::generateResponse() {
 
 void Client::handleGetRequest() {
 	// Remove query parameters
-	std::string path = _uri;
+	std::string path = _request.getpath();
 	size_t queryPos = path.find('?');
 	if (queryPos != std::string::npos) {
 		path = path.substr(0, queryPos);
