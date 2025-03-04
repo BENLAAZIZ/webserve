@@ -83,7 +83,7 @@ typedef struct StatusCode
 	std::string	message;
 } StatusCode;
 
-class HTTPRequest 
+class Request 
 {
 	private:
 		std::string	method;

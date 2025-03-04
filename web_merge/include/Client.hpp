@@ -84,8 +84,8 @@
 
 class Client {
 	public:
-		Request _request;
 		Response _response;
+		Request _request;
 		int _socket;
 		struct sockaddr_in _address;
 		std::string _requestBuffer;
@@ -109,11 +109,11 @@ class Client {
 
 		// Helper methods for handling different HTTP methods
 		void handleGetRequest();
-		void handlePostRequest();
+		// void handlePostRequest();
 		void handleDeleteRequest();
 		
 		// Helper for determining content type
-		std::string getContentType(const std::string& path);
+		std::string getExtension(const std::string& path);
 
 	public:
 		Client(int socket, struct sockaddr_in address, const ServerConfig& config);
@@ -129,7 +129,7 @@ class Client {
 		bool parse_Header_Request(std::string& line_buf);
 		
 		// Generate HTTP response
-		void generateResponse();
+		void generateResponse_GET_DELETE();
 		
 		// Send HTTP response
 		bool sendResponse();
@@ -144,5 +144,5 @@ class Client {
 		bool keepAlive() const;
 		
 		// Reset client for new request
-		void reset();
+		// void reset();
 };

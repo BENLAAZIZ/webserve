@@ -512,7 +512,15 @@ void Server::handleClientData(int clientFd) {
 	}
 	else
 	{
-		client.generateResponse();
+		if (client._request.getMethod() == "POST")
+		{
+			if (!client.parseBody())
+			{
+				client.sendErrorResponse(client.getStatusCode());
+			}
+		}
+		else
+			client.generateResponse_GET_DELETE();
 				
 		// Update the interested events to include POLLOUT for writing response
 		for (size_t i = 0; i < _fds.size(); i++) {
