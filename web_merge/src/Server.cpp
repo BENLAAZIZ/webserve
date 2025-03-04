@@ -349,7 +349,7 @@ bool Server::setNonBlocking(int sock) {
 }
 
 bool Server::createServer() {
-	struct sockaddr_in serverAddr;
+	struct sockaddr_in server_addr;
 	
 	// Create socket
 	this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
@@ -373,14 +373,14 @@ bool Server::createServer() {
 	}
 	
 	// Setup server address
-	memset(&serverAddr, 0, sizeof(serverAddr));
-	serverAddr.sin_family = AF_INET;
-	// serverAddr.sin_addr.s_addr = inet_addr(_config.getHost().c_str());
-	serverAddr.sin_addr.s_addr = INADDR_ANY;
-	serverAddr.sin_port = htons(_config.getPort());
+	memset(&server_addr, 0, sizeof(server_addr));
+	server_addr.sin_family = AF_INET;
+	// server_addr.sin_addr.s_addr = inet_addr(_config.getHost().c_str());
+	server_addr.sin_addr.s_addr = INADDR_ANY;
+	server_addr.sin_port = htons(_config.getPort());
 	
 	// Bind socket
-	if (bind(this->serverSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0) {
+	if (bind(this->serverSocket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
 		std::cerr << "Failed to bind socket: " << strerror(errno) << std::endl;
 		close(this->serverSocket);
 		return false;
@@ -402,7 +402,7 @@ bool Server::createServer() {
 	return true;
 }
 
-void Server::handleNewConnection() {
+void	Server::handleNewConnection() {
 	struct sockaddr_in clientAddr;
 	socklen_t clientAddrLen = sizeof(clientAddr);
 	
@@ -504,8 +504,10 @@ void Server::handleClientData(int clientFd) {
 	// 		client.sendErrorResponse(client.getStatusCode());
 	// }
 
-	if (!client.isRequestComplete()) {
-
+	if (!client.isRequestComplete()) 
+	{
+		if (!client.parseRequest(client._requestBuffer))
+			client.sendErrorResponse(client.getStatusCode());
 	}
 	else
 	{
@@ -519,7 +521,6 @@ void Server::handleClientData(int clientFd) {
 			}
 		}
 	}
-
 
 }
 

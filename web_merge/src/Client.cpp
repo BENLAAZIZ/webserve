@@ -134,8 +134,15 @@ bool Client::isRequestComplete() {
     return _requestComplete;
 }
 
-bool Client::parseRequest() {
-
+bool Client::parseRequest(std::string& line_buf) 
+{
+	// Check for end of headers ("\r\n\r\n")
+	size_t headerEndPos = line_buf.find("\r\n\r\n");
+		if (headerEndPos != std::string::npos) {
+			setFlagEndOfHeaders(true);
+			// //std::cout << "End of headers" << std::endl;
+		}
+		// Process data line by line
 }
 
 
@@ -200,7 +207,7 @@ bool Client::parseRequest() {
     // }
     
     // return true;
-}
+// }
 
 void Client::generateResponse() {
     // Route request based on method and URI

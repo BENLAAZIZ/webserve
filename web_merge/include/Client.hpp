@@ -116,13 +116,13 @@ class Client {
 		~Client();
 		
 		// Read data from client
-		bool readRequest();
+		// bool readRequest();
 		
 		// Check if the request is complete
 		bool isRequestComplete();
 		
 		// Parse HTTP request
-		bool parseRequest();
+		bool parseRequest(std::string& line_buf);
 		
 		// Generate HTTP response
 		void generateResponse();
