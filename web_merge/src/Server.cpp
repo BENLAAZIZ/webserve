@@ -499,14 +499,15 @@ void Server::handleClientData(int clientFd) {
 
 	std::string data(buffer, bytes_read);
 	client._requestBuffer += data; // Append new data to client's buffer
-	// if (!client.isHeaderComplete()) {
-	// 	if (!client.parseHeader(client._requestBuffer))
-	// 		client.sendErrorResponse(client.getStatusCode());
-	// }
 
-	if (!client.isRequestComplete()) 
+	// if (client._requestBuffer.size() > MAX_REQUEST_SIZE) {
+	// 	std::cerr << "Request too large!" << std::endl;
+	// 	sendErrorResponse(413, "Request Entity Too Large");
+	// 	return false;
+	// }
+	if (!client.isRequestComplete())
 	{
-		if (!client.parseRequest(client._requestBuffer))
+		if (!client.parse_Header_Request(client._requestBuffer))
 			client.sendErrorResponse(client.getStatusCode());
 	}
 	else

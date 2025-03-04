@@ -79,9 +79,13 @@
 #include <netinet/in.h>
 // #include "ServerConfig.hpp"
 #include "Config.hpp"
+#include "Request.hpp"
+#include "Response.hpp"
 
 class Client {
 	public:
+		Request _request;
+		Response _response;
 		int _socket;
 		struct sockaddr_in _address;
 		std::string _requestBuffer;
@@ -91,11 +95,11 @@ class Client {
 		bool _keepAlive;
 		
 		// Request information
-		std::string _method;
-		std::string _uri;
-		std::string _httpVersion;
-		std::map<std::string, std::string> _headers;
-		std::string _body;
+		// std::string _method;
+		// std::string _uri;
+		// std::string _httpVersion;
+		// std::map<std::string, std::string> _headers;
+		// std::string _body;
 		
 		// Server configuration
 		ServerConfig _serverConfig;
@@ -122,7 +126,7 @@ class Client {
 		bool isRequestComplete();
 		
 		// Parse HTTP request
-		bool parseRequest(std::string& line_buf);
+		bool parse_Header_Request(std::string& line_buf);
 		
 		// Generate HTTP response
 		void generateResponse();
