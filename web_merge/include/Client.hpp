@@ -1,77 +1,18 @@
-// #ifndef CLIENT_HPP
-// #define CLIENT_HPP
-
-// #include "Request.hpp"
-// #include "Response.hpp"
-// #include "Config.hpp"
-// #include "CGI.hpp"
-// #include <string>
-// #include <time.h>
-
-// enum ClientState {
-//     CLIENT_READING,
-//     CLIENT_PROCESSING,
-//     CLIENT_WRITING,
-//     CLIENT_ERROR,
-//     CLIENT_DONE
-// };
-
-// class Client {
-// private:
-//     int _socket;
-//     ClientState _state;
-//     time_t _lastActive;
-	
-//     // Request and response
-//     Request _request;
-//     Response _response;
-//     // CGI* _cgi;
-	
-//     // Configuration
-//     ServerConfig* _serverConfig;
-//     Config* _config;
-	
-//     // Buffer for incoming data
-//     char _buffer[8192];
-	
-//     // Process methods
-//     void processRequest();
-//     void handleStaticFile(const std::string& path);
-//     void handleCGI(const std::string& path, const std::string& pathInfo);
-//     void handleDirectory(const std::string& path);
-//     void handleError(ResponseStatus status);
-	
-//     // Path resolution
-//     std::string resolveUri(const std::string& uri, Location* location);
-//     bool checkPath(const std::string& path, bool allowDirectory = false);
-//     std::string buildPath(const std::string& uri, Location* location);
-	
-// public:
-//     Client(int socket, ServerConfig* serverConfig, Config* config);
-//     ~Client();
-	
-//     // Socket I/O
-//     bool readFromSocket();
-//     bool writeToSocket();
-	
-//     // State management
-//     bool wantsToRead() const;
-//     bool wantsToWrite() const;
-	
-//     // Request processing
-//     void process();
-	
-//     // Timeout management
-//     bool hasTimedOut(time_t timeout) const;
-//     void updateActivity();
-// };
-
-// #endif // CLIENT_HPP
-
-// ============================================================================
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Client.hpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/03/05 14:44:11 by hben-laz          #+#    #+#             */
+/*   Updated: 2025/03/05 14:44:12 by hben-laz         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
 
-#pragma once
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 
 #include <string>
 #include <map>
@@ -118,6 +59,9 @@ class Client {
 	public:
 		Client(int socket, struct sockaddr_in address, const ServerConfig& config);
 		~Client();
+		Client(const Client& other);
+		Client& operator=(const Client& other);
+
 		
 		// Read data from client
 		// bool readRequest();
@@ -144,5 +88,6 @@ class Client {
 		bool keepAlive() const;
 		
 		// Reset client for new request
-		// void reset();
+		void reset();
 };
+#endif // CLIENT_HPP

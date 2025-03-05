@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/04 18:01:59 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/05 14:48:31 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -184,7 +184,7 @@ bool Request::parseFirstLine(const std::string& line)
 		this->statusCode.code = 405;
 		return false;
 	}
-	if (path.empty() || path[0] != '/' || version != "/1.1") {
+	if (path.empty() || path[0] != '/' || version != "HTTP/1.1") {
 		this->statusCode.code = 400;
 		return false;
 	}
@@ -195,5 +195,19 @@ bool Request::parseFirstLine(const std::string& line)
 
 	//std::cout << "Method: |" << method << "|\nPath: |" << path << "|\nVersion: |" << version << "|" << std::endl;
 	return true;
+}
+void	Request::reset()
+{
+	method.clear();
+	path.clear();
+	version.clear();
+	extension.clear();
+	headers.clear();
+	body.clear();
+	content_length = 0;
+	flag_end_of_headers = false;
+	headersParsed = false;
+	bodyFlag = false;
+	transferEncodingExist = false;
 }
 

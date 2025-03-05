@@ -311,8 +311,8 @@
 // //========================================================
 
 
-#include "Server.hpp"
-#include "Client.hpp"
+#include "../include/Server.hpp"
+#include "../include/Client.hpp"
 #include <cstring>
 #include <errno.h>
 
@@ -443,40 +443,6 @@ void Server::handleClientData(int clientFd) {
 	
 	Client& client = _clients[clientFd];
 	
-	// Process client request
-	// if (!client.readRequest()) {
-	// 	std::cout << "Client disconnected during read" << std::endl;
-	// 	removeClient(clientFd);
-	// 	return;
-	// }
-	
-	// // Check if request is complete
-	// if (client.isRequestComplete()) {
-	// 	// Parse and process the request
-	// 	if (client.parseRequest()) {
-	// 		// Generate response
-	// 		client.generateResponse();
-			
-	// 		// Update the interested events to include POLLOUT for writing response
-	// 		for (size_t i = 0; i < _fds.size(); i++) {
-	// 			if (_fds[i].fd == clientFd) {
-	// 				_fds[i].events |= POLLOUT;
-	// 				break;
-	// 			}
-	// 		}
-	// 	} else {
-	// 		// Invalid request, send error response
-	// 		client.sendErrorResponse(400, "Bad Request");
-			
-	// 		// Update for writing
-	// 		for (size_t i = 0; i < _fds.size(); i++) {
-	// 			if (_fds[i].fd == clientFd) {
-	// 				_fds[i].events |= POLLOUT;
-	// 				break;
-	// 			}
-	// 		}
-	// 	}
-	// }
 	char buffer[210];
 	ssize_t bytes_read = recv(client._socket, buffer, 210, 0); // Read 49 bytes at a time
 	if (bytes_read < 0) {

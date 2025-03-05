@@ -17,6 +17,29 @@ Client::~Client() {
 	// Socket is closed by the Server class
 }
 
+Client::Client(const Client& other)
+{
+	*this = other;
+}
+
+Client& Client::operator=(const Client& other)
+{
+	if (this != &other)
+	{
+		_socket = other._socket;
+		_address = other._address;
+		_request = other._request;
+		// _response = other._response;
+		_requestBuffer = other._requestBuffer;
+		_responseBuffer = other._responseBuffer;
+		request_Header_Complete = other.request_Header_Complete;
+		_responseSent = other._responseSent;
+		_keepAlive = other._keepAlive;
+		_serverConfig = other._serverConfig;
+	}
+	return *this;
+}
+
 bool Client::isRequestComplete() {
 	return request_Header_Complete;
 }
@@ -309,15 +332,16 @@ bool Client::keepAlive() const {
 	return _keepAlive;
 }
 
-// void Client::reset() {
-// 	_requestBuffer.clear();
-// 	_responseBuffer.clear();
-// 	request_Header_Complete = false;
-// 	_responseSent = false;
-// 	_method.clear();
-// 	_uri.clear();
-// 	_httpVersion.clear();
-// 	_headers.clear();
-// 	_body.clear();
-// 	// Keep the socket and address intact
-// }
+void Client::reset() {
+	_requestBuffer.clear();
+	_responseBuffer.clear();
+	request_Header_Complete = false;
+	_responseSent = false;
+	// _method.clear();
+	// _uri.clear();
+	// _httpVersion.clear();
+	// _headers.clear();
+	// _body.clear();
+	_request.reset();
+	// Keep the socket and address intact
+}
