@@ -1,12 +1,12 @@
 
 
-#include "../include/Client.hpp"
 #include <unistd.h>
 #include <iostream>
 #include <sstream>
 #include <cstring>
 #include <fstream>
 #include <sys/stat.h>
+#include "../include/Client.hpp"
 
 Client::Client(int socket, struct sockaddr_in address, const ServerConfig& config)
 	: _socket(socket), _address(address), request_Header_Complete(false), 
@@ -156,11 +156,7 @@ void Client::generateResponse_GET_DELETE() {
 void Client::handleGetRequest() {
 	// Remove query parameters
 	std::string path = _request.getpath();
-		// size_t start = 0;
 
-	// while ((start = path.find("%", start)) != path.npos) {
-	// 	path.replace(start, 3, _request.encode[path.substr(start, 3)]);
-	// }
 
 	size_t queryPos = path.find('?');
 	if (queryPos != std::string::npos) {
@@ -178,7 +174,8 @@ void Client::handleGetRequest() {
 	}
 	
 	// Prepend document root from config
-	std::string fullPath = _serverConfig.getRoot() + path;
+	// std::string fullPath = _serverConfig.getRoot() + path;
+	std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
 	
 	// Check if file exists
 	struct stat fileStat;

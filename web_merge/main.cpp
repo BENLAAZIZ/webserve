@@ -38,37 +38,42 @@ int main(int argc, char* argv[]) {
 	std::map<int, Client> clients;
 	std::vector<int> created;
 
-	if (argc > 2) {
-		printUsage(argv[0]);
-		return EXIT_FAILURE;
-	} else if (argc == 2) {
-		configPath = argv[1];
-		std::cout << "Using configuration file: " << configPath << std::endl;
-	}
+	// if (argc > 2) {
+	// 	printUsage(argv[0]);
+	// 	return EXIT_FAILURE;
+	// } else if (argc == 2) {
+	// 	configPath = argv[1];
+	// 	std::cout << "Using configuration file: " << configPath << std::endl;
+	// }
 
 	try {
 		// Parse configuration
-		Config config;
-		if (!config.load(configPath)) {
-			std::cerr << "Failed to load configuration from " << configPath << std::endl;
-			return EXIT_FAILURE;
-		}
+		// Config config;
+		// if (!config.load(configPath)) {
+		// 	std::cerr << "Failed to load configuration from " << configPath << std::endl;
+		// 	return EXIT_FAILURE;
+		// }
 
 		std::cout << "Configuration loaded successfully from " << configPath << std::endl;
 
 		// Initialize servers based on configuration
-		const std::vector<ServerConfig>& serverConfigs = config.getServers();
+		// const std::vector<ServerConfig>& serverConfigs = config.getServers();
+		ServerConfig serverConfigs;
+		serverConfigs.host = "localhost";
+		serverConfigs.port = 8080;
 
-		for (size_t i = 0; i < serverConfigs.size(); ++i) {
+		// for (size_t i = 0; i < serverConfigs.size(); ++i) {
+		for (size_t i = 0; i < 1; ++i) {
 			try {
-				Server server(serverConfigs[i]);
+				// Server server(serverConfigs[i]);
+				Server server(serverConfigs);
 				if (server.createServer()) {
 					servers.push_back(server);
-					std::cout << "Server initialized on " << serverConfigs[i].host 
-							  << ":" << serverConfigs[i].port << std::endl;
+					std::cout << "Server initialized on " << serverConfigs.host //serverConfigs[i].host
+							  << ":" << serverConfigs.port << std::endl;
 				} else {
-					std::cerr << "Failed to initialize server on " << serverConfigs[i].host 
-							  << ":" << serverConfigs[i].port << std::endl;
+					std::cerr << "Failed to initialize server on " << serverConfigs.host //serverConfigs[i].host
+							  << ":" << serverConfigs.port << std::endl;//serverConfigs[i].port
 				}
 			} catch (const std::exception& e) {
 				std::cerr << "Error initializing server: " << e.what() << std::endl;

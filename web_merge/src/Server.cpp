@@ -474,19 +474,23 @@ void Server::handleClientData(int clientFd) {
 	if (!client.isRequestComplete())
 	{
 		if (!client.parse_Header_Request(client._requestBuffer))
-			client.sendErrorResponse(client.getStatusCode());
+		    std::cerr << "Error parsing request" << std::endl;
+			// client.sendErrorResponse(client.getStatusCode());
 	}
 	else
 	{
 		if (client._request.getMethod() == "POST")
 		{
-			if (!client.parseBody())
-			{
-				client.sendErrorResponse(client.getStatusCode());
-			}
+			// if (!client.parseBody())
+			// {
+			// 	client.sendErrorResponse(client.getStatusCode());
+			// }
+			std::cout << "POST request received" << std::endl;
 		}
 		else
-			client.generateResponse_GET_DELETE();
+			std::cout << "GET request received" << std::endl;
+		// else
+		// 	client.generateResponse_GET_DELETE();
 				
 		// Update the interested events to include POLLOUT for writing response
 		for (size_t i = 0; i < _fds.size(); i++) {
