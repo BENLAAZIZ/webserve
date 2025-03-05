@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/05 14:48:31 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/05 15:25:10 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -189,6 +189,12 @@ bool Request::parseFirstLine(const std::string& line)
 		return false;
 	}
 	// Store method, path, version
+	if (checkPath())
+			return false;
+	size_t start = 0;
+	while ((start = path.find("%", start)) != path.npos) {
+		path.replace(start, 3, encode[path.substr(start, 3)]);
+	}
 	setMethod(method);
 	setPath(path);
 	setVersion(version);
@@ -211,3 +217,47 @@ void	Request::reset()
 	transferEncodingExist = false;
 }
 
+void initializeEncode(){
+	encode["%20"] = " ";
+	encode["%21"] = "!";
+	encode["%22"] = "\"";
+	encode["%23"] = "#";
+	encode["%24"] = "$";
+	encode["%25"] = "%";
+	encode["%26"] = "&";
+	encode["%27"] = "\'";
+	encode["%28"] = "(";
+	encode["%29"] = ")";
+	encode["%2A"] = "*";
+	encode["%2B"] = "+";
+	encode["%2C"] = ",";
+	encode["%2F"] = "/";
+	encode["%3A"] = ":";
+	encode["%3B"] = ";";
+	encode["%3D"] = "=";
+	encode["%3F"] = "?";
+	encode["%40"] = "@";
+	encode["%5B"] = "[";
+	encode["%5D"] = "]";
+}
+
+bool Request::checkPath(){
+	if (path.size() > 2048)
+		return false; //status code 414
+	for (size_t i = 0; path[i]; ++i){
+			if ((path[i] >= 'A' && path[i] <= 'Z') || (path[i] >= 'a' && path[i] <= 'z') || (path[i] >= '0' && path[i] <= '9'))
+				continue; //400
+			if (path[i] == '~' || path[i] == '!' || (path[i] >= '#' && path[i] <= '/') || path[i] == ':' || path[i] == ';' || path[i] == '=' || path[i] == '?' || path[i] == '@')
+				continue;
+			if (path[i] == '[' || path[i] == ']' || path[i] == '_')
+				continue;
+			statusCode.code = 400;
+			return false;
+	}
+	size_t start = path.find("?");
+	if (start != path.npos){
+		query = path.substr(start + 1, path.size() - (start + 1));
+		path = path.substr(0, start);
+	}
+	return true;
+}

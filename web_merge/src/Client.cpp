@@ -125,10 +125,8 @@ bool Client::parse_Header_Request(std::string& line_buf)
 			}
 			std::string hostHeader = line.substr(0, colonPos);
 			std::string key;
-			// std::transform(hostHeader.begin(), hostHeader.end(), hostHeader.begin(), ::tolower);
-			// std::string key = line.substr(0, colonPos);
 			for (size_t i = 0; i < hostHeader.length(); i++) {
-				hostHeader[i] = std::tolower(hostHeader[i]); // Convert to lowercase (C++98 safe)
+				hostHeader[i] = std::tolower(hostHeader[i]);
 			}
 			if (hostHeader == "host")
 				key = hostHeader.substr(0, colonPos);
@@ -147,6 +145,7 @@ bool Client::parse_Header_Request(std::string& line_buf)
 void Client::generateResponse_GET_DELETE() {
 	// Route request based on method and URI
 	if (_request.getMethod() == "GET") {
+		_request.initializeEncode();
 		handleGetRequest();
 	}
 	else if (_request.getMethod() == "DELETE") {
@@ -157,11 +156,16 @@ void Client::generateResponse_GET_DELETE() {
 void Client::handleGetRequest() {
 	// Remove query parameters
 	std::string path = _request.getpath();
+		// size_t start = 0;
+
+	// while ((start = path.find("%", start)) != path.npos) {
+	// 	path.replace(start, 3, _request.encode[path.substr(start, 3)]);
+	// }
+
 	size_t queryPos = path.find('?');
 	if (queryPos != std::string::npos) {
 		path = path.substr(0, queryPos);
 	}
-	
 	// Sanitize path
 	if (path == "/") {
 		path = "/index.html"; // Default page
@@ -337,11 +341,6 @@ void Client::reset() {
 	_responseBuffer.clear();
 	request_Header_Complete = false;
 	_responseSent = false;
-	// _method.clear();
-	// _uri.clear();
-	// _httpVersion.clear();
-	// _headers.clear();
-	// _body.clear();
 	_request.reset();
 	// Keep the socket and address intact
 }

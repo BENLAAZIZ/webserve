@@ -45,6 +45,7 @@ class Request
 		// int statusCode;
 		bool headersParsed;
 	public:
+		std::map<std::string, std::string> encode;
 		StatusCode statusCode;
 		std::string	body; 
 		std::string content_type;
@@ -89,6 +90,8 @@ class Request
 		bool		parseFirstLine(const std::string& line);
 		bool		parseHeader(std::string& line);
 		void 		reset();
+		bool		checkPath();
+		void		initializeEncode();
 };
 
 #endif // REQUEST_HPP
