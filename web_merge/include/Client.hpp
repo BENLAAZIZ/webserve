@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:44:11 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/05 14:44:12 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/06 14:32:58 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,13 +19,13 @@
 #include <vector>
 #include <netinet/in.h>
 // #include "ServerConfig.hpp"
-#include "Config.hpp"
+#include "../include/Config.hpp"
 #include "../include/Request.hpp"
-#include "Response.hpp"
+// #include "Response.hpp"
 
 class Client {
 	public:
-		Response _response;
+		// Response _response;
 		Request _request;
 		int _socket;
 		struct sockaddr_in _address;
@@ -57,6 +57,7 @@ class Client {
 		std::string getExtension(const std::string& path);
 
 	public:
+		Client();
 		Client(int socket, struct sockaddr_in address, const ServerConfig& config);
 		~Client();
 		Client(const Client& other);

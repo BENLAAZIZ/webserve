@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/05 15:57:05 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/06 14:38:59 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,7 +217,7 @@ void	Request::reset()
 	transferEncodingExist = false;
 }
 
-void initializeEncode(){
+void Request::initializeEncode(){
 	encode["%20"] = " ";
 	encode["%21"] = "!";
 	encode["%22"] = "\"";
@@ -256,7 +256,7 @@ bool Request::checkPath(){
 	}
 	size_t start = path.find("?");
 	if (start != path.npos){
-		query = path.substr(start + 1, path.size() - (start + 1));
+		// query = path.substr(start + 1, path.size() - (start + 1));
 		path = path.substr(0, start);
 	}
 	return true;

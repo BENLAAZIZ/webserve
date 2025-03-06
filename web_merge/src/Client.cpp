@@ -8,6 +8,10 @@
 #include <sys/stat.h>
 #include "../include/Client.hpp"
 
+
+Client::Client() : _socket(-1), request_Header_Complete(false), _responseSent(false), _keepAlive(false) {
+}
+
 Client::Client(int socket, struct sockaddr_in address, const ServerConfig& config)
 	: _socket(socket), _address(address), request_Header_Complete(false), 
 	  _responseSent(false), _keepAlive(false), _serverConfig(config) {

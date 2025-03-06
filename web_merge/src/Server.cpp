@@ -315,6 +315,7 @@
 #include "../include/Client.hpp"
 #include <cstring>
 #include <errno.h>
+#include <arpa/inet.h>
 
 Server::Server(const ServerConfig& config) : _config(config), serverSocket(-1) {
 }
@@ -413,6 +414,7 @@ void	Server::handleNewConnection() {
 		}
 		return;
 	}
+	std::cout << "New client connected: " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << std::endl;
 	
 	// Set client socket to non-blocking
 	if (!setNonBlocking(clientSocket)) {
@@ -425,9 +427,14 @@ void	Server::handleNewConnection() {
 	clientPollFd.fd = clientSocket;
 	clientPollFd.events = POLLIN;
 	_fds.push_back(clientPollFd);
+	std::vector<std::map<int, Client> > __clients;
 	
 	// Create new client object
 	_clients[clientSocket] = Client(clientSocket, clientAddr, _config);
+
+	
+	__clients.push_back(_clients);
+	// _clients.insert(std::pair<int, Client>(clientSocket, Client(clientSocket, clientAddr, _config)));
 	
 	// std::cout << "New client connected: " << inet_ntoa(clientAddr.sin_addr) 
 	std::cout << "New client connected: " << clientAddr.sin_addr.s_addr 
@@ -555,7 +562,6 @@ void Server::processEvents() {
 		// Handle client data - writing response
 		if (_fds[i].revents & POLLOUT) {
 			int clientFd = _fds[i].fd;
-			
 			if (_clients.find(clientFd) != _clients.end()) {
 				Client& client = _clients[clientFd];
 				
@@ -578,7 +584,8 @@ void Server::processEvents() {
 		}
 		
 		// Handle errors or disconnection
-		if (_fds[i].revents & (POLLERR | POLLHUP | POLLNVAL)) {
+		if ((_fds[i].revents) & (POLLERR | POLLHUP | POLLNVAL)) {
+			std::cout << " == Here == " << std::endl;
 			std::cout << "Client disconnected due to error or hangup" << std::endl;
 			removeClient(_fds[i].fd);
 		}
