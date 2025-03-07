@@ -72,6 +72,8 @@ class Server {
 		int serverSocket;
 		std::map<int, Client> _clients;
 		std::vector<pollfd> _fds;
+		std::vector<int> fds;
+
 		
 		// Makes a socket non-blocking
 		bool setNonBlocking(int sock);

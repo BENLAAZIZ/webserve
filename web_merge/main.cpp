@@ -4,6 +4,89 @@
 // #include "include/Config.hpp"
 #include <signal.h>
 
+// ========================================================
+
+
+// void processEvents(, ) 
+void processEvents(size_t i, std::vector<pollfd>& _fds, std::vector<Server>& servers, std::map<int, Client>& _clients)
+{
+	// Poll for events with a short timeout
+	// int pollResult = poll(_fds.data(), _fds.size(), -1);
+	// // std::cout << "pollResult: " << pollResult << std::endl;
+	// if (pollResult < 0) {
+	// 	if (errno == EINTR) {
+	// 		// Interrupted by signal, just continue
+	// 		return;
+	// 	}
+	// 	std::cerr << "Poll failed: " << strerror(errno) << std::endl;
+	// 	return;
+	// }
+	
+	// if (pollResult == 0) {
+	// 	// Timeout, no events
+	// 	return;
+	// }
+	
+	// Check each file descriptor for events
+	// for (size_t i = 0; i < _fds.size(); i++) 
+	// {
+		if (_fds[i].revents == 0) {
+			// continue;
+			return;
+		}
+		// std::cout << " _fds[i].fd: " << _fds[i].fd << std::endl;
+		
+		// Handle server socket - new connection
+		if (_fds[i].fd == servers[i].serverSocket && (_fds[i].revents & POLLIN)) {
+			servers[i].handleNewConnection();
+			// continue;
+			return;
+		}
+		
+		// Handle client data - reading request
+		if (_fds[i].revents & POLLIN) {
+			std::cout << " == handleClientData == " << std::endl;
+			servers[i].handleClientData(_fds[i].fd);
+		}
+		
+		// Handle client data - writing response
+		if (_fds[i].revents & POLLOUT) {
+			int clientFd = _fds[i].fd;
+			if (_clients.find(clientFd) != _clients.end()) {
+				Client& client = _clients[clientFd];
+				
+				// Send response
+				if (!client.sendResponse()) {
+					// Failed to send or completed sending
+					if (client.isDoneWithResponse()) {
+						// If keep-alive is not set, close the connection
+						if (!client.keepAlive()) {
+							servers[i].removeClient(clientFd);
+						} else {
+							// Reset client for next request
+							client.reset();
+							// Update to only listen for reads again
+							_fds[i].events = POLLIN;
+						}
+					}
+				}
+			}
+		}
+		
+		// Handle errors or disconnection
+		if ((!_fds[i].revents) & (POLLERR | POLLHUP | POLLNVAL)) {
+			// std::cout << " == Here == " << std::endl;
+			// std::cout << "_fds[i].revents: " << _fds[i].revents << std::endl;
+			// std::cout << "Client disconnected due to error or hangup" << std::endl;
+			servers[i].removeClient(_fds[i].fd);
+		}
+	// }
+}
+// ========================================================
+
+
+// ========================================================
+
 // volatile sig_atomic_t g_running = 1;
 
 // // Signal handler for graceful termination
@@ -36,8 +119,9 @@ void printUsage(const std::string& programName) {
 int main() {
 	std::string configPath = "default.conf";
 	std::vector<Server> servers;
-	std::vector<int> fds;
-	// std::map<int, Client> clients;
+	// std::vector<int> fds;
+	std::vector<pollfd> _fds;
+	std::map<int, Client> _clients;
 	std::vector<int> created;
 	std::vector<ServerConfig> Sconfigs;
 
@@ -85,6 +169,7 @@ int main() {
 				Server server(Sconfigs[i]);
 				if (server.createServer()) {
 					servers.push_back(server);
+					_fds.insert(_fds.end(), servers[i]._fds.begin(), servers[i]._fds.end());
 					std::cout << "listen to http://" << Sconfigs[i].host //serverConfigs[i].host
 							  << ":" << Sconfigs[i].port << std::endl;
 				} else {
@@ -106,11 +191,31 @@ int main() {
 
 		// Main server loop
 		// while (g_running){
+		int pollResult;
 		while (true) {
 			// std::cout << "Processing events..." << std::endl;
-			for (size_t i = 0; i < servers.size(); ++i) {
-				servers[i].processEvents();
-				std::cout << "i = " << i << std::endl;
+			pollResult = poll(_fds.data(), _fds.size(), 100);
+			//Poll for events with a short timeout
+			// int pollResult = poll(_fds.data(), _fds.size(), 100);
+			// std::cout << "pollResult: " << pollResult << std::endl;
+			if (pollResult < 0) {
+				if (errno == EINTR) {
+					// Interrupted by signal, just continue
+					break;
+				}
+				std::cerr << "Poll failed: " << strerror(errno) << std::endl;
+				break;
+			}
+
+			if (pollResult == 0) {
+				// Timeout, no events
+				break;
+			}
+			size_t i;
+			for (i = 0; i < _fds.size(); ++i) {
+			// for (size_t i = 0; i < servers.size(); ++i) {
+				processEvents(i, _fds, servers, _clients);
+				// std::cout << "i = " << i << std::endl;
 				// std::cout << "server[i]._config.port: " << servers[i]._config.port << std::endl;
 			}
 		}
@@ -126,3 +231,9 @@ int main() {
 	std::cout << "Webserver shutdown complete." << std::endl;
 	return 0;
 }
+
+
+
+
+// ========================================================
+
