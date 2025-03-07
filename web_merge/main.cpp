@@ -1,7 +1,7 @@
 
 #include "include/web.h"
-#include "include/Server.hpp"
-#include "include/Config.hpp"
+// #include "include/Server.hpp"
+// #include "include/Config.hpp"
 #include <signal.h>
 
 // volatile sig_atomic_t g_running = 1;
@@ -37,7 +37,7 @@ int main() {
 	std::string configPath = "default.conf";
 	std::vector<Server> servers;
 	std::vector<int> fds;
-	std::map<int, Client> clients;
+	// std::map<int, Client> clients;
 	std::vector<int> created;
 	std::vector<ServerConfig> Sconfigs;
 
@@ -107,8 +107,11 @@ int main() {
 		// Main server loop
 		// while (g_running){
 		while (true) {
+			// std::cout << "Processing events..." << std::endl;
 			for (size_t i = 0; i < servers.size(); ++i) {
 				servers[i].processEvents();
+				std::cout << "i = " << i << std::endl;
+				// std::cout << "server[i]._config.port: " << servers[i]._config.port << std::endl;
 			}
 		}
 

@@ -67,7 +67,7 @@
 #include "Client.hpp"
 
 class Server {
-	private:
+	public:
 		ServerConfig _config;
 		int serverSocket;
 		std::map<int, Client> _clients;

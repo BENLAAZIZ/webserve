@@ -328,6 +328,7 @@ Server::~Server() {
 	
 	// Close all client connections
 	for (size_t i = 0; i < _fds.size(); i++) {
+		std::cout << "Closing client socket: " << _fds[i].fd << std::endl;
 		if (_fds[i].fd >= 0 && _fds[i].fd != this->serverSocket) {
 			close(_fds[i].fd);
 		}
@@ -399,6 +400,7 @@ bool Server::createServer() {
 	serverPollFd.fd = this->serverSocket;
 	serverPollFd.events = POLLIN;
 	_fds.push_back(serverPollFd);
+	// std::cout << " _fds[0].fd: " << _fds[0].fd << std::endl;
 	
 	return true;
 }
@@ -427,13 +429,13 @@ void	Server::handleNewConnection() {
 	clientPollFd.fd = clientSocket;
 	clientPollFd.events = POLLIN;
 	_fds.push_back(clientPollFd);
-	std::vector<std::map<int, Client> > __clients;
+	// std::vector<std::map<int, Client> > __clients;
 	
 	// Create new client object
 	_clients[clientSocket] = Client(clientSocket, clientAddr, _config);
 
 	
-	__clients.push_back(_clients);
+	// __clients.push_back(_clients);
 	// _clients.insert(std::pair<int, Client>(clientSocket, Client(clientSocket, clientAddr, _config)));
 	
 	// std::cout << "New client connected: " << inet_ntoa(clientAddr.sin_addr) 
@@ -524,10 +526,11 @@ void Server::removeClient(int clientFd) {
 	}
 }
 
-void Server::processEvents() {
+void Server::processEvents() 
+{
 	// Poll for events with a short timeout
 	int pollResult = poll(_fds.data(), _fds.size(), 100);
-	
+	std::cout << "pollResult: " << pollResult << std::endl;
 	if (pollResult < 0) {
 		if (errno == EINTR) {
 			// Interrupted by signal, just continue
@@ -543,10 +546,12 @@ void Server::processEvents() {
 	}
 	
 	// Check each file descriptor for events
-	for (size_t i = 0; i < _fds.size(); i++) {
+	for (size_t i = 0; i < _fds.size(); i++) 
+	{
 		if (_fds[i].revents == 0) {
 			continue;
 		}
+		std::cout << " _fds[i].fd: " << _fds[i].fd << std::endl;
 		
 		// Handle server socket - new connection
 		if (_fds[i].fd == this->serverSocket && (_fds[i].revents & POLLIN)) {
@@ -556,6 +561,7 @@ void Server::processEvents() {
 		
 		// Handle client data - reading request
 		if (_fds[i].revents & POLLIN) {
+			std::cout << " == handleClientData == " << std::endl;
 			handleClientData(_fds[i].fd);
 		}
 		
@@ -585,8 +591,9 @@ void Server::processEvents() {
 		
 		// Handle errors or disconnection
 		if ((_fds[i].revents) & (POLLERR | POLLHUP | POLLNVAL)) {
-			std::cout << " == Here == " << std::endl;
-			std::cout << "Client disconnected due to error or hangup" << std::endl;
+			// std::cout << " == Here == " << std::endl;
+			std::cout << "_fds[i].revents: " << _fds[i].revents << std::endl;
+			// std::cout << "Client disconnected due to error or hangup" << std::endl;
 			removeClient(_fds[i].fd);
 		}
 	}
