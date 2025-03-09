@@ -336,13 +336,8 @@ Server::~Server() {
 }
 
 bool Server::setNonBlocking(int sock) {
-	int flags = fcntl(sock, F_GETFL, 0);
-	if (flags == -1) {
-		std::cerr << "Failed to get socket flags" << std::endl;
-		return false;
-	}
-	
-	if (fcntl(sock, F_SETFL, flags | O_NONBLOCK) == -1) {
+
+	if (fcntl(sock, F_SETFL, O_NONBLOCK) == -1) {
 		std::cerr << "Failed to set socket to non-blocking mode" << std::endl;
 		return false;
 	}
@@ -553,6 +548,7 @@ void Server::handleClientData(int clientFd) {
 		{
 			// if (!client.parseBody())
 			// {
+			
 			// 	client.sendErrorResponse(client.getStatusCode());
 			// }
 			std::cout << "POST request received" << std::endl;

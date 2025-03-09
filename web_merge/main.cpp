@@ -55,7 +55,7 @@ void processEvents(size_t i, std::vector<pollfd>& _fds, std::vector<Server>& ser
 		}
 		
 		// Handle errors or disconnection
-		if ((!_fds[i].revents) & (POLLERR | POLLHUP | POLLNVAL)) {
+		if ((_fds[i].revents) & (POLLERR | POLLHUP | POLLNVAL)) {
 			std::cout << " == Here == " << std::endl;
 			std::cout << "_fds[i].revents: " << _fds[i].revents << std::endl;
 			std::cout << "Client disconnected due to error or hangup" << std::endl;
@@ -151,7 +151,7 @@ int main() {
 				// Server server(Sconfigs[i]);
 				// if (server.createServer()) {
 				if (server.throw_error) {
-					std::cout << "serverc1.port: " << serverc1.port << std::endl;
+					std::cout << "here : " << serverc1.port << std::endl;
 					servers.push_back(server);
 					_fds.insert(_fds.end(), servers[i]._fds.begin(), servers[i]._fds.end());
 					std::cout << "listen to http://" << Sconfigs[i].host //serverConfigs[i].host

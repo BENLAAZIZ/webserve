@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/06 14:38:59 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/09 17:30:53 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,29 +217,29 @@ void	Request::reset()
 	transferEncodingExist = false;
 }
 
-void Request::initializeEncode(){
-	encode["%20"] = " ";
-	encode["%21"] = "!";
-	encode["%22"] = "\"";
-	encode["%23"] = "#";
-	encode["%24"] = "$";
-	encode["%25"] = "%";
-	encode["%26"] = "&";
-	encode["%27"] = "\'";
-	encode["%28"] = "(";
-	encode["%29"] = ")";
-	encode["%2A"] = "*";
-	encode["%2B"] = "+";
-	encode["%2C"] = ",";
-	encode["%2F"] = "/";
-	encode["%3A"] = ":";
-	encode["%3B"] = ";";
-	encode["%3D"] = "=";
-	encode["%3F"] = "?";
-	encode["%40"] = "@";
-	encode["%5B"] = "[";
-	encode["%5D"] = "]";
-}
+// void Request::initializeEncode(){
+// 	encode["%20"] = " ";
+// 	encode["%21"] = "!";
+// 	encode["%22"] = "\"";
+// 	encode["%23"] = "#";
+// 	encode["%24"] = "$";
+// 	encode["%25"] = "%";
+// 	encode["%26"] = "&";
+// 	encode["%27"] = "\'";
+// 	encode["%28"] = "(";
+// 	encode["%29"] = ")";
+// 	encode["%2A"] = "*";
+// 	encode["%2B"] = "+";
+// 	encode["%2C"] = ",";
+// 	encode["%2F"] = "/";
+// 	encode["%3A"] = ":";
+// 	encode["%3B"] = ";";
+// 	encode["%3D"] = "=";
+// 	encode["%3F"] = "?";
+// 	encode["%40"] = "@";
+// 	encode["%5B"] = "[";
+// 	encode["%5D"] = "]";
+// }
 
 bool Request::checkPath(){
 	if (path.size() > 2048)
