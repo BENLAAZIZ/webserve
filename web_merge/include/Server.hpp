@@ -65,6 +65,7 @@
 #include <iostream>
 #include "Config.hpp"
 #include "Client.hpp"
+#define MAX_CLIENTS 10
 
 class Server {
 	public:
@@ -74,6 +75,10 @@ class Server {
 		std::vector<pollfd> _fds;
 		std::vector<int> fds;
 
+
+		int server_fd;
+		bool throw_error;
+
 		
 		// Makes a socket non-blocking
 		bool setNonBlocking(int sock);
@@ -82,21 +87,22 @@ class Server {
 		void handleNewConnection();
 		
 		// Handles client data
-		// void handleClientData(int clientFd);
+		void handleClientData(int clientFd);
 		
 		// Removes disconnected client
 		void removeClient(int clientFd);
 
 	public:
 		Server(const ServerConfig& config);
+		Server(int port);
 		~Server();
 		
 		bool createServer();
 		void processEvents();
 		// bool handleClientResponse(int clientFd);
 		// bool clientReadyToSend(int clientFd);
-		int acceptNewConnection();
-		bool handleClientData(int clientFd);
+		// int acceptNewConnection();
+		// bool handleClientData(int clientFd);
 
 
 };
