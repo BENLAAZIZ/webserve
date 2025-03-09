@@ -117,24 +117,13 @@ void printUsage(const std::string& programName) {
 }
 
 int main() {
-	std::string configPath = "default.conf";
-	std::vector<Server> servers;
-	// std::vector<int> fds;
-	std::vector<pollfd> _fds;
-	std::map<int, Client> _clients;
-	std::vector<int> created;
-	std::vector<ServerConfig> Sconfigs;
-
-	// if (argc > 2) {
-	// 	printUsage(argv[0]);
-	// 	return EXIT_FAILURE;
-	// } else if (argc == 2) {
-	// 	configPath = argv[1];
-	// 	std::cout << "Using configuration file: " << configPath << std::endl;
-	// }
-
-	try {
-		// Parse configuration
+    std::string configPath = "default.conf";
+    std::vector<Server> servers;
+    std::vector<pollfd> allFds;
+    std::map<int, Client> _clients;
+    
+    try {
+        // Parse configuration
 		// Config config;
 		// if (!config.load(configPath)) {
 		// 	std::cerr << "Failed to load configuration from " << configPath << std::endl;
@@ -142,97 +131,184 @@ int main() {
 		// }
 
 		// std::cout << "Configuration loaded successfully from " << configPath << std::endl;
-
-		// Initialize servers based on configuration
-		// const std::vector<ServerConfig>& serverConfigs = config.getServers();
-		ServerConfig serverc1;
-		ServerConfig serverc2;
-		ServerConfig serverc3;
-		// serverConfig.host = "localhost";
-		// serverConfig.port = 8080;
-		serverc1.host = "localhost";
-		serverc1.port = 8080;
-		Sconfigs.push_back(serverc1);
-
-		serverc2.host = "localhost";
-		serverc2.port = 7070;
-		Sconfigs.push_back(serverc2);
-
-		serverc3.host = "localhost";
-		serverc3.port = 5050;
-		Sconfigs.push_back(serverc3);
-
-		// for (size_t i = 0; i < 3; ++i) {
-		for (size_t i = 0; i < Sconfigs.size(); ++i) {
-			try {
-				// Server server(serverConfigs[i]);
-				Server server(Sconfigs[i]);
-				if (server.createServer()) {
-					servers.push_back(server);
-					_fds.insert(_fds.end(), servers[i]._fds.begin(), servers[i]._fds.end());
-					std::cout << "listen to http://" << Sconfigs[i].host //serverConfigs[i].host
-							  << ":" << Sconfigs[i].port << std::endl;
-				} else {
-					std::cerr << "Failed to initialize server on " << Sconfigs[i].host //serverConfigs[i].host
-							  << ":" << Sconfigs[i].port << std::endl;//serverConfigs[i].port
-				}
-			} catch (const std::exception& e) {
-				std::cerr << "Error initializing server: " << e.what() << std::endl;
-			}
-		}
-		std::cout << "\n ------- Severs initialize successfully --------\n" << std::endl;
-		// pause();
-		if (servers.empty()) {
-			std::cerr << "No servers could be initialized. Exiting." << std::endl;
-			return EXIT_FAILURE;
-		}
-
-		std::cout << "Webserver started successfully. Press Ctrl+C to stop." << std::endl;
-
-		// Main server loop
-		// while (g_running){
-		int pollResult;
-		while (true) {
-			// std::cout << "Processing events..." << std::endl;
-			pollResult = poll(_fds.data(), _fds.size(), 100);
-			//Poll for events with a short timeout
-			// int pollResult = poll(_fds.data(), _fds.size(), 100);
-			// std::cout << "pollResult: " << pollResult << std::endl;
-			if (pollResult < 0) {
-				if (errno == EINTR) {
-					// Interrupted by signal, just continue
-					break;
-				}
-				std::cerr << "Poll failed: " << strerror(errno) << std::endl;
-				break;
-			}
-
-			if (pollResult == 0) {
-				// Timeout, no events
-				break;
-			}
-			size_t i;
-			for (i = 0; i < _fds.size(); ++i) {
-			// for (size_t i = 0; i < servers.size(); ++i) {
-				processEvents(i, _fds, servers, _clients);
-				// std::cout << "i = " << i << std::endl;
-				// std::cout << "server[i]._config.port: " << servers[i]._config.port << std::endl;
-			}
-		}
-
-		std::cout << "Shutting down servers..." << std::endl;
-		// Cleanup will happen automatically as servers go out of scope
-
-	} catch (const std::exception& e) {
-		std::cerr << "Fatal error: " << e.what() << std::endl;
-		return EXIT_FAILURE;
-	}
-
-	std::cout << "Webserver shutdown complete." << std::endl;
-	return 0;
+        // Create server configurations
+        ServerConfig serverc1;
+        ServerConfig serverc2;
+        ServerConfig serverc3;
+        
+        serverc1.host = "localhost";
+        serverc1.port = 8080;
+        
+        serverc2.host = "localhost";
+        serverc2.port = 7070;
+        
+        serverc3.host = "localhost";
+        serverc3.port = 5050;
+        
+        std::vector<ServerConfig> Sconfigs;
+        Sconfigs.push_back(serverc1);
+        Sconfigs.push_back(serverc2);
+        Sconfigs.push_back(serverc3);
+        
+        // Initialize servers
+        for (size_t i = 0; i < Sconfigs.size(); ++i) {
+            try {
+                Server server(Sconfigs[i]);
+                if (server.createServer()) {
+                    servers.push_back(server);
+                    // Add server socket to global polling array
+                    pollfd serverPollFd;
+                    serverPollFd.fd = servers.back().serverSocket;
+                    serverPollFd.events = POLLIN;
+                    allFds.push_back(serverPollFd);
+                    
+                    std::cout << "Server created successfully on " << Sconfigs[i].host
+                              << ":" << Sconfigs[i].port << std::endl;
+                    std::cout << "listen to http://" << Sconfigs[i].host
+                              << ":" << Sconfigs[i].port << std::endl;
+                } else {
+                    std::cerr << "Failed to initialize server on " << Sconfigs[i].host
+                              << ":" << Sconfigs[i].port << std::endl;
+                }
+            } catch (const std::exception& e) {
+                std::cerr << "Error initializing server: " << e.what() << std::endl;
+            }
+        }
+        
+        std::cout << "\n ------- Servers initialized successfully --------\n" << std::endl;
+        
+        if (servers.empty()) {
+            std::cerr << "No servers could be initialized. Exiting." << std::endl;
+            return EXIT_FAILURE;
+        }
+        
+        std::cout << "Webserver started successfully. Press Ctrl+C to stop." << std::endl;
+        
+        // Create a map to track which server owns each file descriptor
+        std::map<int, Server*> fdToServer;
+        for (size_t i = 0; i < servers.size(); ++i) {
+            fdToServer[servers[i].serverSocket] = &servers[i];
+        }
+        
+        // Main server loop
+        while (true) {
+            // Poll for events
+            int pollResult = poll(allFds.data(), allFds.size(), 100);
+            
+            if (pollResult < 0) {
+                if (errno == EINTR) {
+                    // Interrupted by signal, just continue
+                    continue;
+                }
+                std::cerr << "Poll failed: " << strerror(errno) << std::endl;
+                break;
+            }
+            
+            if (pollResult == 0) {
+                // Timeout, no events
+                continue;
+            }
+            
+            // Process events for each file descriptor
+            for (size_t i = 0; i < allFds.size(); ++i) {
+                if (allFds[i].revents == 0) {
+                    continue;
+                }
+                
+                int currentFd = allFds[i].fd;
+                
+                // Find which server this FD belongs to
+                Server* currentServer = nullptr;
+                for (size_t j = 0; j < servers.size(); ++j) {
+                    if (currentFd == servers[j].serverSocket) {
+                        currentServer = &servers[j];
+                        break;
+                    }
+                }
+                
+                // If it's not a server socket, check the client-to-server map
+                if (!currentServer && fdToServer.find(currentFd) != fdToServer.end()) {
+                    currentServer = fdToServer[currentFd];
+                }
+                
+                if (!currentServer) {
+                    std::cerr << "Error: Can't find server for fd " << currentFd << std::endl;
+                    // Remove this fd from polling
+                    close(currentFd);
+                    allFds.erase(allFds.begin() + i);
+                    i--; // Adjust index
+                    continue;
+                }
+                
+                // Handle new connections on server sockets
+                if (currentFd == currentServer->serverSocket && (allFds[i].revents & POLLIN)) {
+                    std::cout << " == handleNewConnection == " << std::endl;
+                    int newClientFd = currentServer->acceptNewConnection();
+                    if (newClientFd > 0) {
+                        // Add new client fd to global polling array
+                        pollfd clientPollFd;
+                        clientPollFd.fd = newClientFd;
+                        clientPollFd.events = POLLIN;
+                        allFds.push_back(clientPollFd);
+                        
+                        // Add to server mapping
+                        fdToServer[newClientFd] = currentServer;
+                    }
+                    continue;
+                }
+                
+                // Handle client data - reading request
+                if (allFds[i].revents & POLLIN) {
+                    std::cout << " == handleClientData == " << std::endl;
+                    bool keepConnection = currentServer->handleClientData(currentFd);
+                    if (!keepConnection) {
+                        // Remove from poll array
+                        fdToServer.erase(currentFd);
+                        allFds.erase(allFds.begin() + i);
+                        i--; // Adjust index
+                        continue;
+                    }
+                    // If we need to write back, update events
+                    if (currentServer->clientReadyToSend(currentFd)) {
+                        allFds[i].events |= POLLOUT;
+                    }
+                }
+                
+                // Handle client data - writing response
+                if (allFds[i].revents & POLLOUT) {
+                    bool keepConnection = currentServer->handleClientResponse(currentFd);
+                    if (!keepConnection) {
+                        // Remove from poll array
+                        fdToServer.erase(currentFd);
+                        allFds.erase(allFds.begin() + i);
+                        i--; // Adjust index
+                    } else if (!currentServer->clientReadyToSend(currentFd)) {
+                        // Reset to only listen for reads
+                        allFds[i].events = POLLIN;
+                    }
+                }
+                
+                // Handle errors or disconnection
+                if ((allFds[i].revents) & (POLLERR | POLLHUP | POLLNVAL)) {
+                    std::cout << "Client/Server error on fd " << currentFd << std::endl;
+                    currentServer->removeClient(currentFd);
+                    fdToServer.erase(currentFd);
+                    allFds.erase(allFds.begin() + i);
+                    i--; // Adjust index
+                }
+            }
+        }
+        
+        std::cout << "Shutting down servers..." << std::endl;
+        
+    } catch (const std::exception& e) {
+        std::cerr << "Fatal error: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    
+    std::cout << "Webserver shutdown complete." << std::endl;
+    return 0;
 }
-
-
 
 
 // ========================================================

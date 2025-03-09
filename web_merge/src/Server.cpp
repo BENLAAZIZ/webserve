@@ -416,7 +416,7 @@ void	Server::handleNewConnection() {
 		}
 		return;
 	}
-	std::cout << "New client connected: " << inet_ntoa(clientAddr.sin_addr) << ":" << ntohs(clientAddr.sin_port) << std::endl;
+	std::cout << "New client connected: " << inet_ntoa(clientAddr.sin_addr) << ":::::" << ntohs(clientAddr.sin_port) << std::endl;
 	
 	// Set client socket to non-blocking
 	if (!setNonBlocking(clientSocket)) {
@@ -443,74 +443,74 @@ void	Server::handleNewConnection() {
 			  << ":" << ntohs(clientAddr.sin_port) << std::endl;
 }
 
-void Server::handleClientData(int clientFd) {
-	if (_clients.find(clientFd) == _clients.end()) {
-		std::cerr << "Error: Client not found in map" << std::endl;
-		removeClient(clientFd);
-		return;
-	}
+// void Server::handleClientData(int clientFd) {
+// 	if (_clients.find(clientFd) == _clients.end()) {
+// 		std::cerr << "Error: Client not found in map" << std::endl;
+// 		removeClient(clientFd);
+// 		return;
+// 	}
 	
-	Client& client = _clients[clientFd];
+// 	Client& client = _clients[clientFd];
 	
-	char buffer[210];
-	ssize_t bytes_read = recv(client._socket, buffer, 210, 0); // Read 49 bytes at a time
-	if (bytes_read < 0) {
-		if (errno == EWOULDBLOCK || errno == EAGAIN) {
-			return; // No data available, wait for next poll()
-		}
-		std::cerr << "Recv failed: " << strerror(errno) << std::endl;
-		close(client._socket);
-		_fds.erase(_fds.begin() + clientFd);
-		return;
-	}
+// 	char buffer[210];
+// 	ssize_t bytes_read = recv(client._socket, buffer, 210, 0); // Read 49 bytes at a time
+// 	if (bytes_read < 0) {
+// 		if (errno == EWOULDBLOCK || errno == EAGAIN) {
+// 			return; // No data available, wait for next poll()
+// 		}
+// 		std::cerr << "Recv failed: " << strerror(errno) << std::endl;
+// 		close(client._socket);
+// 		_fds.erase(_fds.begin() + clientFd);
+// 		return;
+// 	}
 	
-	if (bytes_read == 0) 
-	{
-		//std::cout << "Client disconnected, closing connection." << std::endl;
-		close(client._socket);
-		_fds.erase(_fds.begin() + clientFd);
-		return;
-	}
+// 	if (bytes_read == 0) 
+// 	{
+// 		//std::cout << "Client disconnected, closing connection." << std::endl;
+// 		close(client._socket);
+// 		_fds.erase(_fds.begin() + clientFd);
+// 		return;
+// 	}
 
-	std::string data(buffer, bytes_read);
-	client._requestBuffer += data; // Append new data to client's buffer
+// 	std::string data(buffer, bytes_read);
+// 	client._requestBuffer += data; // Append new data to client's buffer
 
-	// if (client._requestBuffer.size() > MAX_REQUEST_SIZE) {
-	// 	std::cerr << "Request too large!" << std::endl;
-	// 	sendErrorResponse(413, "Request Entity Too Large");
-	// 	return false;
-	// }
-	if (!client.isRequestComplete())
-	{
-		if (!client.parse_Header_Request(client._requestBuffer))
-		    std::cerr << "Error parsing request" << std::endl;
-			// client.sendErrorResponse(client.getStatusCode());
-	}
-	else
-	{
-		if (client._request.getMethod() == "POST")
-		{
-			// if (!client.parseBody())
-			// {
-			// 	client.sendErrorResponse(client.getStatusCode());
-			// }
-			std::cout << "POST request received" << std::endl;
-		}
-		else
-			std::cout << "GET request received" << std::endl;
-		// else
-		// 	client.generateResponse_GET_DELETE();
+// 	// if (client._requestBuffer.size() > MAX_REQUEST_SIZE) {
+// 	// 	std::cerr << "Request too large!" << std::endl;
+// 	// 	sendErrorResponse(413, "Request Entity Too Large");
+// 	// 	return false;
+// 	// }
+// 	if (!client.isRequestComplete())
+// 	{
+// 		if (!client.parse_Header_Request(client._requestBuffer))
+// 		    std::cerr << "Error parsing request" << std::endl;
+// 			// client.sendErrorResponse(client.getStatusCode());
+// 	}
+// 	else
+// 	{
+// 		if (client._request.getMethod() == "POST")
+// 		{
+// 			// if (!client.parseBody())
+// 			// {
+// 			// 	client.sendErrorResponse(client.getStatusCode());
+// 			// }
+// 			std::cout << "POST request received" << std::endl;
+// 		}
+// 		else
+// 			std::cout << "GET request received" << std::endl;
+// 		// else
+// 		// 	client.generateResponse_GET_DELETE();
 				
-		// Update the interested events to include POLLOUT for writing response
-		for (size_t i = 0; i < _fds.size(); i++) {
-			if (_fds[i].fd == clientFd) {
-				_fds[i].events |= POLLOUT;
-				break;
-			}
-		}
-	}
+// 		// Update the interested events to include POLLOUT for writing response
+// 		for (size_t i = 0; i < _fds.size(); i++) {
+// 			if (_fds[i].fd == clientFd) {
+// 				_fds[i].events |= POLLOUT;
+// 				break;
+// 			}
+// 		}
+// 	}
 
-}
+// }
 
 void Server::removeClient(int clientFd) {
 	// Remove from clients map
@@ -597,4 +597,122 @@ void Server::processEvents()
 			removeClient(_fds[i].fd);
 		}
 	}
+}
+
+// ========================================================
+
+// Accept a new connection and return the new client's file descriptor
+int Server::acceptNewConnection() {
+    struct sockaddr_in clientAddr;
+    socklen_t clientAddrLen = sizeof(clientAddr);
+    
+    int clientSocket = accept(this->serverSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
+    if (clientSocket < 0) {
+        if (errno != EAGAIN && errno != EWOULDBLOCK) {
+            std::cerr << "Failed to accept connection: " << strerror(errno) << std::endl;
+        }
+        return -1;
+    }
+    
+    // Set client socket to non-blocking
+    if (!setNonBlocking(clientSocket)) {
+        close(clientSocket);
+        return -1;
+    }
+    
+    // Create new client object
+    _clients[clientSocket] = Client(clientSocket, clientAddr, _config);
+    
+    std::cout << "New client connected: " << inet_ntoa(clientAddr.sin_addr)
+              << ":" << ntohs(clientAddr.sin_port) << std::endl;
+    
+    return clientSocket;
+}
+
+
+
+// Handle client data and return whether to keep the connection
+bool Server::handleClientData(int clientFd) {
+    if (_clients.find(clientFd) == _clients.end()) {
+        std::cerr << "Error: Client not found in map" << std::endl;
+        close(clientFd);
+        return false;
+    }
+    
+    Client& client = _clients[clientFd];
+    
+    char buffer[2048];
+    ssize_t bytes_read = recv(client._socket, buffer, sizeof(buffer) - 1, 0);
+    if (bytes_read < 0) {
+        if (errno == EWOULDBLOCK || errno == EAGAIN) {
+            return true; // No data available, keep connection
+        }
+        std::cerr << "Recv failed: " << strerror(errno) << std::endl;
+        close(client._socket);
+        _clients.erase(clientFd);
+        return false;
+    }
+    
+    if (bytes_read == 0) {
+        // Client disconnected
+        close(client._socket);
+        _clients.erase(clientFd);
+        return false;
+    }
+    
+    // Process the received data
+    buffer[bytes_read] = '\0'; // Null-terminate the string
+    std::string data(buffer, bytes_read);
+    client._requestBuffer += data;
+    
+    if (!client.isRequestComplete()) {
+        if (!client.parse_Header_Request(client._requestBuffer))
+            std::cerr << "Error parsing request" << std::endl;
+    } else {
+        if (client._request.getMethod() == "POST") {
+            std::cout << "POST request received" << std::endl;
+        } else {
+            std::cout << "GET request received" << std::endl;
+        }
+        
+        // Prepare response
+        client.generateResponse();
+    }
+    
+    return true;
+}
+
+// Check if client has response ready to send
+bool Server::clientReadyToSend(int clientFd) {
+    if (_clients.find(clientFd) == _clients.end()) {
+        return false;
+    }
+    return _clients[clientFd].hasResponseReady();
+}
+
+// Handle sending response to client
+bool Server::handleClientResponse(int clientFd) {
+    if (_clients.find(clientFd) == _clients.end()) {
+        return false;
+    }
+    
+    Client& client = _clients[clientFd];
+    
+    // Send response
+    if (!client.sendResponse()) {
+        // Failed to send or completed sending
+        if (client.isDoneWithResponse()) {
+            // If keep-alive is not set, close the connection
+            if (!client.keepAlive()) {
+                removeClient(clientFd);
+                return false;
+            } else {
+                // Reset client for next request
+                client.reset();
+                return true;
+            }
+        }
+    }
+    
+    return true;
 }

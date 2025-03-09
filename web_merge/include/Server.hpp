@@ -82,7 +82,7 @@ class Server {
 		void handleNewConnection();
 		
 		// Handles client data
-		void handleClientData(int clientFd);
+		// void handleClientData(int clientFd);
 		
 		// Removes disconnected client
 		void removeClient(int clientFd);
@@ -93,6 +93,12 @@ class Server {
 		
 		bool createServer();
 		void processEvents();
+		// bool handleClientResponse(int clientFd);
+		// bool clientReadyToSend(int clientFd);
+		int acceptNewConnection();
+		bool handleClientData(int clientFd);
+
+
 };
 
 #endif // SERVER_HPP
