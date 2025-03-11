@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/10 23:43:46 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/11 03:51:04 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,6 +174,7 @@ void Request::sendErrorResponse(int errorCode)
 
 bool Request::parseFirstLine(const std::string& line)
 {
+	std::cout << "Parsing first line: == " << line << std::endl;
 	std::istringstream iss(line);
 	std::string method, path, version;
 	if (!(iss >> method >> path >> version)) {
@@ -189,12 +190,12 @@ bool Request::parseFirstLine(const std::string& line)
 		return false;
 	}
 	// Store method, path, version
-	if (checkPath())
-			return false;
-	size_t start = 0;
-	while ((start = path.find("%", start)) != path.npos) {
-		path.replace(start, 3, encode[path.substr(start, 3)]);
-	}
+	// if (checkPath())
+	// 		return false;
+	// size_t start = 0;
+	// while ((start = path.find("%", start)) != path.npos) {
+	// 	path.replace(start, 3, encode[path.substr(start, 3)]);
+	// }
 	setMethod(method);
 	setPath(path);
 	setVersion(version);

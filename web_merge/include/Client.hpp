@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:44:11 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/11 02:26:47 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/11 03:53:32 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,19 +36,6 @@ class Client {
 		bool _responseSent;
 		bool _keepAlive;
 		
-		// Request information
-		// std::string _method;
-		// std::string _uri;
-		// std::string _httpVersion;
-		// std::map<std::string, std::string> _headers;
-		// std::string _body;
-		
-		// Server configuration
-		// ServerConfig _serverConfig;
-		
-		// Maximum request size (8MB)
-		static const size_t MAX_REQUEST_SIZE = 8388608;
-
 		// Helper methods for handling different HTTP methods
 		void handleGetRequest();
 		// void handlePostRequest();
@@ -70,10 +57,6 @@ class Client {
 		Client(const Client& other);
 		Client& operator=(const Client& other);
 
-		
-		// Read data from client
-		// bool readRequest();
-		
 		// Check if the request is complete
 		bool isRequestComplete();
 		

@@ -88,7 +88,7 @@ class Request
 		// Methods
 		void		sendErrorResponse(int errorCode);
 		bool		parseFirstLine(const std::string& line);
-		bool		parseHeader(std::string& line);
+		// bool		parseHeader(std::string& line);
 		void 		reset();
 		bool		checkPath();
 		void		initializeEncode();

@@ -12,10 +12,6 @@
 Client::Client() : _socket(-1), request_Header_Complete(false), _responseSent(false), _keepAlive(false) {
 }
 
-// Client::Client(int socket, struct sockaddr_in address, const ServerConfig& config)
-// 	: _socket(socket), _address(address), request_Header_Complete(false), 
-// 	  _responseSent(false), _keepAlive(false), _serverConfig(config) {
-// }
 Client::Client(int socket, struct sockaddr_in address)
 	: _socket(socket), _address(address), request_Header_Complete(false), 
 	  _responseSent(false), _keepAlive(false) {
@@ -72,6 +68,7 @@ bool Client::parse_Header_Request(std::string& line_buf)
 
 		if (_request.getMethod().empty() || _request.getpath().empty() || _request.getVersion().empty()) {
 			if (!_request.parseFirstLine(line)) {
+				std::cerr << "Error parsing first line" << std::endl;
 				return false;
 			}
 			// std::cout << "----------------->First Line method: |" << getMethod() << "|" << std::endl;
@@ -143,7 +140,7 @@ bool Client::parse_Header_Request(std::string& line_buf)
 			std::string value = line.substr(colonPos + 1);
 			value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
 			_request.setHeader(key, value);
-			//std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+			std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
 		}	
 	}
 	return true;
@@ -224,30 +221,6 @@ void Client::handleGetRequest() {
 		sendErrorResponse(404, "Not Found");
 	}
 }
-
-// void Client::handlePostRequest() {
-// 	// Simple POST handler
-// 	// Generate response with received data
-
-// 	std::ostringstream response;
-// 	response << "HTTP/1.1 200 OK\r\n";
-// 	response << "Content-Type: text/plain\r\n";
-	
-// 	std::string responseBody = "Received POST request to " + _uri + " with " + 
-// 							  std::to_string(_body.length()) + " bytes of data\r\n";
-	
-// 	response << "Content-Length: " << responseBody.size() << "\r\n";
-// 	if (_keepAlive) {
-// 		response << "Connection: keep-alive\r\n";
-// 	} else {
-// 		response << "Connection: close\r\n";
-// 	}
-// 	response << "\r\n";
-// 	response << responseBody;
-	
-// 	_responseBuffer = response.str();
-// }
-
 
 
 void Client::handleDeleteRequest() {
