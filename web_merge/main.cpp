@@ -1,7 +1,7 @@
 
 #include "include/web.h"
-// #include "include/Server.hpp"
-// #include "include/Config.hpp"
+#include "include/Server.hpp"
+#include "include/Config.hpp"
 #include <signal.h>
 
 // ========================================================
@@ -68,30 +68,6 @@ void processEvents(size_t i, std::vector<pollfd>& _fds, std::vector<Server>& ser
 
 // ========================================================
 
-// volatile sig_atomic_t g_running = 1;
-
-// // Signal handler for graceful termination
-// void signalHandler(int signum) {
-//     std::cout << "\nReceived signal " << signum << ". Shutting down..." << std::endl;
-//     g_running = 0;
-// }
-
-// void setupSignalHandlers() {
-//     struct sigaction sa;
-//     sa.sa_handler = signalHandler;
-//     sigemptyset(&sa.sa_mask);
-//     sa.sa_flags = 0;
-	
-//     if (sigaction(SIGINT, &sa, NULL) == -1) {
-//         perror("Failed to set SIGINT handler");
-//         exit(EXIT_FAILURE);
-//     }
-	
-//     if (sigaction(SIGTERM, &sa, NULL) == -1) {
-//         perror("Failed to set SIGTERM handler");
-//         exit(EXIT_FAILURE);
-//     }
-// }
 
 void printUsage(const std::string& programName) {
 	std::cerr << "Usage: " << programName << " [config_file]" << std::endl;
