@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/11 03:51:04 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/11 04:27:38 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,10 +192,11 @@ bool Request::parseFirstLine(const std::string& line)
 	// Store method, path, version
 	// if (checkPath())
 	// 		return false;
-	// size_t start = 0;
-	// while ((start = path.find("%", start)) != path.npos) {
-	// 	path.replace(start, 3, encode[path.substr(start, 3)]);
-	// }
+	size_t start = 0;
+	while ((start = path.find("%", start)) != path.npos) {
+		
+		path.replace(start, 3, encode[path.substr(start, 3)]);
+	}
 	setMethod(method);
 	setPath(path);
 	setVersion(version);
@@ -261,4 +262,22 @@ bool Request::checkPath(){
 		path = path.substr(0, start);
 	}
 	return true;
+}
+
+std::string urlDecode(const std::string& str) {
+	std::string decoded;
+
+	for (std::size_t i = 0; i < str.size(); ++i) {
+		if (str[i] == '+')
+			decoded += ' ';
+		else if (str[i] == '%' && i + 2 < str.size()) {
+			std::string hex = str.substr(i + 1, 2);
+			char c = static_cast<char>(std::strtol(hex.c_str(), NULL, 16));
+			decoded += c;
+			i += 2;
+		}
+		else
+			decoded += str[i];
+	}
+	return decoded;
 }
