@@ -1,12 +1,12 @@
 // #include "Server.hpp"
-// #include <iostream>
-// #include <unistd.h>
-// #include <fcntl.h>
-// #include <sys/socket.h>
-// #include <netinet/in.h>
-// #include <arpa/inet.h>
-// #include <cstring>
-// #include <algorithm>
+#include <iostream>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <cstring>
+#include <algorithm>
 
 // Server::Server() : _running(false) {
 // }
@@ -311,347 +311,437 @@
 // //========================================================
 
 
-#include "../include/Server.hpp"
-#include "../include/Client.hpp"
-#include <cstring>
-#include <errno.h>
-#include <arpa/inet.h>
+// #include "../include/Server.hpp"
+// #include "../include/Client.hpp"
+// #include <cstring>
+// #include <errno.h>
+// #include <arpa/inet.h>
 
-Server::Server(const ServerConfig& config) : _config(config), serverSocket(-1) {
+// Server::Server(const ServerConfig& config) : _config(config), serverSocket(-1) {
+// }
+
+// Server::~Server() {
+// 	// Close server socket if open
+// 	if (serverSocket >= 0) {
+// 		close(this->serverSocket);
+// 	}
+	
+// 	// Close all client connections
+// 	for (size_t i = 0; i < _fds.size(); i++) {
+// 		std::cout << "Closing client socket: " << _fds[i].fd << std::endl;
+// 		if (_fds[i].fd >= 0 && _fds[i].fd != this->serverSocket) {
+// 			close(_fds[i].fd);
+// 		}
+// 	}
+// }
+
+// bool Server::setNonBlocking(int sock) {
+
+// 	if (fcntl(sock, F_SETFL, O_NONBLOCK) == -1) {
+// 		std::cerr << "Failed to set socket to non-blocking mode" << std::endl;
+// 		return false;
+// 	}
+	
+// 	return true;
+// }
+
+// // ========================================================
+
+// Server::Server(int port) : server_fd(-1)
+// {
+
+// 	struct sockaddr_in server_addr;
+
+// 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
+// 	if (server_fd < 0)
+// 	{
+// 		std::cerr << "Socket creation failed: " << strerror(errno) << std::endl;
+// 		// throw std::runtime_error("Socket creation failed");
+// 		throw_error = false;
+// 		return;
+// 	}
+
+// 	int reuse = 1;
+// 	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
+// 	{
+// 		std::cerr << "Setsockopt failed: " << strerror(errno) << std::endl;
+// 		// throw std::runtime_error("Setsockopt failed");
+// 		throw_error = false;
+// 		return;
+// 	}
+
+// 	server_addr.sin_family = AF_INET;
+// 	server_addr.sin_addr.s_addr = INADDR_ANY;
+// 	server_addr.sin_port = htons(port);
+
+// 	if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
+// 	{
+// 		std::cerr << "Bind failed: " << strerror(errno) << std::endl;
+// 		// throw std::runtime_error("Bind failed");
+// 		throw_error = false;
+// 		return;
+// 	}
+
+// 	if (listen(server_fd, MAX_CLIENTS) < 0)
+// 	{
+// 		std::cerr << "Listen Failed: " << strerror(errno) << std::endl;
+// 		// throw std::runtime_error("Listen Failed");
+// 		throw_error = false;
+// 		return;
+// 	}
+
+
+// 	setNonBlocking(server_fd);
+
+// 	struct pollfd pfd;
+// 	pfd.fd = server_fd;
+// 	pfd.events = POLLIN;
+// 	_fds.push_back(pfd);
+
+
+// 	throw_error = true;
+// 	std::cout << "Server listening on port " << port << std::endl;
+// }
+
+
+// // ========================================================
+
+// bool Server::createServer() {
+// 	struct sockaddr_in server_addr;
+	
+// 	// Create socket
+// 	this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+// 	if (this->serverSocket == -1) {
+// 		std::cerr << "Failed to create socket: " << strerror(errno) << std::endl;
+// 		return false;
+// 	}
+	
+// 	// Allow socket reuse
+// 	int opt = 1;
+// 	if (setsockopt(this->serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+// 		std::cerr << "Failed to set socket options: " << strerror(errno) << std::endl;
+// 		close(this->serverSocket);
+// 		return false;
+// 	}
+	
+// 	// Set non-blocking mode
+// 	if (!setNonBlocking(this->serverSocket)) {
+// 		close(this->serverSocket);
+// 		return false;
+// 	}
+	
+// 	// Setup server address
+// 	memset(&server_addr, 0, sizeof(server_addr));
+// 	server_addr.sin_family = AF_INET;
+// 	// server_addr.sin_addr.s_addr = inet_addr(_config.getHost().c_str());
+// 	server_addr.sin_addr.s_addr = INADDR_ANY;
+// 	server_addr.sin_port = htons(_config.getPort());
+	
+// 	// Bind socket
+// 	if (bind(this->serverSocket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+// 		std::cerr << "Failed to bind socket: " << strerror(errno) << std::endl;
+// 		close(this->serverSocket);
+// 		return false;
+// 	}
+	
+// 	// Start listening
+// 	if (listen(this->serverSocket, 10) < 0) {
+// 		std::cerr << "Failed to listen on socket: " << strerror(errno) << std::endl;
+// 		close(this->serverSocket);
+// 		return false;
+// 	}
+	
+// 	// Add server socket to polling array
+// 	pollfd serverPollFd;
+// 	serverPollFd.fd = this->serverSocket;
+// 	serverPollFd.events = POLLIN;
+// 	_fds.push_back(serverPollFd);
+// 	// std::cout << " _fds[0].fd: " << _fds[0].fd << std::endl;
+	
+// 	return true;
+// }
+
+// void	Server::handleNewConnection() {
+// 	struct sockaddr_in clientAddr;
+// 	socklen_t clientAddrLen = sizeof(clientAddr);
+	
+// 	int clientSocket = accept(this->serverSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
+// 	if (clientSocket < 0) {
+// 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
+// 			std::cerr << "Failed to accept connection: " << strerror(errno) << std::endl;
+// 		}
+// 		return;
+// 	}
+// 	std::cout << "New client connected: " << inet_ntoa(clientAddr.sin_addr) << ":::::" << ntohs(clientAddr.sin_port) << std::endl;
+	
+// 	// Set client socket to non-blocking
+// 	if (!setNonBlocking(clientSocket)) {
+// 		close(clientSocket);
+// 		return;
+// 	}
+	
+// 	// Add to poll array
+// 	pollfd clientPollFd;
+// 	clientPollFd.fd = clientSocket;
+// 	clientPollFd.events = POLLIN;
+// 	_fds.push_back(clientPollFd);
+// 	// std::vector<std::map<int, Client> > __clients;
+	
+// 	// Create new client object
+// 	_clients[clientSocket] = Client(clientSocket, clientAddr, _config);
+
+	
+// 	// __clients.push_back(_clients);
+// 	// _clients.insert(std::pair<int, Client>(clientSocket, Client(clientSocket, clientAddr, _config)));
+	
+// 	// std::cout << "New client connected: " << inet_ntoa(clientAddr.sin_addr) 
+// 	std::cout << "New client connected: " << clientAddr.sin_addr.s_addr 
+// 			  << ":" << ntohs(clientAddr.sin_port) << std::endl;
+// }
+
+// void Server::handleClientData(int clientFd) {
+// 	if (_clients.find(clientFd) == _clients.end()) {
+// 		std::cerr << "Error: Client not found in map" << std::endl;
+// 		removeClient(clientFd);
+// 		return;
+// 	}
+	
+// 	Client& client = _clients[clientFd];
+	
+// 	char buffer[210];
+// 	ssize_t bytes_read = recv(client._socket, buffer, 210, 0); // Read 49 bytes at a time
+// 	if (bytes_read < 0) {
+// 		if (errno == EWOULDBLOCK || errno == EAGAIN) {
+// 			return; // No data available, wait for next poll()
+// 		}
+// 		std::cerr << "Recv failed: " << strerror(errno) << std::endl;
+// 		close(client._socket);
+// 		_fds.erase(_fds.begin() + clientFd);
+// 		return;
+// 	}
+	
+// 	if (bytes_read == 0) 
+// 	{
+// 		//std::cout << "Client disconnected, closing connection." << std::endl;
+// 		close(client._socket);
+// 		_fds.erase(_fds.begin() + clientFd);
+// 		return;
+// 	}
+
+// 	std::string data(buffer, bytes_read);
+// 	client._requestBuffer += data; // Append new data to client's buffer
+
+// 	// if (client._requestBuffer.size() > MAX_REQUEST_SIZE) {
+// 	// 	std::cerr << "Request too large!" << std::endl;
+// 	// 	sendErrorResponse(413, "Request Entity Too Large");
+// 	// 	return false;
+// 	// }
+// 	if (!client.isRequestComplete())
+// 	{
+// 		if (!client.parse_Header_Request(client._requestBuffer))
+// 		    std::cerr << "Error parsing request" << std::endl;
+// 			// client.sendErrorResponse(client.getStatusCode());
+// 	}
+// 	else
+// 	{
+// 		if (client._request.getMethod() == "POST")
+// 		{
+// 			// if (!client.parseBody())
+// 			// {
+			
+// 			// 	client.sendErrorResponse(client.getStatusCode());
+// 			// }
+// 			std::cout << "POST request received" << std::endl;
+// 		}
+// 		else
+// 			std::cout << "GET request received" << std::endl;
+// 		// else
+// 		// 	client.generateResponse_GET_DELETE();
+				
+// 		// Update the interested events to include POLLOUT for writing response
+// 		for (size_t i = 0; i < _fds.size(); i++) {
+// 			if (_fds[i].fd == clientFd) {
+// 				_fds[i].events |= POLLOUT;
+// 				break;
+// 			}
+// 		}
+// 	}
+
+// }
+
+// void Server::removeClient(int clientFd) {
+// 	// Remove from clients map
+// 	_clients.erase(clientFd);
+	
+// 	// Remove from polling array
+// 	for (size_t i = 0; i < _fds.size(); i++) {
+// 		if (_fds[i].fd == clientFd) {
+// 			close(clientFd);
+// 			_fds.erase(_fds.begin() + i);
+// 			break;
+// 		}
+// 	}
+// }
+
+// void Server::processEvents() 
+// {
+// 	// Poll for events with a short timeout
+// 	int pollResult = poll(_fds.data(), _fds.size(), 100);
+// 	std::cout << "pollResult: " << pollResult << std::endl;
+// 	if (pollResult < 0) {
+// 		if (errno == EINTR) {
+// 			// Interrupted by signal, just continue
+// 			return;
+// 		}
+// 		std::cerr << "Poll failed: " << strerror(errno) << std::endl;
+// 		return;
+// 	}
+	
+// 	if (pollResult == 0) {
+// 		// Timeout, no events
+// 		return;
+// 	}
+	
+// 	// Check each file descriptor for events
+// 	for (size_t i = 0; i < _fds.size(); i++) 
+// 	{
+// 		if (_fds[i].revents == 0) {
+// 			continue;
+// 		}
+// 		std::cout << " _fds[i].fd: " << _fds[i].fd << std::endl;
+		
+// 		// Handle server socket - new connection
+// 		if (_fds[i].fd == this->serverSocket && (_fds[i].revents & POLLIN)) {
+// 			handleNewConnection();
+// 			continue;
+// 		}
+		
+// 		// Handle client data - reading request
+// 		if (_fds[i].revents & POLLIN) {
+// 			std::cout << " == handleClientData == " << std::endl;
+// 			handleClientData(_fds[i].fd);
+// 		}
+		
+// 		// Handle client data - writing response
+// 		if (_fds[i].revents & POLLOUT) {
+// 			int clientFd = _fds[i].fd;
+// 			if (_clients.find(clientFd) != _clients.end()) {
+// 				Client& client = _clients[clientFd];
+				
+// 				// Send response
+// 				if (!client.sendResponse()) {
+// 					// Failed to send or completed sending
+// 					if (client.isDoneWithResponse()) {
+// 						// If keep-alive is not set, close the connection
+// 						if (!client.keepAlive()) {
+// 							removeClient(clientFd);
+// 						} else {
+// 							// Reset client for next request
+// 							client.reset();
+// 							// Update to only listen for reads again
+// 							_fds[i].events = POLLIN;
+// 						}
+// 					}
+// 				}
+// 			}
+// 		}
+		
+// 		// Handle errors or disconnection
+// 		if ((_fds[i].revents) & (POLLERR | POLLHUP | POLLNVAL)) {
+// 			// std::cout << " == Here == " << std::endl;
+// 			std::cout << "_fds[i].revents: " << _fds[i].revents << std::endl;
+// 			// std::cout << "Client disconnected due to error or hangup" << std::endl;
+// 			removeClient(_fds[i].fd);
+// 		}
+// 	}
+// }
+
+
+
+
+
+
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Server.cpp                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: aben-cha <aben-cha@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
+/*   Updated: 2025/03/11 00:50:31 by aben-cha         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "../include/Server.hpp"
+
+Server::Server(int port) : port(port) {
+    struct sockaddr_in server_addr;
+
+    server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_fd < 0)
+        throw std::runtime_error("Socket creation failed");
+
+    int reuse = 1;
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
+        throw std::runtime_error("Setsockopt failed");
+
+    server_addr.sin_family = AF_INET;
+    server_addr.sin_addr.s_addr = INADDR_ANY;
+    server_addr.sin_port = htons(port);
+
+    if (bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
+        throw std::runtime_error("Bind failed");
+
+    if (listen(server_fd, MAX_CLIENTS) < 0)
+        throw std::runtime_error("Listen Failed");
+
+    setNonBlocking(server_fd);
+    std::cout << "Server fd: " << server_fd << " listening on port " << port << std::endl;
 }
 
 Server::~Server() {
-	// Close server socket if open
-	if (serverSocket >= 0) {
-		close(this->serverSocket);
-	}
-	
-	// Close all client connections
-	for (size_t i = 0; i < _fds.size(); i++) {
-		std::cout << "Closing client socket: " << _fds[i].fd << std::endl;
-		if (_fds[i].fd >= 0 && _fds[i].fd != this->serverSocket) {
-			close(_fds[i].fd);
-		}
-	}
+	close(server_fd);
 }
 
-bool Server::setNonBlocking(int sock) {
-
-	if (fcntl(sock, F_SETFL, O_NONBLOCK) == -1) {
-		std::cerr << "Failed to set socket to non-blocking mode" << std::endl;
-		return false;
-	}
-	
-	return true;
+void Server::setNonBlocking(int fd) {
+	fcntl(fd, F_SETFL, O_NONBLOCK);
 }
 
-// ========================================================
+int Server::acceptNewConnection() {
+    struct sockaddr_in client_addr;
+    socklen_t client_len = sizeof(client_addr);
 
-Server::Server(int port) : server_fd(-1)
-{
+    int client_fd = accept(server_fd, (struct sockaddr*)&client_addr, &client_len);
+    if (client_fd < 0) {
+        std::cerr << "Accept failed: " << strerror(errno) << std::endl;
+        return -1;
+    }
 
-	struct sockaddr_in server_addr;
-
-	server_fd = socket(AF_INET, SOCK_STREAM, 0);
-	if (server_fd < 0)
-	{
-		std::cerr << "Socket creation failed: " << strerror(errno) << std::endl;
-		// throw std::runtime_error("Socket creation failed");
-		throw_error = false;
-		return;
-	}
-
-	int reuse = 1;
-	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
-	{
-		std::cerr << "Setsockopt failed: " << strerror(errno) << std::endl;
-		// throw std::runtime_error("Setsockopt failed");
-		throw_error = false;
-		return;
-	}
-
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = INADDR_ANY;
-	server_addr.sin_port = htons(port);
-
-	if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
-	{
-		std::cerr << "Bind failed: " << strerror(errno) << std::endl;
-		// throw std::runtime_error("Bind failed");
-		throw_error = false;
-		return;
-	}
-
-	if (listen(server_fd, MAX_CLIENTS) < 0)
-	{
-		std::cerr << "Listen Failed: " << strerror(errno) << std::endl;
-		// throw std::runtime_error("Listen Failed");
-		throw_error = false;
-		return;
-	}
-
-
-	setNonBlocking(server_fd);
-
-	struct pollfd pfd;
-	pfd.fd = server_fd;
-	pfd.events = POLLIN;
-	_fds.push_back(pfd);
-
-
-	throw_error = true;
-	std::cout << "Server listening on port " << port << std::endl;
+    setNonBlocking(client_fd);
+    std::cout << "Server on port " << port << " accepted new connection: FD " << client_fd 
+              << " from " << inet_ntoa(client_addr.sin_addr) 
+              << ":" << ntohs(client_addr.sin_port) << std::endl;
+    
+    return client_fd;
 }
 
+int Server::handleClientData(int client_fd) {
+    char buffer[BUFFER_SIZE];
+    ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
 
-// ========================================================
+    if (bytes_read <= 0) {
+        if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
+            return -1; // No data available yet
+        }
+        std::cout << "Client disconnected from server on port " << port << ": FD " << client_fd << std::endl;
+        // Don't close the fd here - we'll do it in the main loop
+        return -1;
+    }
 
-bool Server::createServer() {
-	struct sockaddr_in server_addr;
-	
-	// Create socket
-	this->serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-	if (this->serverSocket == -1) {
-		std::cerr << "Failed to create socket: " << strerror(errno) << std::endl;
-		return false;
-	}
-	
-	// Allow socket reuse
-	int opt = 1;
-	if (setsockopt(this->serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-		std::cerr << "Failed to set socket options: " << strerror(errno) << std::endl;
-		close(this->serverSocket);
-		return false;
-	}
-	
-	// Set non-blocking mode
-	if (!setNonBlocking(this->serverSocket)) {
-		close(this->serverSocket);
-		return false;
-	}
-	
-	// Setup server address
-	memset(&server_addr, 0, sizeof(server_addr));
-	server_addr.sin_family = AF_INET;
-	// server_addr.sin_addr.s_addr = inet_addr(_config.getHost().c_str());
-	server_addr.sin_addr.s_addr = INADDR_ANY;
-	server_addr.sin_port = htons(_config.getPort());
-	
-	// Bind socket
-	if (bind(this->serverSocket, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
-		std::cerr << "Failed to bind socket: " << strerror(errno) << std::endl;
-		close(this->serverSocket);
-		return false;
-	}
-	
-	// Start listening
-	if (listen(this->serverSocket, 10) < 0) {
-		std::cerr << "Failed to listen on socket: " << strerror(errno) << std::endl;
-		close(this->serverSocket);
-		return false;
-	}
-	
-	// Add server socket to polling array
-	pollfd serverPollFd;
-	serverPollFd.fd = this->serverSocket;
-	serverPollFd.events = POLLIN;
-	_fds.push_back(serverPollFd);
-	// std::cout << " _fds[0].fd: " << _fds[0].fd << std::endl;
-	
-	return true;
-}
-
-void	Server::handleNewConnection() {
-	struct sockaddr_in clientAddr;
-	socklen_t clientAddrLen = sizeof(clientAddr);
-	
-	int clientSocket = accept(this->serverSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
-	if (clientSocket < 0) {
-		if (errno != EAGAIN && errno != EWOULDBLOCK) {
-			std::cerr << "Failed to accept connection: " << strerror(errno) << std::endl;
-		}
-		return;
-	}
-	std::cout << "New client connected: " << inet_ntoa(clientAddr.sin_addr) << ":::::" << ntohs(clientAddr.sin_port) << std::endl;
-	
-	// Set client socket to non-blocking
-	if (!setNonBlocking(clientSocket)) {
-		close(clientSocket);
-		return;
-	}
-	
-	// Add to poll array
-	pollfd clientPollFd;
-	clientPollFd.fd = clientSocket;
-	clientPollFd.events = POLLIN;
-	_fds.push_back(clientPollFd);
-	// std::vector<std::map<int, Client> > __clients;
-	
-	// Create new client object
-	_clients[clientSocket] = Client(clientSocket, clientAddr, _config);
-
-	
-	// __clients.push_back(_clients);
-	// _clients.insert(std::pair<int, Client>(clientSocket, Client(clientSocket, clientAddr, _config)));
-	
-	// std::cout << "New client connected: " << inet_ntoa(clientAddr.sin_addr) 
-	std::cout << "New client connected: " << clientAddr.sin_addr.s_addr 
-			  << ":" << ntohs(clientAddr.sin_port) << std::endl;
-}
-
-void Server::handleClientData(int clientFd) {
-	if (_clients.find(clientFd) == _clients.end()) {
-		std::cerr << "Error: Client not found in map" << std::endl;
-		removeClient(clientFd);
-		return;
-	}
-	
-	Client& client = _clients[clientFd];
-	
-	char buffer[210];
-	ssize_t bytes_read = recv(client._socket, buffer, 210, 0); // Read 49 bytes at a time
-	if (bytes_read < 0) {
-		if (errno == EWOULDBLOCK || errno == EAGAIN) {
-			return; // No data available, wait for next poll()
-		}
-		std::cerr << "Recv failed: " << strerror(errno) << std::endl;
-		close(client._socket);
-		_fds.erase(_fds.begin() + clientFd);
-		return;
-	}
-	
-	if (bytes_read == 0) 
-	{
-		//std::cout << "Client disconnected, closing connection." << std::endl;
-		close(client._socket);
-		_fds.erase(_fds.begin() + clientFd);
-		return;
-	}
-
-	std::string data(buffer, bytes_read);
-	client._requestBuffer += data; // Append new data to client's buffer
-
-	// if (client._requestBuffer.size() > MAX_REQUEST_SIZE) {
-	// 	std::cerr << "Request too large!" << std::endl;
-	// 	sendErrorResponse(413, "Request Entity Too Large");
-	// 	return false;
-	// }
-	if (!client.isRequestComplete())
-	{
-		if (!client.parse_Header_Request(client._requestBuffer))
-		    std::cerr << "Error parsing request" << std::endl;
-			// client.sendErrorResponse(client.getStatusCode());
-	}
-	else
-	{
-		if (client._request.getMethod() == "POST")
-		{
-			// if (!client.parseBody())
-			// {
-			
-			// 	client.sendErrorResponse(client.getStatusCode());
-			// }
-			std::cout << "POST request received" << std::endl;
-		}
-		else
-			std::cout << "GET request received" << std::endl;
-		// else
-		// 	client.generateResponse_GET_DELETE();
-				
-		// Update the interested events to include POLLOUT for writing response
-		for (size_t i = 0; i < _fds.size(); i++) {
-			if (_fds[i].fd == clientFd) {
-				_fds[i].events |= POLLOUT;
-				break;
-			}
-		}
-	}
-
-}
-
-void Server::removeClient(int clientFd) {
-	// Remove from clients map
-	_clients.erase(clientFd);
-	
-	// Remove from polling array
-	for (size_t i = 0; i < _fds.size(); i++) {
-		if (_fds[i].fd == clientFd) {
-			close(clientFd);
-			_fds.erase(_fds.begin() + i);
-			break;
-		}
-	}
-}
-
-void Server::processEvents() 
-{
-	// Poll for events with a short timeout
-	int pollResult = poll(_fds.data(), _fds.size(), 100);
-	std::cout << "pollResult: " << pollResult << std::endl;
-	if (pollResult < 0) {
-		if (errno == EINTR) {
-			// Interrupted by signal, just continue
-			return;
-		}
-		std::cerr << "Poll failed: " << strerror(errno) << std::endl;
-		return;
-	}
-	
-	if (pollResult == 0) {
-		// Timeout, no events
-		return;
-	}
-	
-	// Check each file descriptor for events
-	for (size_t i = 0; i < _fds.size(); i++) 
-	{
-		if (_fds[i].revents == 0) {
-			continue;
-		}
-		std::cout << " _fds[i].fd: " << _fds[i].fd << std::endl;
-		
-		// Handle server socket - new connection
-		if (_fds[i].fd == this->serverSocket && (_fds[i].revents & POLLIN)) {
-			handleNewConnection();
-			continue;
-		}
-		
-		// Handle client data - reading request
-		if (_fds[i].revents & POLLIN) {
-			std::cout << " == handleClientData == " << std::endl;
-			handleClientData(_fds[i].fd);
-		}
-		
-		// Handle client data - writing response
-		if (_fds[i].revents & POLLOUT) {
-			int clientFd = _fds[i].fd;
-			if (_clients.find(clientFd) != _clients.end()) {
-				Client& client = _clients[clientFd];
-				
-				// Send response
-				if (!client.sendResponse()) {
-					// Failed to send or completed sending
-					if (client.isDoneWithResponse()) {
-						// If keep-alive is not set, close the connection
-						if (!client.keepAlive()) {
-							removeClient(clientFd);
-						} else {
-							// Reset client for next request
-							client.reset();
-							// Update to only listen for reads again
-							_fds[i].events = POLLIN;
-						}
-					}
-				}
-			}
-		}
-		
-		// Handle errors or disconnection
-		if ((_fds[i].revents) & (POLLERR | POLLHUP | POLLNVAL)) {
-			// std::cout << " == Here == " << std::endl;
-			std::cout << "_fds[i].revents: " << _fds[i].revents << std::endl;
-			// std::cout << "Client disconnected due to error or hangup" << std::endl;
-			removeClient(_fds[i].fd);
-		}
-	}
+    std::string data(buffer, bytes_read);
+    std::cout << "Server on port " << port << " received data from FD " << client_fd << ": " << data << std::endl;
+    
+    // Here you could add code to send a response if needed
+	return 0;
 }

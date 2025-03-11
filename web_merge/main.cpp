@@ -1,7 +1,7 @@
 
 #include "include/web.h"
-// #include "include/Server.hpp"
-// #include "include/Config.hpp"
+#include "include/Server.hpp"
+#include "include/Config.hpp"
 #include <signal.h>
 
 // ========================================================
@@ -68,30 +68,6 @@ void processEvents(size_t i, std::vector<pollfd>& _fds, std::vector<Server>& ser
 
 // ========================================================
 
-// volatile sig_atomic_t g_running = 1;
-
-// // Signal handler for graceful termination
-// void signalHandler(int signum) {
-//     std::cout << "\nReceived signal " << signum << ". Shutting down..." << std::endl;
-//     g_running = 0;
-// }
-
-// void setupSignalHandlers() {
-//     struct sigaction sa;
-//     sa.sa_handler = signalHandler;
-//     sigemptyset(&sa.sa_mask);
-//     sa.sa_flags = 0;
-	
-//     if (sigaction(SIGINT, &sa, NULL) == -1) {
-//         perror("Failed to set SIGINT handler");
-//         exit(EXIT_FAILURE);
-//     }
-	
-//     if (sigaction(SIGTERM, &sa, NULL) == -1) {
-//         perror("Failed to set SIGTERM handler");
-//         exit(EXIT_FAILURE);
-//     }
-// }
 
 void printUsage(const std::string& programName) {
 	std::cerr << "Usage: " << programName << " [config_file]" << std::endl;
@@ -127,22 +103,22 @@ int main() {
 		// Initialize servers based on configuration
 		// const std::vector<ServerConfig>& serverConfigs = config.getServers();
 		ServerConfig serverc1;
-        // ServerConfig serverc2;
-        // ServerConfig serverc3;
-        
-        serverc1.host = "localhost";
-        serverc1.port = 8080;
-        
-        // serverc2.host = "localhost";
-        // serverc2.port = 7070;
-        
-        // serverc3.host = "localhost";
-        // serverc3.port = 5050;
-        
-        std::vector<ServerConfig> Sconfigs;
-        Sconfigs.push_back(serverc1);
-        // Sconfigs.push_back(serverc2);
-        // Sconfigs.push_back(serverc3);
+		// ServerConfig serverc2;
+		// ServerConfig serverc3;
+		
+		serverc1.host = "localhost";
+		serverc1.port = 8080;
+		
+		// serverc2.host = "localhost";
+		// serverc2.port = 7070;
+		
+		// serverc3.host = "localhost";
+		// serverc3.port = 5050;
+		
+		std::vector<ServerConfig> Sconfigs;
+		Sconfigs.push_back(serverc1);
+		// Sconfigs.push_back(serverc2);
+		// Sconfigs.push_back(serverc3);
 
 		// for (size_t i = 0; i < 3; ++i) {
 		for (size_t i = 0; i < Sconfigs.size(); ++i) {
@@ -221,3 +197,31 @@ int main() {
 
 // ========================================================
 
+
+
+int main() {
+	try {
+		// Instead of calling flush() every time, you can disable buffering globally :
+		std::cout.setf(std::ios::unitbuf); // Disables buffering completely
+		// Use flush(); when redirecting output to files to prevent missing data! 🚀
+		// //std::cout.flush();  // ✅ Ensures all data is written immediately
+
+		std::vector<int> ports;
+		ports.push_back(8080);
+		ports.push_back(8081);
+		ports.push_back(8082);
+
+		ConfigFile configFile;
+
+		for (size_t i = 0; i < ports.size(); ++i) {
+			configFile.addServer(ports[i]);
+		}
+
+		configFile.run();
+
+		
+	} catch (const std::exception& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+	}
+	return 0;
+}
