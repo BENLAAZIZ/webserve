@@ -150,7 +150,7 @@ bool Client::parse_Header_Request(std::string& line_buf)
 void Client::generateResponse_GET_DELETE() {
 	// Route request based on method and URI
 	if (_request.getMethod() == "GET") {
-		_request.initializeEncode();
+		// _request.initializeEncode();
 		handleGetRequest();
 	}
 	else if (_request.getMethod() == "DELETE") {
@@ -174,6 +174,7 @@ void Client::handleGetRequest() {
 	
 	// Check for directory traversal attempts
 	if (path.find("..") != std::string::npos) {
+		std::cerr << "Directory traversal attempt: " << path << std::endl;
 		sendErrorResponse(403, "Forbidden");
 		return;
 	}
@@ -182,6 +183,8 @@ void Client::handleGetRequest() {
 	// std::string fullPath = _serverConfig.getRoot() + path;
 	std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
 	
+	std::cout << "fullPath: " << fullPath << std::endl;
+
 	// Check if file exists
 	struct stat fileStat;
 	if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {

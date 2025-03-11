@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/03/11 03:56:01 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/11 04:14:42 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,7 +118,7 @@ int Server::handleClientData(int client_fd, Client &client) {
 		else
 			std::cout << "GET request received" << std::endl;
 		// else
-		// 	client.generateResponse_GET_DELETE();
+			client.generateResponse_GET_DELETE();
 				
 		// Update the interested events to include POLLOUT for writing response
 		// for (size_t i = 0; i < poll_fds.size(); i++) {
