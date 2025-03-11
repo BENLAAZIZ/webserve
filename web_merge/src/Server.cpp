@@ -726,7 +726,8 @@ int Server::acceptNewConnection() {
     return client_fd;
 }
 
-int Server::handleClientData(int client_fd) {
+// int Server::handleClientData(int client_fd) {
+int Server::handleClientData(int client_fd, Client &client) {
     char buffer[BUFFER_SIZE];
     ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
 
@@ -739,8 +740,11 @@ int Server::handleClientData(int client_fd) {
         return -1;
     }
 
+    // std::string data(buffer, bytes_read);
     std::string data(buffer, bytes_read);
-    std::cout << "Server on port " << port << " received data from FD " << client_fd << ": " << data << std::endl;
+
+    client._requestBuffer += data; // Append new data to client's buffer
+    std::cout << "Server on port " << port << " received data from FD " << client_fd << ": " << client._requestBuffer << std::endl;
     
     // Here you could add code to send a response if needed
 	return 0;

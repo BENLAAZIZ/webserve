@@ -1,5 +1,5 @@
-#ifndef CONFIG_HPP
-#define CONFIG_HPP
+// #ifndef CONFIG_HPP
+// #define CONFIG_HPP
 
 // #include <string>
 // #include <vector>
@@ -98,26 +98,34 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef CONFIGFILE_HPP
-#define CONFIGFILE_HPP
+#ifndef CONFIG_HPP
+#define CONFIG_HPP
 
-#include "Server.hpp"
+#include "../include/Config.hpp"
+#include "../include/Server.hpp"
+#include "../include/Client.hpp"
+
+
+class Server;
+class Client;
 
 class ConfigFile {
-    public:
-        ConfigFile();
-        ~ConfigFile();
-    
-    void addServer(int port);
-    void run();
+	public:
+		ConfigFile();
+		~ConfigFile();
+	
+		void addServer(int port);
+		void run();
 
-    private:
-        std::vector<struct pollfd> poll_fds;
-        std::vector<Server*> servers;
-        std::map<int, int> client_server_map;  // Maps client fd -> server index to track which server a client is connected to
-        
-        void handleEvents();
-        void cleanupDisconnectedClient(int client_fd);
+	public:
+		std::vector<struct pollfd> poll_fds;
+		std::vector<Server*> servers;
+		std::map<int, int> client_server_map;  // Maps client fd -> server index to track which server a client is connected to
+		std::map<int, Client> _clients;
+
+		void handleEvents();
+		void cleanupDisconnectedClient(int client_fd);
+		void set_client_map(int client_fd, Client &client);
 };
 
 #endif

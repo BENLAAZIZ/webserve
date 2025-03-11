@@ -74,8 +74,10 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
-#include "../include/Request.hpp"
+#include "Request.hpp"
+#include "Client.hpp"
 
+class Client;
 
 #define BUFFER_SIZE 1000
 #define MAX_CLIENTS 1000
@@ -87,7 +89,8 @@ class Server {
         int getServerFd() const { return server_fd; }
         int getPort() const { return port; }
         int acceptNewConnection();
-        int handleClientData(int client_fd);
+        // int handleClientData(int client_fd);
+        int handleClientData(int client_fd, Client &client);
         void setNonBlocking(int fd);
         
     private:

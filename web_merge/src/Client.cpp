@@ -12,9 +12,13 @@
 Client::Client() : _socket(-1), request_Header_Complete(false), _responseSent(false), _keepAlive(false) {
 }
 
-Client::Client(int socket, struct sockaddr_in address, const ServerConfig& config)
+// Client::Client(int socket, struct sockaddr_in address, const ServerConfig& config)
+// 	: _socket(socket), _address(address), request_Header_Complete(false), 
+// 	  _responseSent(false), _keepAlive(false), _serverConfig(config) {
+// }
+Client::Client(int socket, struct sockaddr_in address)
 	: _socket(socket), _address(address), request_Header_Complete(false), 
-	  _responseSent(false), _keepAlive(false), _serverConfig(config) {
+	  _responseSent(false), _keepAlive(false) {
 }
 
 Client::~Client() {
@@ -39,7 +43,7 @@ Client& Client::operator=(const Client& other)
 		request_Header_Complete = other.request_Header_Complete;
 		_responseSent = other._responseSent;
 		_keepAlive = other._keepAlive;
-		_serverConfig = other._serverConfig;
+		// _serverConfig = other._serverConfig;
 	}
 	return *this;
 }
@@ -345,3 +349,16 @@ void Client::reset() {
 	_request.reset();
 	// Keep the socket and address intact
 }
+
+
+		// set client_fd
+		void Client::setClientFd(int client_fd)
+		{
+			_clientFd = client_fd;
+		}
+
+		// get client_fd
+		int Client::getClientFd() const
+		{
+			return _clientFd;
+		}

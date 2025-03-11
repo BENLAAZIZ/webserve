@@ -20,8 +20,8 @@
 #include "Server.hpp"
 #include "Client.hpp"
 #include "Request.hpp"
-#include "Response.hpp"
+// #include "Response.hpp"
 #include "Config.hpp"
-#include "CGI.hpp"
+// #include "CGI.hpp"
 
 // #include "MimeTypes.hpp"

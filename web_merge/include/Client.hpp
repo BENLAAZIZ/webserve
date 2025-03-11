@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:44:11 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/06 14:32:58 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/11 02:26:47 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,8 @@
 #include <vector>
 #include <netinet/in.h>
 // #include "ServerConfig.hpp"
-#include "../include/Config.hpp"
-#include "../include/Request.hpp"
+#include "Config.hpp"
+#include "Request.hpp"
 // #include "Response.hpp"
 
 class Client {
@@ -29,6 +29,7 @@ class Client {
 		Request _request;
 		int _socket;
 		struct sockaddr_in _address;
+		int _clientFd;
 		std::string _requestBuffer;
 		std::string _responseBuffer;
 		bool request_Header_Complete;
@@ -43,7 +44,7 @@ class Client {
 		// std::string _body;
 		
 		// Server configuration
-		ServerConfig _serverConfig;
+		// ServerConfig _serverConfig;
 		
 		// Maximum request size (8MB)
 		static const size_t MAX_REQUEST_SIZE = 8388608;
@@ -56,9 +57,15 @@ class Client {
 		// Helper for determining content type
 		std::string getExtension(const std::string& path);
 
+		// set client_fd
+		void setClientFd(int client_fd);
+
+		// get client_fd
+		int getClientFd() const;
+
 	public:
 		Client();
-		Client(int socket, struct sockaddr_in address, const ServerConfig& config);
+		Client(int socket, struct sockaddr_in address);
 		~Client();
 		Client(const Client& other);
 		Client& operator=(const Client& other);
