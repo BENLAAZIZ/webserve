@@ -44,7 +44,7 @@ Client& Client::operator=(const Client& other)
 	return *this;
 }
 
-bool Client::isRequestComplete() {
+bool Client::is_Header_Complete() {
 	return request_Header_Complete;
 }
 

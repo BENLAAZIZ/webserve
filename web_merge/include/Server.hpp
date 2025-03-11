@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/03/11 03:54:26 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/11 14:16:14 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 
 class Client;
 
-#define BUFFER_SIZE 1000
+#define BUFFER_SIZE 10
 #define MAX_CLIENTS 1000
 // MAX_REQUEST_SIZE
 #define MAX_REQUEST_SIZE 1000000

@@ -13,7 +13,7 @@ int main() {
 
 		std::vector<int> ports;
 		ports.push_back(8080);
-		ports.push_back(8081);
+		ports.push_back(5050);
 		ports.push_back(8082);
 
 		ConfigFile configFile;
@@ -21,9 +21,7 @@ int main() {
 		for (size_t i = 0; i < ports.size(); ++i) {
 			configFile.addServer(ports[i]);
 		}
-
 		configFile.run();
-
 		
 	} catch (const std::exception& e) {
 		std::cerr << "Error: " << e.what() << std::endl;

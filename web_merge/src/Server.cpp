@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/03/11 04:14:42 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/11 14:24:42 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,13 +92,13 @@ int Server::handleClientData(int client_fd, Client &client) {
     std::string data(buffer, bytes_read);
 
     client._requestBuffer += data; // Append new data to client's buffer
-    std::cout << "Server on port " << port << " received data from FD " << client_fd << ": " << client._requestBuffer << std::endl;
+    // std::cout << "Server on port " << port << " received data from FD " << client_fd << ": " << client._requestBuffer << std::endl;
     if (client._requestBuffer.size() > MAX_REQUEST_SIZE) {
 		std::cerr << "Request too large!" << std::endl;
-		// sendErrorResponse(413, "Request Entity Too Large");
+		client.sendErrorResponse(413, "Request Entity Too Large");
 		return -1;
 	}
-    if (!client.isRequestComplete())
+    if (!client.is_Header_Complete())
 	{
 		if (!client.parse_Header_Request(client._requestBuffer))
 		    std::cerr << "Error parsing request =====" << std::endl;

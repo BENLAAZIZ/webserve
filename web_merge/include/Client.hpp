@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:44:11 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/11 03:53:32 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/11 14:24:42 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ class Client {
 		Client& operator=(const Client& other);
 
 		// Check if the request is complete
-		bool isRequestComplete();
+		bool is_Header_Complete();
 		
 		// Parse HTTP request
 		bool parse_Header_Request(std::string& line_buf);
