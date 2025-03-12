@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/03/11 14:16:14 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/12 00:33:00 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,11 @@
 
 #include "Request.hpp"
 #include "Client.hpp"
+#include "../include/Config.hpp"
+#include <poll.h>
 
 class Client;
+class ConfigFile;
 
 #define BUFFER_SIZE 10
 #define MAX_CLIENTS 1000
@@ -26,6 +29,7 @@ class Client;
 
 class Server {
     public:
+        ConfigFile *_config; 
         Server(int port);
         ~Server();
         int getServerFd() const { return server_fd; }
@@ -34,6 +38,7 @@ class Server {
         // int handleClientData(int client_fd);
         int handleClientData(int client_fd, Client &client);
         void setNonBlocking(int fd);
+        void setConfig(ConfigFile* config); // Add setter method
         
     private:
         int server_fd;
