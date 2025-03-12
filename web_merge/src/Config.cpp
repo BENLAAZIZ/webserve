@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/10 23:45:15 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/03/12 03:53:27 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/12 04:50:17 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,16 +126,12 @@ void ConfigFile::handleEvents() {
 							for (size_t j = 0; j < poll_fds.size(); j++) {
 								if (poll_fds[j].fd == current_fd) {
 									poll_fds[j].events = POLLOUT;
+									i = j;
+									std::cout << " i = " << i << std::endl;
+							std::cout << "j = " << j << std::endl;
 									break;
+								}
 							}
-							current_fds = poll_fds;
-							std::cout << "====== fd ====== " << poll_fds[j].fd << std::endl;
-							std::cout << "======poll_fds[owner_server] ====== " << poll_fds[owner_server].fd << std::endl;
-							std::cout << " j = " << j << std::endl;
-							std::cout << " i = " << i << std::endl;
-							std::cout << " owner_server = " << owner_server << std::endl;
-
-}
 						// ========================
 					}
 					
@@ -146,7 +142,7 @@ void ConfigFile::handleEvents() {
 					}
 				}// fin test
 				// Handle client data - writing response
-				if (current_fds[i].revents & POLLOUT) {
+				else if (current_fds[i].revents & POLLOUT) {
 					std::cout << "POLLOUT" << std::endl;
 					if (client_server_map.find(current_fd) != client_server_map.end()) {
 						Client& client = _clients[current_fd];
