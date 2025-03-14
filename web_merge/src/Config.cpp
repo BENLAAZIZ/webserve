@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/10 23:45:15 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/03/12 04:50:17 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/14 00:19:25 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,10 +110,11 @@ void ConfigFile::handleEvents() {
 			}
 		} else { // This is a client, handle the data
 			if (client_server_map.find(current_fd) != client_server_map.end()) {
+				int res = 0;
 				int owner_server = client_server_map[current_fd];
 				// std::cout << "== owner_server = " << owner_server << std::endl;
 				if (current_fds[i].revents & POLLIN) {// test
-					int res = servers[owner_server]->handleClientData(current_fd, _clients[current_fd]);
+					res = servers[owner_server]->handleClientData(current_fd, _clients[current_fd]);
 					
 					bool client_disconnected = false;
 					
@@ -124,11 +125,11 @@ void ConfigFile::handleEvents() {
 						// ========================
 
 							for (size_t j = 0; j < poll_fds.size(); j++) {
-								if (poll_fds[j].fd == current_fd) {
-									poll_fds[j].events = POLLOUT;
+								if (poll_fds[owner_server].fd == current_fd) {
+									poll_fds[owner_server].events = POLLOUT;
 									i = j;
 									std::cout << " i = " << i << std::endl;
-							std::cout << "j = " << j << std::endl;
+									std::cout << "j = " << j << std::endl;
 									break;
 								}
 							}
@@ -142,13 +143,14 @@ void ConfigFile::handleEvents() {
 					}
 				}// fin test
 				// Handle client data - writing response
-				else if (current_fds[i].revents & POLLOUT) {
+				if (current_fds[owner_server].revents & POLLOUT) {
+				// if (res == 1) {
 					std::cout << "POLLOUT" << std::endl;
 					if (client_server_map.find(current_fd) != client_server_map.end()) {
 						Client& client = _clients[current_fd];
 						
 						// Send response
-						if (!client.sendResponse()) {
+						if (!client.sendResponse(current_fd)) {
 							// Failed to send or completed sending
 							if (client.isDoneWithResponse()) {
 								// If keep-alive is not set, close the connection

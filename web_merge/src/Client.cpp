@@ -277,13 +277,13 @@ void Client::sendErrorResponse(int statusCode, const std::string& statusMessage)
 	_keepAlive = false;  // Don't keep alive on errors
 }
 
-bool Client::sendResponse() {
+bool Client::sendResponse(int client_fd) {
 	if (_responseBuffer.empty()) {
 		_responseSent = true;
 		return false;
 	}
 	
-	ssize_t bytesSent = send(_socket, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+	ssize_t bytesSent = send(client_fd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
 	
 	if (bytesSent < 0) {
 		if (errno == EAGAIN || errno == EWOULDBLOCK) {

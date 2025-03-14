@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/05 14:44:11 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/11 14:24:42 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/13 03:30:12 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ class Client {
 		void generateResponse_GET_DELETE();
 		
 		// Send HTTP response
-		bool sendResponse();
+		bool sendResponse(int client_fd);
 		
 		// Send error response
 		void sendErrorResponse(int statusCode, const std::string& statusMessage);

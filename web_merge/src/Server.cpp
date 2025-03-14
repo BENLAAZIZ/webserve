@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/03/12 03:23:51 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/14 00:43:21 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,28 +78,29 @@ int Server::acceptNewConnection() {
 int Server::handleClientData(int client_fd, Client &client) {
 	char buffer[BUFFER_SIZE];
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
-// std::cout << "** client_fd: " << client_fd << std::endl;
 	if (bytes_read <= 0) {
 		if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
 			return -1; // No data available yet
 		}
 		std::cout << "Client disconnected from server on port " << port << ": FD " << client_fd << std::endl;
 		// Don't close the fd here - we'll do it in the main loop
+		client.sendErrorResponse(413, "Request Entity Too Large");
 		return -1;
 	}
 
-	// std::string data(buffer, bytes_read);
 	std::string data(buffer, bytes_read);
 
 	client._requestBuffer += data; // Append new data to client's buffer
 	// std::cout << "Server on port " << port << " received data from FD " << client_fd << ": " << client._requestBuffer << std::endl;
 	if (client._requestBuffer.size() > MAX_REQUEST_SIZE) {
-		std::cerr << "Request too large!" << std::endl;
+		std::cerr << " --------- Request too large! -------" << std::endl;
 		client.sendErrorResponse(413, "Request Entity Too Large");
 		return -1;
 	}
 	if (!client.is_Header_Complete())
 	{
+		// std::cout << "-----------------------------fd_client = " << client_fd << std::endl;
+		// std::cout << "map client " << std::endl;
 		if (!client.parse_Header_Request(client._requestBuffer))
 			std::cerr << "Error parsing request =====" << std::endl;
 			// client.sendErrorResponse(client.getStatusCode());
@@ -116,9 +117,12 @@ int Server::handleClientData(int client_fd, Client &client) {
 			std::cout << "POST request received" << std::endl;
 		}
 		else
+		{
 			std::cout << "GET request received" << std::endl;
-		// else
+			
 			client.generateResponse_GET_DELETE();
+		}
+		// else
 			std::cout << "Response generated" << std::endl;
 			// std::cout << "Response: " << client._responseBuffer << std::endl;
 		// Update the interested events to include POLLOUT for writing response
@@ -127,26 +131,27 @@ int Server::handleClientData(int client_fd, Client &client) {
 		//     std::cout << "====== Client fd ====== " << _config->poll_fds[i].fd << std::endl;
 		// 	if (_config->poll_fds[i].fd == client_fd) {
 		//         std::cout << "______ Client_fd ________ " << client_fd << std::endl;
-		// 		_config->poll_fds[i].events = POLLOUT;
+				// _config->poll_fds[1].events = POLLOUT;
+				// std::cout
 		// 		break;
 		// 	}
 		// }
-					// ssize_t bytesSent = send(client_fd, client._responseBuffer.c_str(), client._responseBuffer.size(), 0);
+					ssize_t bytesSent = send(client_fd, client._responseBuffer.c_str(), client._responseBuffer.size(), 0);
 					
-					// if (bytesSent < 0) {
-					// 	if (errno == EAGAIN || errno == EWOULDBLOCK) {
-					// 		// Would block, try again later
-					// 		return true;
-					// 	}
+					if (bytesSent < 0) {
+						if (errno == EAGAIN || errno == EWOULDBLOCK) {
+							// Would block, try again later
+							return true;
+						}
 						
-					// 	std::cerr << "Error sending response: " << strerror(errno) << std::endl;
-					// 	return false;
-					// }
+						std::cerr << "Error sending response: " << strerror(errno) << std::endl;
+						return false;
+					}
 					
-					// if (bytesSent > 0) {
-					// 	// Remove sent data from buffer
-					// 	client._responseBuffer.erase(0, bytesSent);
-					// }
+					if (bytesSent > 0) {
+						// Remove sent data from buffer
+						client._responseBuffer.erase(0, bytesSent);
+					}
 		
 		return 1;
 	}

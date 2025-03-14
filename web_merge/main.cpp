@@ -12,8 +12,8 @@ int main() {
 		// //std::cout.flush();  // ✅ Ensures all data is written immediately
 
 		std::vector<int> ports;
-		// ports.push_back(8080);
-		// ports.push_back(5050);
+		ports.push_back(8080);
+		ports.push_back(5050);
 		ports.push_back(8082);
 
 		ConfigFile configFile;

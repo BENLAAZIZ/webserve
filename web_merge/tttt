@@ -1,7 +1,0 @@
-Server fd: 3 listening on port 8080
-Server fd: 4 listening on port 5050
-Server fd: 5 listening on port 8082
-Server on port 8080 accepted new connection: FD 6 from 127.0.0.1:49586
-Parsing first line: == GET /HAMZA.html HTTP/1.1  
-Header: ||host|| = ||4568||
-Header: ||TYPE|| = ||456||
