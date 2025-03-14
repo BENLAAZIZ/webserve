@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/14 04:13:16 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/14 17:30:04 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -192,6 +192,7 @@ bool Request::parseFirstLine(const std::string& line)
 	// Store method, path, version
 	// if (checkPath())
 	// 		return false;
+	initializeEncode();
 	size_t start = 0;
 	while ((start = path.find("%", start)) != path.npos) {
 		

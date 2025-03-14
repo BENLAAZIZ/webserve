@@ -56,67 +56,90 @@ bool Client::parse_Header_Request(std::string& line_buf)
 		}
 		else 
 		{
-			if (line.empty()) {
-				if (_request.getHeaders().find("host") == _request.getHeaders().end()) {
-					_request.statusCode.code = 400;
-					return false;
-				}
-				// find content length from headers map
-				if (_request.getMethod() == "POST")
-				{
-					if (_request.getHeaders().find("Content-Length") == _request.getHeaders().end())
-					{
-						_request.statusCode.code = 411;
-						return false;
-					}
-					else
-						_request.setContentLength(atoi(_request.getHeader("Content-Length").c_str()));
-					if (_request.getHeaders().find("Transfer-Encoding") != _request.getHeaders().end())
-						_request.setTransferEncodingExist(true);
-					if (_request.getHeaders().find("Content-Type") != _request.getHeaders().end())
-					{
-						if (_request.getHeader("Content-Type").find("boundary=") != std::string::npos)
-						{
-							size_t boundary_pos = _request.getHeader("Content-Type").find("boundary=");
-							_request.boundary = _request.getHeader("Content-Type").substr(boundary_pos + 9);
-							_request.setBoundary(_request.boundary);
-							_request.setContent_type("multipart/form-data");
-						}
-						else
-						{
-							_request.setContent_type(_request.getHeader("Content-Type"));
-						}
-					}
-				}
-				break;
-			}
-			size_t colonPos = line.find(":");
-			if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
-				_request.statusCode.code = 400;
+			int flag = 0;
+			end_of_headers(line, &flag);
+			if (flag == 0)
 				return false;
-			}
-			std::string hostHeader = line.substr(0, colonPos);
-			std::string key;
-			for (size_t i = 0; i < hostHeader.length(); i++) {
-				hostHeader[i] = std::tolower(hostHeader[i]);
-			}
-			if (hostHeader == "host")
-				key = hostHeader.substr(0, colonPos);
-			else
-				key = line.substr(0, colonPos);
-			std::string value = line.substr(colonPos + 1);
-			value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
-			_request.setHeader(key, value);
-			std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+			else if (flag == 1)
+				break;
+			if (generate_header_map(line) == false)
+				return false;
 		}	
 	}
 	return true;
 }
 
+// ------------------------
+bool Client::generate_header_map(std::string& line)
+{
+	size_t colonPos = line.find(":");
+	if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
+		_request.statusCode.code = 400;
+		return false;
+	}
+	std::string hostHeader = line.substr(0, colonPos);
+	std::string key;
+	for (size_t i = 0; i < hostHeader.length(); i++) {
+		hostHeader[i] = std::tolower(hostHeader[i]);
+	}
+	if (hostHeader == "host")
+		key = hostHeader.substr(0, colonPos);
+	else
+		key = line.substr(0, colonPos);
+	std::string value = line.substr(colonPos + 1);
+	value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
+	_request.setHeader(key, value);
+	std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+	return true;
+}
+// ------------------------
+
+// ========================
+void Client::end_of_headers(std::string& line, int *flag)
+{
+	if (line.empty()) {
+		if (_request.getHeaders().find("host") == _request.getHeaders().end()) {
+			_request.statusCode.code = 400;
+			return ;
+		}
+		if (_request.getMethod() == "POST")
+		{
+			if (_request.getHeaders().find("Content-Length") == _request.getHeaders().end())
+			{
+				_request.statusCode.code = 411;
+				return ;
+			}
+			else
+				_request.setContentLength(atoi(_request.getHeader("Content-Length").c_str()));
+			if (_request.getHeaders().find("Transfer-Encoding") != _request.getHeaders().end())
+				_request.setTransferEncodingExist(true);
+			if (_request.getHeaders().find("Content-Type") != _request.getHeaders().end())
+			{
+				if (_request.getHeader("Content-Type").find("boundary=") != std::string::npos)
+				{
+					size_t boundary_pos = _request.getHeader("Content-Type").find("boundary=");
+					_request.boundary = _request.getHeader("Content-Type").substr(boundary_pos + 9);
+					_request.setBoundary(_request.boundary);
+					_request.setContent_type("multipart/form-data");
+				}
+				else
+				{
+					_request.setContent_type(_request.getHeader("Content-Type"));
+				}
+			}
+		}
+		*flag = 1;
+		return ;
+	}
+	*flag = 2;
+	return ;
+}
+// ========================
+
 void Client::generateResponse_GET_DELETE() {
 	// Route request based on method and URI
 	if (_request.getMethod() == "GET") {
-		// _request.initializeEncode();
+		_request.initializeEncode();
 		handleGetRequest();
 	}
 	else if (_request.getMethod() == "DELETE") {
@@ -127,7 +150,7 @@ void Client::generateResponse_GET_DELETE() {
 void Client::handleGetRequest() {
 	// Remove query parameters
 	std::string path = _request.getpath();
-
+	std::cout << "path: " << path << std::endl;
 
 	size_t queryPos = path.find('?');
 	if (queryPos != std::string::npos) {
@@ -293,14 +316,14 @@ void Client::reset() {
 }
 
 
-		// set client_fd
-		void Client::setClientFd(int client_fd)
-		{
-			_clientFd = client_fd;
-		}
+// set client_fd
+void Client::setClientFd(int client_fd)
+{
+	_clientFd = client_fd;
+}
 
-		// get client_fd
-		int Client::getClientFd() const
-		{
-			return _clientFd;
-		}
+// get client_fd
+int Client::getClientFd() const
+{
+	return _clientFd;
+}

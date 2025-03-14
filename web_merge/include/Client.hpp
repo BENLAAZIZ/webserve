@@ -47,5 +47,8 @@ class Client {
 		bool keepAlive() const;
 		// Reset client for new request
 		void reset();
+		// end_of_headers
+		void end_of_headers(std::string& line, int *flag);
+		bool generate_header_map(std::string& line);
 };
 #endif // CLIENT_HPP
