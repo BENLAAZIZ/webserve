@@ -1,8 +1,13 @@
 
-
 #include "../include/web.h"
 
-Client::Client() : request_Header_Complete(false), _responseSent(false), _keepAlive(false) {
+
+Client::Client() : _socket(-1), request_Header_Complete(false), _responseSent(false), _keepAlive(false) {
+}
+
+Client::Client(int socket, struct sockaddr_in address)
+	: _socket(socket), _address(address), request_Header_Complete(false), 
+	  _responseSent(false), _keepAlive(false) {
 }
 
 Client::~Client() {
@@ -18,6 +23,8 @@ Client& Client::operator=(const Client& other)
 {
 	if (this != &other)
 	{
+		_socket = other._socket;
+		_address = other._address;
 		_request = other._request;
 		// _response = other._response;
 		_requestBuffer = other._requestBuffer;
@@ -25,6 +32,7 @@ Client& Client::operator=(const Client& other)
 		request_Header_Complete = other.request_Header_Complete;
 		_responseSent = other._responseSent;
 		_keepAlive = other._keepAlive;
+		// _serverConfig = other._serverConfig;
 	}
 	return *this;
 }
@@ -39,6 +47,7 @@ bool Client::parse_Header_Request(std::string& line_buf)
 	size_t headerEndPos = line_buf.find("\r\n\r\n");
 	if (headerEndPos != std::string::npos) {
 		this->request_Header_Complete = true;
+		// //std::cout << "End of headers" << std::endl;
 	}
 	// Process data line by line
 	while (1) {
@@ -48,17 +57,22 @@ bool Client::parse_Header_Request(std::string& line_buf)
 		}
 		std::string line = line_buf.substr(0, lineEnd);
 		line_buf.erase(0, lineEnd + 2); // Remove processed line
+		// Remove processed line
+
 		if (_request.getMethod().empty() || _request.getpath().empty() || _request.getVersion().empty()) {
 			if (!_request.parseFirstLine(line)) {
 				std::cerr << "Error parsing first line" << std::endl;
 				return false;
 			}
+			// std::cout << "----------------->First Line method: |" << getMethod() << "|" << std::endl;
 		}
 		else 
 		{
 			if (line.empty()) {
+				//std::cout << "End of headers" << std::endl;
 				if (_request.getHeaders().find("host") == _request.getHeaders().end()) {
 					_request.statusCode.code = 400;
+					//std::cout << "-- Host header missing 400 --" << std::endl;
 					return false;
 				}
 				// find content length from headers map
@@ -67,19 +81,29 @@ bool Client::parse_Header_Request(std::string& line_buf)
 					if (_request.getHeaders().find("Content-Length") == _request.getHeaders().end())
 					{
 						_request.statusCode.code = 411;
+						//std::cout << "-- Content-Length header missing 411 --" << std::endl;
 						return false;
 					}
 					else
+					{
 						_request.setContentLength(atoi(_request.getHeader("Content-Length").c_str()));
+						//std::cout << "--Content-Length: " << getContentLength() << std::endl;
+					}
 					if (_request.getHeaders().find("Transfer-Encoding") != _request.getHeaders().end())
+					{
+						//std::cout << "--Transfer-Encoding: " << getHeader("Transfer-Encoding") << std::endl;
 						_request.setTransferEncodingExist(true);
+					}
 					if (_request.getHeaders().find("Content-Type") != _request.getHeaders().end())
 					{
+						// setContent_type(getHeader("Content-Type"));
+						// std::cout << "--Content-Type: " << getContent_type() << std::endl;
 						if (_request.getHeader("Content-Type").find("boundary=") != std::string::npos)
 						{
 							size_t boundary_pos = _request.getHeader("Content-Type").find("boundary=");
 							_request.boundary = _request.getHeader("Content-Type").substr(boundary_pos + 9);
 							_request.setBoundary(_request.boundary);
+							//std::cout << "boundary:* " << getBoundary() << std::endl;
 							_request.setContent_type("multipart/form-data");
 						}
 						else
@@ -88,11 +112,13 @@ bool Client::parse_Header_Request(std::string& line_buf)
 						}
 					}
 				}
+				//std::cout << "End of headers" << std::endl;
 				break;
 			}
 			size_t colonPos = line.find(":");
 			if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
 				_request.statusCode.code = 400;
+				//std::cout << "-- Malformed header 400 --" << std::endl;
 				return false;
 			}
 			std::string hostHeader = line.substr(0, colonPos);
@@ -112,6 +138,7 @@ bool Client::parse_Header_Request(std::string& line_buf)
 	}
 	return true;
 }
+
 
 void Client::generateResponse_GET_DELETE() {
 	// Route request based on method and URI

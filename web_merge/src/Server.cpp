@@ -1,27 +1,5 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Server.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/03/14 00:43:21 by hben-laz         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
-#include <iostream>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <cstring>
-#include <algorithm>
-
-
-
-#include "../include/Server.hpp"
+#include "../include/web.h"
 
 Server::Server(int port) : port(port) {
 	struct sockaddr_in server_addr;
@@ -74,7 +52,6 @@ int Server::acceptNewConnection() {
 	return client_fd;
 }
 
-// int Server::handleClientData(int client_fd) {
 int Server::handleClientData(int client_fd, Client &client) {
 	char buffer[BUFFER_SIZE];
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
@@ -91,22 +68,19 @@ int Server::handleClientData(int client_fd, Client &client) {
 	std::string data(buffer, bytes_read);
 
 	client._requestBuffer += data; // Append new data to client's buffer
-	// std::cout << "Server on port " << port << " received data from FD " << client_fd << ": " << client._requestBuffer << std::endl;
 	if (client._requestBuffer.size() > MAX_REQUEST_SIZE) {
-		std::cerr << " --------- Request too large! -------" << std::endl;
 		client.sendErrorResponse(413, "Request Entity Too Large");
 		return -1;
 	}
 	if (!client.is_Header_Complete())
 	{
-		// std::cout << "-----------------------------fd_client = " << client_fd << std::endl;
-		// std::cout << "map client " << std::endl;
 		if (!client.parse_Header_Request(client._requestBuffer))
 			std::cerr << "Error parsing request =====" << std::endl;
 			// client.sendErrorResponse(client.getStatusCode());
 	}
 	else
 	{
+		std::cout << "Request header complete" << std::endl;
 		if (client._request.getMethod() == "POST")
 		{
 			// if (!client.parseBody())
@@ -124,18 +98,7 @@ int Server::handleClientData(int client_fd, Client &client) {
 		}
 		// else
 			std::cout << "Response generated" << std::endl;
-			// std::cout << "Response: " << client._responseBuffer << std::endl;
-		// Update the interested events to include POLLOUT for writing response
-		// for (size_t i = 0; i < _config->poll_fds.size(); i++) {
-		//     // std::cout << "====== Client fd ====== " << client._clientFd << std::endl;
-		//     std::cout << "====== Client fd ====== " << _config->poll_fds[i].fd << std::endl;
-		// 	if (_config->poll_fds[i].fd == client_fd) {
-		//         std::cout << "______ Client_fd ________ " << client_fd << std::endl;
-				// _config->poll_fds[1].events = POLLOUT;
-				// std::cout
-		// 		break;
-		// 	}
-		// }
+
 					ssize_t bytesSent = send(client_fd, client._responseBuffer.c_str(), client._responseBuffer.size(), 0);
 					
 					if (bytesSent < 0) {
@@ -156,7 +119,6 @@ int Server::handleClientData(int client_fd, Client &client) {
 		return 1;
 	}
 	
-	// Here you could add code to send a response if needed
 	return 0;
 }
 

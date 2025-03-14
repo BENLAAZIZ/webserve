@@ -1,8 +1,4 @@
-#include "Response.hpp"
-#include <sstream>
-#include <fstream>
-#include <iostream>
-#include <sys/stat.h>
+#include "../include/web.h"
 
 Response::Response() : 
     _status(OK_200),

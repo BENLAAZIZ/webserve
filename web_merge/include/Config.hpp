@@ -6,16 +6,14 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/10 23:45:31 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/03/12 00:33:17 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/14 04:23:58 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
-#include "../include/Config.hpp"
-#include "../include/Server.hpp"
-#include "../include/Client.hpp"
+#include "web.h"
 
 
 class Server;

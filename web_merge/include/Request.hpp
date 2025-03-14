@@ -1,12 +1,7 @@
 #ifndef REQUEST_HPP
 #define REQUEST_HPP
 
-#include <string>
-#include <map>
-#include <vector>
-#include <string>    
-#include <iostream>  
-#include <sstream>
+#include "web.h"
 
 // enum RequestParseState {
 //     PARSE_START_LINE,

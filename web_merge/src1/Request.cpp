@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
+/*   By: aben-cha <aben-cha@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/14 04:13:16 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/14 02:42:14 by aben-cha         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -204,7 +204,6 @@ bool Request::parseFirstLine(const std::string& line)
 	//std::cout << "Method: |" << method << "|\nPath: |" << path << "|\nVersion: |" << version << "|" << std::endl;
 	return true;
 }
-
 void	Request::reset()
 {
 	method.clear();
@@ -259,6 +258,7 @@ bool Request::checkPath(){
 	}
 	size_t start = path.find("?");
 	if (start != path.npos){
+		// query = path.substr(start + 1, path.size() - (start + 1));
 		path = path.substr(0, start);
 	}
 	return true;

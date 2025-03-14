@@ -17,9 +17,12 @@
 #include <poll.h>
 #include <exception>
 
+#include <sys/stat.h>
+#include <fstream>
+
+#include "Request.hpp"
 #include "Server.hpp"
 #include "Client.hpp"
-#include "Request.hpp"
 // #include "Response.hpp"
 #include "Config.hpp"
 // #include "CGI.hpp"

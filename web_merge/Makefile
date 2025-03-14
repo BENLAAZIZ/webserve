@@ -6,7 +6,7 @@
 #    By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/03/06 14:02:19 by hben-laz          #+#    #+#              #
-#    Updated: 2025/03/11 02:17:39 by hben-laz         ###   ########.fr        #
+#    Updated: 2025/03/14 04:05:12 by hben-laz         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -22,7 +22,7 @@ all: $(NAME)
 $(NAME): $(OBJ)
 	$(CPP) $(CFLAGS) $(OBJ) -o $(NAME)
 
-%.o: %.cpp main.cpp include/Server.hpp include/Request.hpp include/Config.hpp include/Client.hpp
+%.o: %.cpp main.cpp include/web.h
 	$(CPP) $(CFLAGS) -c $< -o $@
 
 clean:

@@ -1,24 +1,6 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Config.cpp                                         :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/10 23:45:15 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/03/14 00:19:25 by hben-laz         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
 
 
-
-#include "../include/Config.hpp"
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <algorithm>
-#include <poll.h>
-#include <unistd.h>
+#include "../include/web.h"
 
 ConfigFile::ConfigFile() {
 }
@@ -39,7 +21,6 @@ void ConfigFile::addServer(int port) {
 	Server* server = new Server(port);
 	// ========================
 	server->setConfig(this);
-
 	// ========================
 	servers.push_back(server);
 	
@@ -96,17 +77,10 @@ void ConfigFile::handleEvents() {
 				pfd.fd = client_fd;
 				pfd.events = POLLIN;
 				poll_fds.push_back(pfd);
-				
 				client_server_map[client_fd] = server_index; // Map client fd to server index
-				// ========================
 				Client client;
 				client.setClientFd(client_fd);
 				set_client_map(client_fd, client);
-
-				
-				// servers[server_index]->_config.poll_fds = poll_fds;
-
-				// ========================
 			}
 		} else { // This is a client, handle the data
 			if (client_server_map.find(current_fd) != client_server_map.end()) {
@@ -124,15 +98,7 @@ void ConfigFile::handleEvents() {
 					// Response is ready to be sent, change to POLLOUT
 						// ========================
 
-							for (size_t j = 0; j < poll_fds.size(); j++) {
-								if (poll_fds[owner_server].fd == current_fd) {
-									poll_fds[owner_server].events = POLLOUT;
-									i = j;
-									std::cout << " i = " << i << std::endl;
-									std::cout << "j = " << j << std::endl;
-									break;
-								}
-							}
+	
 						// ========================
 					}
 					

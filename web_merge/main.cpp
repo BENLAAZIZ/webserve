@@ -1,8 +1,7 @@
 
+
+
 #include "include/web.h"
-#include "include/Server.hpp"
-#include "include/Config.hpp"
-#include <signal.h>
 
 int main() {
 	try {
