@@ -91,6 +91,8 @@ class Request
 		void 		reset();
 		bool		checkPath(std::string& path);
 		void		initializeEncode();
+
+		std::string urlDecode(const std::string& str);
 };
 
 #endif // REQUEST_HPP

@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/14 23:46:04 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/15 03:35:44 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,7 +166,7 @@ std::string	Request::get_error_missage(int errorCode) const
 		case 405: errorMessage = "405 Method Not Allowed"; break;
 		case 411: errorMessage = "411 Length Required"; break;
 		case 413: errorMessage = "413 Payload Too Large"; break;
-		case 414: errorMessage = "414 URI Too Long"; break;
+		case 414: errorMessage = "414 Request-URI Too Long"; break;
 		case 500: errorMessage = "500 Internal Server Error"; break;
 		case 505: errorMessage = "505  Version Not Supported"; break;
 		default: errorMessage = "500 Internal Server Error"; break;
@@ -186,14 +186,13 @@ bool Request::parseFirstLine(const std::string& line)
 		return false;
 	}
 	if (method != "GET" && method != "POST" && method != "DELETE") {
-		this->code = 405;
+		set_status_code(405);
 		return false;
 	}
-	if (path.empty() || path[0] != '/' || version != "HTTP/1.1") {
-		set_status_code(400);
+	if (version != "HTTP/1.1") {
+		set_status_code(505);
 		return false;
 	}
-	// Store method, path, version
 	if (checkPath(path))
 	{
 		setMethod(method);
@@ -201,12 +200,7 @@ bool Request::parseFirstLine(const std::string& line)
 		setVersion(version);
 	}
 	else
-	{
-		set_status_code(400);
 		return false;
-	}
-
-	//std::cout << "Method: |" << method << "|\nPath: |" << path << "|\nVersion: |" << version << "|" << std::endl;
 	return true;
 }
 
@@ -217,7 +211,7 @@ void	Request::reset()
 	version.clear();
 	extension.clear();
 	headers.clear();
-	body.clear();
+	// body.clear();
 	content_length = 0;
 	flag_end_of_headers = false;
 	headersParsed = false;
@@ -225,36 +219,15 @@ void	Request::reset()
 	transferEncodingExist = false;
 }
 
-void Request::initializeEncode(){
-	encode["%20"] = " ";
-	encode["%21"] = "!";
-	encode["%22"] = "\"";
-	encode["%23"] = "#";
-	encode["%24"] = "$";
-	encode["%25"] = "%";
-	encode["%26"] = "&";
-	encode["%27"] = "\'";
-	encode["%28"] = "(";
-	encode["%29"] = ")";
-	encode["%2A"] = "*";
-	encode["%2B"] = "+";
-	encode["%2C"] = ",";
-	encode["%2F"] = "/";
-	encode["%3A"] = ":";
-	encode["%3B"] = ";";
-	encode["%3D"] = "=";
-	encode["%3F"] = "?";
-	encode["%40"] = "@";
-	encode["%5B"] = "[";
-	encode["%5D"] = "]";
-}
 
 bool Request::checkPath(std::string& path){
 	if (path.size() > 2048)
-		return false; //status code 414
+		return (set_status_code(414), false);
+	if (path.empty() || path[0] != '/') 
+		return (set_status_code(400), false);
 	for (size_t i = 0; path[i]; ++i){
 			if ((path[i] >= 'A' && path[i] <= 'Z') || (path[i] >= 'a' && path[i] <= 'z') || (path[i] >= '0' && path[i] <= '9'))
-				continue; //400
+				continue;
 			if (path[i] == '~' || path[i] == '!' || (path[i] >= '#' && path[i] <= '/') || path[i] == ':' || path[i] == ';' || path[i] == '=' || path[i] == '?' || path[i] == '@')
 				continue;
 			if (path[i] == '[' || path[i] == ']' || path[i] == '_')
@@ -262,23 +235,14 @@ bool Request::checkPath(std::string& path){
 			code = 400;
 			return false;
 	}
-	initializeEncode();
-	size_t start = 0;
-	while ((start = path.find("%", start)) != path.npos) {
-		
-		path.replace(start, 3, encode[path.substr(start, 3)]);
-	}
-
+	 path = urlDecode(path);
 	size_t queryPos = path.find('?');
-	if (queryPos != std::string::npos) {
+	if (queryPos != std::string::npos)
 		path = path.substr(0, queryPos);
-	}
-	
-	std::cout << "Path ==== : " << path << std::endl;
 	return true;
 }
 
-std::string urlDecode(const std::string& str) {
+std::string Request::urlDecode(const std::string& str) {
 	std::string decoded;
 
 	for (std::size_t i = 0; i < str.size(); ++i) {

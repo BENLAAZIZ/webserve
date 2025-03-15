@@ -97,7 +97,7 @@ void ConfigFile::handleEvents() {
 					else if (res == 1) {
 					// Response is ready to be sent, change to POLLOUT
 						// ========================
-						std::cout << "Response is ready to be sent, change to POLLOUT" << std::endl;
+						client_disconnected = true;
 						// ========================
 					}
 					
@@ -131,7 +131,8 @@ void ConfigFile::handleEvents() {
 						}
 					}
 				}
-			} else {
+			} 
+			else {
 				std::cerr << "Error: Client FD " << current_fd << " not associated with any server" << std::endl;
 				cleanupDisconnectedClient(current_fd);
 			}

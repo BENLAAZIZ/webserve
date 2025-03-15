@@ -50,5 +50,7 @@ class Client {
 		// end_of_headers
 		void end_of_headers(std::string& line, int *flag);
 		bool generate_header_map(std::string& line);
+
+		std::string	get_code_error_path(int errorCode) const;
 };
 #endif // CLIENT_HPP

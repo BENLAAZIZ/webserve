@@ -251,9 +251,10 @@ std::string Client::getExtension(const std::string& path) {
 
 void Client::genetate_error_response(int statusCode,  int client_fd) {
 
-	std::string fullPath = std::string("/Users/hben-laz/Desktop/webserve/web_merge/www/") +  "400" + ".html";
-	
-	std::cout << "fullPath: " << fullPath << std::endl;
+    std::string code_path = "";
+	code_path = get_code_error_path(statusCode);
+	std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/docs/errors" +  code_path;
+
 	std::ostringstream response;
 	// Check if file exists
 	struct stat fileStat;
@@ -281,27 +282,9 @@ void Client::genetate_error_response(int statusCode,  int client_fd) {
 		}
 	}
 	// ========================
-	
-	_keepAlive = false;  // Don't keep alive on errors
-			sendResponse(client_fd);
-				// ssize_t bytesSent = send(client_fd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
-					
-				// 	if (bytesSent < 0) {
-				// 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
-				// 			// Would block, try again later
-				// 			// return true;
-				// 			return ;
-				// 		}
-						
-				// 		std::cerr << "Error sending response: " << strerror(errno) << std::endl;
-				// 		// return false;
-				// 		return ;
-				// 	}
-					
-				// 	if (bytesSent > 0) {
-				// 		// Remove sent data from buffer
-				// 		_responseBuffer.erase(0, bytesSent);
-				// 	}
+	// _keepAlive = false;  // Don't keep alive on errors
+	sendResponse(client_fd);
+
 }
 
 bool Client::sendResponse(int client_fd) {
@@ -364,4 +347,22 @@ void Client::setClientFd(int client_fd)
 int Client::getClientFd() const
 {
 	return _clientFd;
+}
+
+std::string	Client::get_code_error_path(int errorCode) const
+{
+	std::string code_path = "";
+	switch (errorCode) {
+		case 400: code_path = "/400.html"; break;
+		case 403: code_path = "/403.html"; break;
+		case 404: code_path = "/404.html"; break;
+		case 405: code_path = "/405.html"; break;
+		case 411: code_path = "/411.html"; break;
+		case 413: code_path = "/413.html"; break;
+		case 414: code_path = "/414.html"; break;
+		case 500: code_path = "/500.html"; break;
+		case 505: code_path = "/505.html"; break;
+		default: code_path = "/500.html"; break;
+	}
+	return code_path;
 }

@@ -73,17 +73,9 @@ int Server::handleClientData(int client_fd, Client &client) {
 		return -1;
 	}
 	if (!client.is_Header_Complete())
-	{
-		if (!client.parse_Header_Request(client._requestBuffer))
-		{
-			std::cerr << "Error parsing request =====" << std::endl;
-			// client.genetate_error_response(413, "Request Entity Too Large", client_fd);
-		}
-			// client.genetate_error_response(client.getStatusCode());
-	}
+		client.parse_Header_Request(client._requestBuffer);
 	if (client.is_Header_Complete())
 	{
-		
 		std::cout << "Request header complete" << std::endl;
 		if (client._request.getMethod() == "POST")
 		{
@@ -101,32 +93,12 @@ int Server::handleClientData(int client_fd, Client &client) {
 			client.generateResponse_GET_DELETE();
 		}
 		if (client._request.getStatusCode() != 200)
-		{
 			client.genetate_error_response(client._request.getStatusCode(), client_fd);
-		}
-		// else
-			std::cout << "Response generated" << std::endl;
 
-					ssize_t bytesSent = send(client_fd, client._responseBuffer.c_str(), client._responseBuffer.size(), 0);
-					
-					if (bytesSent < 0) {
-						if (errno == EAGAIN || errno == EWOULDBLOCK) {
-							// Would block, try again later
-							return true;
-						}
-						
-						std::cerr << "Error sending response: " << strerror(errno) << std::endl;
-						return false;
-					}
-					
-					if (bytesSent > 0) {
-						// Remove sent data from buffer
-						client._responseBuffer.erase(0, bytesSent);
-					}
-		
+		client.sendResponse(client_fd);
+		std::cout << "Response generated" << std::endl;
 		return 1;
 	}
-	
 	return 0;
 }
 
