@@ -209,8 +209,6 @@ void Client::handleDeleteRequest() {
 	std::ostringstream response;
 	response << "HTTP/1.1 200 OK\r\n";
 	response << "Content-Type: text/plain\r\n";
-
-	// genetate_error_response(501, "Method Not Implemented");
 }
 
 std::string Client::getExtension(const std::string& path) {

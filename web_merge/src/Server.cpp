@@ -56,16 +56,12 @@ int Server::handleClientData(int client_fd, Client &client) {
 	char buffer[BUFFER_SIZE];
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
 	if (bytes_read <= 0) {
-		if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
-			return -1; // No data available yet
-		}
+		// if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))
+		// 	return -1; // No data available yet
 		std::cout << "Client disconnected from server on port " << port << ": FD " << client_fd << std::endl;
-		// Don't close the fd here - we'll do it in the main loop
 		return -1;
 	}
-
 	std::string data(buffer, bytes_read);
-
 	client._requestBuffer += data; // Append new data to client's buffer
 	if (client._requestBuffer.size() > MAX_REQUEST_SIZE)
 		return (client._request.set_status_code(413), -1);
@@ -75,18 +71,12 @@ int Server::handleClientData(int client_fd, Client &client) {
 	{
 		std::cout << "Request header complete" << std::endl;
 		if (client._request.getMethod() == "POST")
-		{
 			std::cout << "POST request received" << std::endl;
-		}
 		else if (client._request.getMethod() == "GET" || client._request.getMethod() == "DELETE")
-		{
-			std::cout << "GET request received" << std::endl;
-			
 			client.generateResponse_GET_DELETE();
-		}
 		if (client._request.getStatusCode() >= 400)
 			client.genetate_error_response(client._request.getStatusCode(), client_fd);
-
+		// send response
 		client.sendResponse(client_fd);
 		std::cout << "Response generated" << std::endl;
 		return 1;

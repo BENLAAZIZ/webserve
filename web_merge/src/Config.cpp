@@ -86,7 +86,6 @@ void ConfigFile::handleEvents() {
 			if (client_server_map.find(current_fd) != client_server_map.end()) {
 				int res = 0;
 				int owner_server = client_server_map[current_fd];
-				// std::cout << "== owner_server = " << owner_server << std::endl;
 				if (current_fds[i].revents & POLLIN) {// test
 					res = servers[owner_server]->handleClientData(current_fd, _clients[current_fd]);
 					
