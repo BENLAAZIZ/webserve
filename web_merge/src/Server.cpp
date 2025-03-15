@@ -61,17 +61,14 @@ int Server::handleClientData(int client_fd, Client &client) {
 		}
 		std::cout << "Client disconnected from server on port " << port << ": FD " << client_fd << std::endl;
 		// Don't close the fd here - we'll do it in the main loop
-		client._request.set_status_code(413);
 		return -1;
 	}
 
 	std::string data(buffer, bytes_read);
 
 	client._requestBuffer += data; // Append new data to client's buffer
-	if (client._requestBuffer.size() > MAX_REQUEST_SIZE) {
-		client._request.set_status_code(413);
-		return -1;
-	}
+	if (client._requestBuffer.size() > MAX_REQUEST_SIZE)
+		return (client._request.set_status_code(413), -1);
 	if (!client.is_Header_Complete())
 		client.parse_Header_Request(client._requestBuffer);
 	if (client.is_Header_Complete())
@@ -79,11 +76,6 @@ int Server::handleClientData(int client_fd, Client &client) {
 		std::cout << "Request header complete" << std::endl;
 		if (client._request.getMethod() == "POST")
 		{
-			// if (!client.parseBody())
-			// {
-			
-			// 	client.genetate_error_response(client.getStatusCode());
-			// }
 			std::cout << "POST request received" << std::endl;
 		}
 		else if (client._request.getMethod() == "GET" || client._request.getMethod() == "DELETE")
@@ -92,7 +84,7 @@ int Server::handleClientData(int client_fd, Client &client) {
 			
 			client.generateResponse_GET_DELETE();
 		}
-		if (client._request.getStatusCode() != 200)
+		if (client._request.getStatusCode() >= 400)
 			client.genetate_error_response(client._request.getStatusCode(), client_fd);
 
 		client.sendResponse(client_fd);

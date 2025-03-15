@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/15 03:35:44 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/15 03:50:27 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,8 +64,6 @@ std::string Request::getHeader(const std::string& key) const
 	std::map<std::string, std::string>::const_iterator it = headers.find(key);
 	return (it != headers.end()) ? it->second : "";
 }
-// std::string Request::get_error_missage() const 
-// { return statusCode.message; }
 
 std::string Request::getBody() const 
 { return body;}
@@ -102,6 +100,24 @@ const std::map<std::string, std::string>& Request::getHeaders() const {
 std::string Request::getContent_type() const
 {
 	return content_type;
+}
+
+std::string	Request::get_error_missage(int errorCode) const
+{
+	std::string errorMessage = "";
+	switch (errorCode) {
+		case 400: errorMessage = "400 Bad Request"; break;
+		case 403: errorMessage = "403 Forbidden"; break;
+		case 404: errorMessage = "404 Not Found"; break;
+		case 405: errorMessage = "405 Method Not Allowed"; break;
+		case 411: errorMessage = "411 Length Required"; break;
+		case 413: errorMessage = "413 Payload Too Large"; break;
+		case 414: errorMessage = "414 Request-URI Too Long"; break;
+		case 500: errorMessage = "500 Internal Server Error"; break;
+		case 505: errorMessage = "505  Version Not Supported"; break;
+		default: errorMessage = "500 Internal Server Error"; break;
+	}
+	return errorMessage;
 }
 
 /*=========== setters =============*/
@@ -154,45 +170,18 @@ void Request::set_status_code(int code)
 	this->code = code;
 }
 
-/*=========== genetate_error_response =============*/
-
-std::string	Request::get_error_missage(int errorCode) const
-{
-	std::string errorMessage = "";
-	switch (errorCode) {
-		case 400: errorMessage = "400 Bad Request"; break;
-		case 403: errorMessage = "403 Forbidden"; break;
-		case 404: errorMessage = "404 Not Found"; break;
-		case 405: errorMessage = "405 Method Not Allowed"; break;
-		case 411: errorMessage = "411 Length Required"; break;
-		case 413: errorMessage = "413 Payload Too Large"; break;
-		case 414: errorMessage = "414 Request-URI Too Long"; break;
-		case 500: errorMessage = "500 Internal Server Error"; break;
-		case 505: errorMessage = "505  Version Not Supported"; break;
-		default: errorMessage = "500 Internal Server Error"; break;
-	}
-	return errorMessage;
-}
-
 /*=========== parseFirstLine =============*/
 
 bool Request::parseFirstLine(const std::string& line)
 {
-	std::cout << "Parsing first line: == " << line << std::endl;
 	std::istringstream iss(line);
 	std::string method, path, version;
-	if (!(iss >> method >> path >> version)) {
-		set_status_code(400);
-		return false;
-	}
-	if (method != "GET" && method != "POST" && method != "DELETE") {
-		set_status_code(405);
-		return false;
-	}
-	if (version != "HTTP/1.1") {
-		set_status_code(505);
-		return false;
-	}
+	if (!(iss >> method >> path >> version))
+		return (set_status_code(400), false);
+	if (method != "GET" && method != "POST" && method != "DELETE")
+		return (set_status_code(405), false);
+	if (version != "HTTP/1.1")
+		return (set_status_code(505), false);
 	if (checkPath(path))
 	{
 		setMethod(method);
@@ -232,10 +221,9 @@ bool Request::checkPath(std::string& path){
 				continue;
 			if (path[i] == '[' || path[i] == ']' || path[i] == '_')
 				continue;
-			code = 400;
-			return false;
+			return (set_status_code(400), false);
 	}
-	 path = urlDecode(path);
+	path = urlDecode(path);
 	size_t queryPos = path.find('?');
 	if (queryPos != std::string::npos)
 		path = path.substr(0, queryPos);

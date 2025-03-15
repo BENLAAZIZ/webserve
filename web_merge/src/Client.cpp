@@ -35,23 +35,19 @@ bool Client::is_Header_Complete() {
 
 bool Client::parse_Header_Request(std::string& line_buf) 
 {
-	// Check for end of headers ("\r\n\r\n")
 	size_t headerEndPos = line_buf.find("\r\n\r\n");
 	if (headerEndPos != std::string::npos) {
 		this->request_Header_Complete = true;
 	}
-	// Process data line by line
 	while (1) {
 		size_t lineEnd = line_buf.find("\r\n");
-		if (lineEnd == std::string::npos) {
-			break; // Wait for more data
-		}
+		if (lineEnd == std::string::npos)
+			break;
 		std::string line = line_buf.substr(0, lineEnd);
 		line_buf.erase(0, lineEnd + 2); // Remove processed line
 		if (_request.getMethod().empty() || _request.getpath().empty() || _request.getVersion().empty()) {
 			if (!_request.parseFirstLine(line)) {
 				this->request_Header_Complete = true;
-				std::cerr << "Error parsing first line" << std::endl;
 				return false;
 			}
 		}
@@ -96,7 +92,7 @@ bool Client::generate_header_map(std::string& line)
 	std::string value = line.substr(colonPos + 1);
 	value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
 	_request.setHeader(key, value);
-	std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+	// std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
 	return true;
 }
 // ------------------------
@@ -144,38 +140,27 @@ void Client::end_of_headers(std::string& line, int *flag)
 // ========================
 
 void Client::generateResponse_GET_DELETE() {
-	// Route request based on method and URI
-	if (_request.getMethod() == "GET") {
-		// _request.initializeEncode();
+	if (_request.getMethod() == "GET")
 		handleGetRequest();
-	}
-	else if (_request.getMethod() == "DELETE") {
+	else
 		handleDeleteRequest();
-	}
 }
 
 void Client::handleGetRequest() {
-	// Remove query parameters
-	std::string path = _request.getpath();
-	std::cout << "path: " << path << std::endl;
 
+	std::string path = _request.getpath();
 	if (path == "/") {
 		path = "/index.html"; // Default page
 	}
-	
 	// Check for directory traversal attempts
 	if (path.find("..") != std::string::npos) {
 		std::cerr << "Directory traversal attempt: " << path << std::endl;
-		// genetate_error_response(403, "Forbidden", _clientFd);
-		_request.set_status_code(403);
-		return;
+		return (_request.set_status_code(403));
 	}
 	
 	// Prepend document root from config
 	// std::string fullPath = _serverConfig.getRoot() + path;
 	std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
-	
-	std::cout << "fullPath: " << fullPath << std::endl;
 
 	// Check if file exists
 	struct stat fileStat;
@@ -189,28 +174,28 @@ void Client::handleGetRequest() {
 			// Read file content
 			std::string fileContent((std::istreambuf_iterator<char>(file)),
 									 std::istreambuf_iterator<char>());
-			
 			// Generate HTTP response
 			std::ostringstream response;
 			response << "HTTP/1.1 200 OK\r\n";
 			response << "Content-Type: " << extension << "\r\n";
 			response << "Content-Length: " << fileContent.size() << "\r\n";
-			if (_keepAlive) {
+			if (_keepAlive)
 				response << "Connection: keep-alive\r\n";
-			} else {
+			else
 				response << "Connection: close\r\n";
-			}
 			response << "\r\n";
 			response << fileContent;
 			
 			_responseBuffer = response.str();
-		} else {
-			_request.set_status_code(500);
 		}
-	} else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
+		else
+			_request.set_status_code(500);
+	}
+	else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
 		// Directory listing (optional, could redirect to index or show listing)
 		_request.set_status_code(403);
-	} else {
+	} 
+	else {
 		// File not found
 		_request.set_status_code(404);
 	}
