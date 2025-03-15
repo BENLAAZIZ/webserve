@@ -50,6 +50,7 @@ bool Client::parse_Header_Request(std::string& line_buf)
 		line_buf.erase(0, lineEnd + 2); // Remove processed line
 		if (_request.getMethod().empty() || _request.getpath().empty() || _request.getVersion().empty()) {
 			if (!_request.parseFirstLine(line)) {
+				this->request_Header_Complete = true;
 				std::cerr << "Error parsing first line" << std::endl;
 				return false;
 			}
@@ -59,11 +60,17 @@ bool Client::parse_Header_Request(std::string& line_buf)
 			int flag = 0;
 			end_of_headers(line, &flag);
 			if (flag == 0)
+			{
+				this->request_Header_Complete = true;
 				return false;
+			}
 			else if (flag == 1)
 				break;
 			if (generate_header_map(line) == false)
+			{
+				this->request_Header_Complete = true;
 				return false;
+			}
 		}	
 	}
 	return true;
@@ -74,7 +81,7 @@ bool Client::generate_header_map(std::string& line)
 {
 	size_t colonPos = line.find(":");
 	if (colonPos == std::string::npos || colonPos == 0 || line[colonPos - 1] == ' ') {
-		_request.statusCode.code = 400;
+		_request.set_status_code(400);
 		return false;
 	}
 	std::string hostHeader = line.substr(0, colonPos);
@@ -99,14 +106,14 @@ void Client::end_of_headers(std::string& line, int *flag)
 {
 	if (line.empty()) {
 		if (_request.getHeaders().find("host") == _request.getHeaders().end()) {
-			_request.statusCode.code = 400;
+			_request.set_status_code(400);
 			return ;
 		}
 		if (_request.getMethod() == "POST")
 		{
 			if (_request.getHeaders().find("Content-Length") == _request.getHeaders().end())
 			{
-				_request.statusCode.code = 411;
+				_request.set_status_code(411);
 				return ;
 			}
 			else
@@ -139,7 +146,7 @@ void Client::end_of_headers(std::string& line, int *flag)
 void Client::generateResponse_GET_DELETE() {
 	// Route request based on method and URI
 	if (_request.getMethod() == "GET") {
-		_request.initializeEncode();
+		// _request.initializeEncode();
 		handleGetRequest();
 	}
 	else if (_request.getMethod() == "DELETE") {
@@ -152,11 +159,6 @@ void Client::handleGetRequest() {
 	std::string path = _request.getpath();
 	std::cout << "path: " << path << std::endl;
 
-	size_t queryPos = path.find('?');
-	if (queryPos != std::string::npos) {
-		path = path.substr(0, queryPos);
-	}
-	// Sanitize path
 	if (path == "/") {
 		path = "/index.html"; // Default page
 	}
@@ -164,7 +166,8 @@ void Client::handleGetRequest() {
 	// Check for directory traversal attempts
 	if (path.find("..") != std::string::npos) {
 		std::cerr << "Directory traversal attempt: " << path << std::endl;
-		sendErrorResponse(403, "Forbidden");
+		// genetate_error_response(403, "Forbidden", _clientFd);
+		_request.set_status_code(403);
 		return;
 	}
 	
@@ -202,15 +205,14 @@ void Client::handleGetRequest() {
 			
 			_responseBuffer = response.str();
 		} else {
-			// File exists but couldn't be opened
-			sendErrorResponse(500, "Internal Server Error");
+			_request.set_status_code(500);
 		}
 	} else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
 		// Directory listing (optional, could redirect to index or show listing)
-		sendErrorResponse(403, "Forbidden");
+		_request.set_status_code(403);
 	} else {
 		// File not found
-		sendErrorResponse(404, "Not Found");
+		_request.set_status_code(404);
 	}
 }
 
@@ -223,7 +225,7 @@ void Client::handleDeleteRequest() {
 	response << "HTTP/1.1 200 OK\r\n";
 	response << "Content-Type: text/plain\r\n";
 
-	// sendErrorResponse(501, "Method Not Implemented");
+	// genetate_error_response(501, "Method Not Implemented");
 }
 
 std::string Client::getExtension(const std::string& path) {
@@ -247,23 +249,59 @@ std::string Client::getExtension(const std::string& path) {
 	return contentType;
 }
 
-void Client::sendErrorResponse(int statusCode, const std::string& statusMessage) {
+void Client::genetate_error_response(int statusCode,  int client_fd) {
+
+	std::string fullPath = std::string("/Users/hben-laz/Desktop/webserve/web_merge/www/") +  "400" + ".html";
+	
+	std::cout << "fullPath: " << fullPath << std::endl;
 	std::ostringstream response;
-	response << "HTTP/1.1 " << statusCode << " " << statusMessage << "\r\n";
-	response << "Content-Type: text/html\r\n";
+	// Check if file exists
+	struct stat fileStat;
+	if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
+		// File exists, serve it
+		std::ifstream file(fullPath, std::ios::binary);
+		if (file) {
+			// Read file content
+			std::string responseBody((std::istreambuf_iterator<char>(file)),
+									 std::istreambuf_iterator<char>());
+			// Generate HTTP response
+			std::ostringstream response;
+			response << "HTTP/1.1 "  << _request.get_error_missage(statusCode) << "\r\n";
+			response << "Content-Type: text/html\r\n";
+			response << "Content-Length: " << responseBody.size() << "\r\n";
+			if (_keepAlive) {
+				response << "Connection: keep-alive\r\n";
+			} else {
+				response << "Connection: close\r\n";
+			}
+			response << "\r\n";
+			response << responseBody;
+			
+			_responseBuffer = response.str();
+		}
+	}
+	// ========================
 	
-	std::string responseBody = "<html><head><title>" + std::to_string(statusCode) + " " + 
-							  statusMessage + "</title></head><body><h1>" + 
-							  std::to_string(statusCode) + " " + statusMessage + 
-							  "</h1></body></html>";
-	
-	response << "Content-Length: " << responseBody.size() << "\r\n";
-	response << "Connection: close\r\n";  // Don't keep alive on errors
-	response << "\r\n";
-	response << responseBody;
-	
-	_responseBuffer = response.str();
 	_keepAlive = false;  // Don't keep alive on errors
+			sendResponse(client_fd);
+				// ssize_t bytesSent = send(client_fd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+					
+				// 	if (bytesSent < 0) {
+				// 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				// 			// Would block, try again later
+				// 			// return true;
+				// 			return ;
+				// 		}
+						
+				// 		std::cerr << "Error sending response: " << strerror(errno) << std::endl;
+				// 		// return false;
+				// 		return ;
+				// 	}
+					
+				// 	if (bytesSent > 0) {
+				// 		// Remove sent data from buffer
+				// 		_responseBuffer.erase(0, bytesSent);
+				// 	}
 }
 
 bool Client::sendResponse(int client_fd) {

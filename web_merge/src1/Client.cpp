@@ -168,7 +168,7 @@ void Client::handleGetRequest() {
 	// Check for directory traversal attempts
 	if (path.find("..") != std::string::npos) {
 		std::cerr << "Directory traversal attempt: " << path << std::endl;
-		sendErrorResponse(403, "Forbidden");
+		genetate_error_response(403, "Forbidden");
 		return;
 	}
 	
@@ -207,14 +207,14 @@ void Client::handleGetRequest() {
 			_responseBuffer = response.str();
 		} else {
 			// File exists but couldn't be opened
-			sendErrorResponse(500, "Internal Server Error");
+			genetate_error_response(500, "Internal Server Error");
 		}
 	} else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
 		// Directory listing (optional, could redirect to index or show listing)
-		sendErrorResponse(403, "Forbidden");
+		genetate_error_response(403, "Forbidden");
 	} else {
 		// File not found
-		sendErrorResponse(404, "Not Found");
+		genetate_error_response(404, "Not Found");
 	}
 }
 
@@ -227,7 +227,7 @@ void Client::handleDeleteRequest() {
 	response << "HTTP/1.1 200 OK\r\n";
 	response << "Content-Type: text/plain\r\n";
 
-	// sendErrorResponse(501, "Method Not Implemented");
+	// genetate_error_response(501, "Method Not Implemented");
 }
 
 std::string Client::getExtension(const std::string& path) {
@@ -251,7 +251,7 @@ std::string Client::getExtension(const std::string& path) {
 	return contentType;
 }
 
-void Client::sendErrorResponse(int statusCode, const std::string& statusMessage) {
+void Client::genetate_error_response(int statusCode, const std::string& statusMessage) {
 	std::ostringstream response;
 	response << "HTTP/1.1 " << statusCode << " " << statusMessage << "\r\n";
 	response << "Content-Type: text/html\r\n";

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aben-cha <aben-cha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/14 02:42:14 by aben-cha         ###   ########.fr       */
+/*   Updated: 2025/03/14 23:25:57 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ std::string Request::getHeader(const std::string& key) const
 	std::map<std::string, std::string>::const_iterator it = headers.find(key);
 	return (it != headers.end()) ? it->second : "";
 }
-std::string Request::getStatusCodeMessage() const 
+std::string Request::get_error_missage() const 
 { return statusCode.message; }
 
 std::string Request::getBody() const 
@@ -150,9 +150,9 @@ void Request::setBoundary(const std::string& boundary)
 	this->boundary = boundary;
 }
 
-/*=========== sendErrorResponse =============*/
+/*=========== genetate_error_response =============*/
 
-void Request::sendErrorResponse(int errorCode) 
+void Request::genetate_error_missage(int errorCode) 
 {
 	std::string errorMessage = "";
 	switch (errorCode) {

@@ -61,7 +61,7 @@ int Server::handleClientData(int client_fd, Client &client) {
 		}
 		std::cout << "Client disconnected from server on port " << port << ": FD " << client_fd << std::endl;
 		// Don't close the fd here - we'll do it in the main loop
-		client.sendErrorResponse(413, "Request Entity Too Large");
+		client._request.set_status_code(413);
 		return -1;
 	}
 
@@ -69,32 +69,40 @@ int Server::handleClientData(int client_fd, Client &client) {
 
 	client._requestBuffer += data; // Append new data to client's buffer
 	if (client._requestBuffer.size() > MAX_REQUEST_SIZE) {
-		client.sendErrorResponse(413, "Request Entity Too Large");
+		client._request.set_status_code(413);
 		return -1;
 	}
 	if (!client.is_Header_Complete())
 	{
 		if (!client.parse_Header_Request(client._requestBuffer))
+		{
 			std::cerr << "Error parsing request =====" << std::endl;
-			// client.sendErrorResponse(client.getStatusCode());
+			// client.genetate_error_response(413, "Request Entity Too Large", client_fd);
+		}
+			// client.genetate_error_response(client.getStatusCode());
 	}
-	else
+	if (client.is_Header_Complete())
 	{
+		
 		std::cout << "Request header complete" << std::endl;
 		if (client._request.getMethod() == "POST")
 		{
 			// if (!client.parseBody())
 			// {
 			
-			// 	client.sendErrorResponse(client.getStatusCode());
+			// 	client.genetate_error_response(client.getStatusCode());
 			// }
 			std::cout << "POST request received" << std::endl;
 		}
-		else
+		else if (client._request.getMethod() == "GET" || client._request.getMethod() == "DELETE")
 		{
 			std::cout << "GET request received" << std::endl;
 			
 			client.generateResponse_GET_DELETE();
+		}
+		if (client._request.getStatusCode() != 200)
+		{
+			client.genetate_error_response(client._request.getStatusCode(), client_fd);
 		}
 		// else
 			std::cout << "Response generated" << std::endl;

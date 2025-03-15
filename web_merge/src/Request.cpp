@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/14 17:30:04 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/14 23:46:04 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,8 +15,7 @@
 
 Request::Request()
 {
-	statusCode.code = 200; // default status code
-	statusCode.message = "OK";
+	code = 200; // default status code
 	content_length = 0;
 	flag_end_of_headers = false;
 	headersParsed = false;
@@ -41,7 +40,7 @@ Request& Request::operator=(const Request& other)
 		path = other.path;
 		version = other.version;
 		extension = other.extension;
-		statusCode = other.statusCode;
+		code = other.code;
 		headers = other.headers;
 	}
 	return *this;
@@ -65,8 +64,8 @@ std::string Request::getHeader(const std::string& key) const
 	std::map<std::string, std::string>::const_iterator it = headers.find(key);
 	return (it != headers.end()) ? it->second : "";
 }
-std::string Request::getStatusCodeMessage() const 
-{ return statusCode.message; }
+// std::string Request::get_error_missage() const 
+// { return statusCode.message; }
 
 std::string Request::getBody() const 
 { return body;}
@@ -89,7 +88,7 @@ bool Request::getBodyFlag() const
 	return bodyFlag;
 }
 int Request::getStatusCode() const 
-{ return statusCode.code; }
+{ return code; }
 
 bool Request::getTransferEncodingExist() const
 {
@@ -150,9 +149,14 @@ void Request::setBoundary(const std::string& boundary)
 	this->boundary = boundary;
 }
 
-/*=========== sendErrorResponse =============*/
+void Request::set_status_code(int code)
+{
+	this->code = code;
+}
 
-void Request::sendErrorResponse(int errorCode) 
+/*=========== genetate_error_response =============*/
+
+std::string	Request::get_error_missage(int errorCode) const
 {
 	std::string errorMessage = "";
 	switch (errorCode) {
@@ -167,7 +171,7 @@ void Request::sendErrorResponse(int errorCode)
 		case 505: errorMessage = "505  Version Not Supported"; break;
 		default: errorMessage = "500 Internal Server Error"; break;
 	}
-	statusCode.message = errorMessage;
+	return errorMessage;
 }
 
 /*=========== parseFirstLine =============*/
@@ -178,29 +182,29 @@ bool Request::parseFirstLine(const std::string& line)
 	std::istringstream iss(line);
 	std::string method, path, version;
 	if (!(iss >> method >> path >> version)) {
-		this->statusCode.code = 400;
+		set_status_code(400);
 		return false;
 	}
 	if (method != "GET" && method != "POST" && method != "DELETE") {
-		this->statusCode.code = 405;
+		this->code = 405;
 		return false;
 	}
 	if (path.empty() || path[0] != '/' || version != "HTTP/1.1") {
-		this->statusCode.code = 400;
+		set_status_code(400);
 		return false;
 	}
 	// Store method, path, version
-	// if (checkPath())
-	// 		return false;
-	initializeEncode();
-	size_t start = 0;
-	while ((start = path.find("%", start)) != path.npos) {
-		
-		path.replace(start, 3, encode[path.substr(start, 3)]);
+	if (checkPath(path))
+	{
+		setMethod(method);
+		setPath(path);
+		setVersion(version);
 	}
-	setMethod(method);
-	setPath(path);
-	setVersion(version);
+	else
+	{
+		set_status_code(400);
+		return false;
+	}
 
 	//std::cout << "Method: |" << method << "|\nPath: |" << path << "|\nVersion: |" << version << "|" << std::endl;
 	return true;
@@ -245,7 +249,7 @@ void Request::initializeEncode(){
 	encode["%5D"] = "]";
 }
 
-bool Request::checkPath(){
+bool Request::checkPath(std::string& path){
 	if (path.size() > 2048)
 		return false; //status code 414
 	for (size_t i = 0; path[i]; ++i){
@@ -255,13 +259,22 @@ bool Request::checkPath(){
 				continue;
 			if (path[i] == '[' || path[i] == ']' || path[i] == '_')
 				continue;
-			statusCode.code = 400;
+			code = 400;
 			return false;
 	}
-	size_t start = path.find("?");
-	if (start != path.npos){
-		path = path.substr(0, start);
+	initializeEncode();
+	size_t start = 0;
+	while ((start = path.find("%", start)) != path.npos) {
+		
+		path.replace(start, 3, encode[path.substr(start, 3)]);
 	}
+
+	size_t queryPos = path.find('?');
+	if (queryPos != std::string::npos) {
+		path = path.substr(0, queryPos);
+	}
+	
+	std::cout << "Path ==== : " << path << std::endl;
 	return true;
 }
 

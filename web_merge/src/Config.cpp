@@ -97,8 +97,7 @@ void ConfigFile::handleEvents() {
 					else if (res == 1) {
 					// Response is ready to be sent, change to POLLOUT
 						// ========================
-
-	
+						std::cout << "Response is ready to be sent, change to POLLOUT" << std::endl;
 						// ========================
 					}
 					

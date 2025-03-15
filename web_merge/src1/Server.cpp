@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aben-cha <aben-cha@student.42.fr>          +#+  +:+       +#+        */
+/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:16:57 by aben-cha          #+#    #+#             */
-/*   Updated: 2025/03/14 02:36:30 by aben-cha         ###   ########.fr       */
+/*   Updated: 2025/03/14 23:16:44 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,7 +83,7 @@ int Server::handleClientData(int client_fd, Client &client) {
 	
 	if (client._requestBuffer.size() > MAX_REQUEST_SIZE) {
 		std::cerr << " --------- Request too large! -------" << std::endl;
-		client.sendErrorResponse(413, "Request Entity Too Large");
+		client.genetate_error_response(413, "Request Entity Too Large");
 		return -1;
 	}
 	if (!client.is_Header_Complete())
@@ -92,7 +92,7 @@ int Server::handleClientData(int client_fd, Client &client) {
 		// std::cout << "map client " << std::endl;
 		if (!client.parse_Header_Request(client._requestBuffer))
 			std::cerr << "Error parsing request =====" << std::endl;
-			// client.sendErrorResponse(client.getStatusCode());
+			// client.genetate_error_response(client.getStatusCode());
 	}
 	else
 	{
@@ -102,7 +102,7 @@ int Server::handleClientData(int client_fd, Client &client) {
 			// if (!client.parseBody())
 			// {
 			
-			// 	client.sendErrorResponse(client.getStatusCode());
+			// 	client.genetate_error_response(client.getStatusCode());
 			// }
 			std::cout << "POST request received" << std::endl;
 		}

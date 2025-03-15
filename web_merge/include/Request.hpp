@@ -37,11 +37,12 @@ class Request
 		
 		bool bodyFlag;
 		bool flag_end_of_headers;
+		std::size_t	code;
 		// int statusCode;
 		bool headersParsed;
 	public:
 		std::map<std::string, std::string> encode;
-		StatusCode statusCode;
+		// StatusCode statusCode;
 		std::string	body; 
 		std::string content_type;
 		std::string boundary;
@@ -57,7 +58,7 @@ class Request
 		std::string	getVersion() const;
 		std::string	getExtension() const;
 		std::string	getHeader(const std::string& key) const;
-		std::string	getStatusCodeMessage() const;
+		std::string	get_error_missage(int errorCode) const;
 		std::string	getBody() const;
 		std::string	getContent_type() const;
 		std::size_t	getContentLength() const;
@@ -80,12 +81,15 @@ class Request
 		void 		setTransferEncodingExist(bool flag);
 		void		setContent_type(const std::string& content_type);
 		void		setBoundary(const std::string& boundary);
+
+		void 		set_status_code(int code);
+
 		// Methods
-		void		sendErrorResponse(int errorCode);
+		void		genetate_error_missage(int errorCode);
 		bool		parseFirstLine(const std::string& line);
 		// bool		parseHeader(std::string& line);
 		void 		reset();
-		bool		checkPath();
+		bool		checkPath(std::string& path);
 		void		initializeEncode();
 };
 

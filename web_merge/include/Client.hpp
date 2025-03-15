@@ -40,7 +40,7 @@ class Client {
 		// Send HTTP response
 		bool sendResponse(int client_fd);
 		// Send error response
-		void sendErrorResponse(int statusCode, const std::string& statusMessage);
+		void genetate_error_response(int statusCode, int client_fd);
 		// Check if response is completely sent
 		bool isDoneWithResponse() const;
 		// Check if connection should be kept alive
