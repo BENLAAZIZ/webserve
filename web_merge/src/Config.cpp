@@ -107,29 +107,29 @@ void ConfigFile::handleEvents() {
 					}
 				}// fin test
 				// Handle client data - writing response
-				if (current_fds[owner_server].revents & POLLOUT) {
-				// if (res == 1) {
-					std::cout << "POLLOUT" << std::endl;
-					if (client_server_map.find(current_fd) != client_server_map.end()) {
-						Client& client = _clients[current_fd];
+				// if (current_fds[owner_server].revents & POLLOUT) {
+				// // if (res == 1) {
+				// 	std::cout << "POLLOUT" << std::endl;
+				// 	if (client_server_map.find(current_fd) != client_server_map.end()) {
+				// 		Client& client = _clients[current_fd];
 						
-						// Send response
-						if (!client.sendResponse(current_fd)) {
-							// Failed to send or completed sending
-							if (client.isDoneWithResponse()) {
-								// If keep-alive is not set, close the connection
-								if (!client.keepAlive()) {
-									// servers[owner_server]->removeClient(current_fd);
-								} else {
-									// Reset client for next request
-									client.reset();
-									// Update to only listen for reads again
-									poll_fds[i].events = POLLIN;
-								}
-							}
-						}
-					}
-				}
+				// 		// Send response
+				// 		if (!client.sendResponse(current_fd)) {
+				// 			// Failed to send or completed sending
+				// 			if (client.isDoneWithResponse()) {
+				// 				// If keep-alive is not set, close the connection
+				// 				if (!client.keepAlive()) {
+				// 					// servers[owner_server]->removeClient(current_fd);
+				// 				} else {
+				// 					// Reset client for next request
+				// 					client.reset();
+				// 					// Update to only listen for reads again
+				// 					poll_fds[i].events = POLLIN;
+				// 				}
+				// 			}
+				// 		}
+				// 	}
+				// }
 			} 
 			else {
 				std::cerr << "Error: Client FD " << current_fd << " not associated with any server" << std::endl;

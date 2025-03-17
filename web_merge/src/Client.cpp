@@ -2,7 +2,13 @@
 
 #include "../include/web.h"
 
-Client::Client() : request_Header_Complete(false), _responseSent(false), _keepAlive(false) {
+Client::Client() : request_Header_Complete(false), 
+							_responseSent(false), 
+								_keepAlive(false),
+								_header_falg(false),
+								  _isopen(false),
+								  _fileOffset(0) {
+	// _response = Response();
 }
 
 Client::~Client() {
@@ -139,76 +145,251 @@ void Client::end_of_headers(std::string& line, int *flag)
 }
 // ========================
 
-void Client::generateResponse_GET_DELETE() {
+int Client::generateResponse_GET_DELETE() {
 	if (_request.getMethod() == "GET")
-		handleGetRequest();
+	{
+		if (handleGetRequest())
+			return 1;
+	}
 	else
 		handleDeleteRequest();
+	return 0;
 }
 
-void Client::handleGetRequest() {
+// ========================
+// int Client::handleGetRequest() {
+//     std::string path = _request.getpath();
+//     if (path == "/") {
+//         path = "/index.html"; // Default page
+//     }
+//     // Check for directory traversal attempts
+//     if (path.find("..") != std::string::npos) {
+//         std::cerr << "Directory traversal attempt: " << path << std::endl;
+//         _request.set_status_code(403);
+//         return 1;
+//     }
+    
+//     // Prepend document root from config
+//     std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
+//     std::cout << "fullPath: " << fullPath << std::endl;
 
-	std::string path = _request.getpath();
-	if (path == "/") {
-		path = "/index.html"; // Default page
-	}
-	// Check for directory traversal attempts
-	if (path.find("..") != std::string::npos) {
-		std::cerr << "Directory traversal attempt: " << path << std::endl;
-		return (_request.set_status_code(403));
-	}
-	
-	// Prepend document root from config
-	// std::string fullPath = _serverConfig.getRoot() + path;
-	std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
+//     // Check if file exists
+//     struct stat fileStat;
+//     if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
+//         // File exists, serve it
+// 		std::cout << "File exists, serve it" << std::endl;
+//         std::string content_type = get_MimeType(path);
+//         const size_t CHUNK_SIZE = 1024; // 1KB chunks
 
-	// Check if file exists
-	struct stat fileStat;
-	if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
-		// File exists, serve it
+//         // Handle file serving
+//         if (_header_falg == false) {
+//             // std::ifstream file;
 
-		if (fileStat.st_size > 100000)
-		{
-			std::cout << "File too large" << std::endl;
-		}
-		else
-		{
-				std::ifstream file(fullPath, std::ios::binary);
-				if (file) {
-					// Determine content type based on file extension
-					std::string content_type = get_MimeType (path);
-					
-					// Read file content
-					std::string fileContent((std::istreambuf_iterator<char>(file)),
-											std::istreambuf_iterator<char>());
-					// Generate HTTP response
-					std::ostringstream response;
-					response << "HTTP/1.1 200 OK\r\n";
-					response << "Content-Type: " << content_type << "\r\n";
-					response << "Content-Length: " << fileContent.size() << "\r\n";
-					if (_keepAlive)
-						response << "Connection: keep-alive\r\n";
-					else
-						response << "Connection: close\r\n";
-					response << "\r\n";
-					response << fileContent;
-					
-					_responseBuffer = response.str();
-				}
-			else
-				_request.set_status_code(500);
-		}
-	}
-	else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
+// 			file.open(fullPath, std::ios::binary);
+// 			_isopen = true;
 
-		// Directory listing (optional, could redirect to index or show listing)
-		_request.set_status_code(403);
-	} 
-	else {
-		// File not found
-		_request.set_status_code(404);
-	}
+//             file.seekg(0, std::ios::end);
+//             size_t file_size = file.tellg();
+
+            
+//             // Generate headers
+//             std::ostringstream headers;
+//             headers << "HTTP/1.1 200 OK\r\n";
+//             headers << "Content-Type: " << content_type << "\r\n";
+//             headers << "Content-Length: " << file_size << "\r\n";
+//             headers << "Accept-Ranges: bytes\r\n";
+//             if (_keepAlive)
+//                 headers << "Connection: keep-alive\r\n";
+//             else
+//                 headers << "Connection: close\r\n";
+//             headers << "\r\n";
+            
+//             _header_falg = true;
+//             _responseBuffer = headers.str();
+// 			std::cout << "headers: " << _responseBuffer << std::endl;
+//             send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+//             _responseBuffer.clear();
+//         }
+//         if (this->_isopen) {
+//             // Seek to current offset
+//             file.seekg(_fileOffset);
+            
+//             // Read chunk
+//             char buffer[CHUNK_SIZE];
+//             file.read(buffer, CHUNK_SIZE);
+//             int bytes_to_read = file.gcount();
+            
+//             if (bytes_to_read > 0) {
+//                 _responseBuffer.assign(buffer, bytes_to_read);
+// 				std::cout << "body: " << _responseBuffer << std::endl;
+//                 send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+//                 _responseBuffer.clear();
+//                 _fileOffset += bytes_to_read;
+//             } else {
+//                 _responseSent = true;
+//                 _header_falg = false;
+//                 _fileOffset = 0;
+//                 file.close();
+//             }
+//         }
+        
+//         if (_responseSent)
+//             return 1;
+//     }
+// 	else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
+//         // Directory listing (optional, could redirect to index or show listing)
+//         std::cout << "Directory listing not implemented" << std::endl;
+//         _request.set_status_code(403);
+//         return 1;
+//     } else {
+//         // File not found
+//         _request.set_status_code(404);
+//         return 1;
+//     }
+    
+//     return 0;
+// }
+
+// ========================
+
+
+
+// ************************
+int Client::handleGetRequest() {
+    std::string path = _request.getpath();
+    if (path == "/") {
+        path = "/index.html"; // Default page
+    }
+    
+    // Check for directory traversal attempts
+    if (path.find("..") != std::string::npos) {
+        std::cerr << "Directory traversal attempt: " << path << std::endl;
+        _request.set_status_code(403);
+        return 1;
+    }
+    
+    // Prepend document root from config
+    std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
+    std::cout << "fullPath: " << fullPath << std::endl;
+
+    // Check if file exists
+    struct stat fileStat;
+    if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
+        // File exists, serve it
+        std::cout << "File exists, serve it" << std::endl;
+        std::string content_type = get_MimeType(path);
+        const size_t CHUNK_SIZE = 8192; // Increased chunk size for better performance
+        
+        // If this is the first call for this file or a new file request
+        if (_header_falg == false) {
+            // Close any previously opened file
+            if (_isopen) {
+                file.close();
+                _isopen = false;
+            }
+            
+            // Open new file
+            file.open(fullPath, std::ios::binary);
+            if (!file) {
+                std::cerr << "Failed to open file: " << fullPath << std::endl;
+                _request.set_status_code(500);
+                return 1;
+            }
+            _isopen = true;
+            _fileOffset = 0;  // Reset offset for new file
+            
+            // Get file size
+            file.seekg(0, std::ios::end);
+            size_t file_size = file.tellg();
+            file.seekg(0, std::ios::beg);  // Reset to beginning for reading
+            
+            // Generate headers
+            std::ostringstream headers;
+            headers << "HTTP/1.1 200 OK\r\n";
+            headers << "Content-Type: " << content_type << "\r\n";
+            headers << "Content-Length: " << file_size << "\r\n";
+            headers << "Accept-Ranges: bytes\r\n";
+            if (_keepAlive)
+                headers << "Connection: keep-alive\r\n";
+            else
+                headers << "Connection: close\r\n";
+            headers << "\r\n";
+            
+            _header_falg = true;
+            _responseBuffer = headers.str();
+            std::cout << "Headers sent, file size: " << file_size << " bytes" << std::endl;
+			std::cout << "client_fd: " << _clientFd << std::endl;
+            send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+			std::cout << "headers: " << _responseBuffer << std::endl;
+            _responseBuffer.clear();
+        }
+        
+        // Continue reading the file in chunks
+        if (_isopen) {
+            // Make sure we're at the correct position
+            file.seekg(_fileOffset);
+            
+            // Read chunk
+            char buffer[CHUNK_SIZE];
+            file.read(buffer, CHUNK_SIZE);
+            int bytes_read = file.gcount();
+            
+            if (bytes_read > 0) {
+                std::cout << "Sending chunk of " << bytes_read << " bytes, offset: " << _fileOffset << std::endl;
+                ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
+				std::cout << "sent: " << sent << std::endl;
+                if (sent > 0) {
+                    _fileOffset += sent;
+                    std::cout << "New offset: " << _fileOffset << std::endl;
+                    
+                    // Check if we've reached the end of the file
+                    if (file.eof()) {
+                        std::cout << "File transfer complete" << std::endl;
+                        _responseSent = true;
+                        _header_falg = false;
+                        _fileOffset = 0;
+                        file.close();
+                        _isopen = false;
+                        return 1;
+                    }
+                    
+                    // Not done yet, return 0 to continue processing
+                    return 0;
+                } else {
+                    // Error sending
+                    std::cerr << "Error sending file data: " << strerror(errno) << std::endl;
+                    _responseSent = true;
+                    _header_falg = false;
+                    _fileOffset = 0;
+                    file.close();
+                    _isopen = false;
+                    return 1;
+                }
+            } else {
+                // File is complete
+                std::cout << "File transfer complete" << std::endl;
+                _responseSent = true;
+                _header_falg = false;
+                _fileOffset = 0;
+                file.close();
+                _isopen = false;
+                return 1;
+            }
+        }
+    } else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
+        // Directory listing (optional, could redirect to index or show listing)
+        std::cout << "Directory listing not implemented" << std::endl;
+        _request.set_status_code(403);
+        return 1;
+    } else {
+        // File not found
+        _request.set_status_code(404);
+        return 1;
+    }
+    
+    return 0;
 }
+// ************************
 
 
 void Client::handleDeleteRequest() {
@@ -358,3 +539,55 @@ std::string	Client::get_code_error_path(int errorCode) const
 	}
 	return code_path;
 }
+
+// bool Client::sendResponse(int client_fd) {
+    // If we have a chunked file and no data in the buffer, read next chunk
+    // if (_isChunkedFile && _responseBuffer.empty() && _fileBytesRemaining > 0) {
+    //     size_t chunkToRead = std::min(_chunkSize, _fileBytesRemaining);
+    //     std::vector<char> buffer(chunkToRead);
+        
+    //     if (_fileToSend.is_open()) {
+    //         _fileToSend.read(buffer.data(), buffer.size());
+    //         size_t bytesRead = _fileToSend.gcount();
+    //         _responseBuffer.append(buffer.data(), bytesRead);
+    //         _fileBytesRemaining -= bytesRead;
+            
+    //         // If we've read all data, close the file
+    //         if (_fileBytesRemaining == 0 || bytesRead < buffer.size()) {
+    //             _fileToSend.close();
+    //         }
+    //     }
+    // }
+
+//     // If buffer is empty, we're done
+//     if (_responseBuffer.empty()) {
+//         _responseSent = true;
+//         return false;
+//     }
+    
+//     // Send data from the buffer
+//     ssize_t bytesSent = send(client_fd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+    
+//     if (bytesSent < 0) {
+//         if (errno == EAGAIN || errno == EWOULDBLOCK) {
+//             // Would block, try again later
+//             return true;
+//         }
+        
+//         std::cerr << "Error sending response: " << strerror(errno) << std::endl;
+//         return false;
+//     }
+    
+//     if (bytesSent > 0) {
+//         // Remove sent data from buffer
+//         _responseBuffer.erase(0, bytesSent);
+//     }
+    
+//     // Check if we're done sending and no more chunks to read
+//     if (_responseBuffer.empty() && (!_isChunkedFile || _fileBytesRemaining == 0)) {
+//         _responseSent = true;
+//         return false;
+//     }
+    
+//     return true;
+// }

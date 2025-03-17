@@ -14,9 +14,19 @@ class Client {
 		bool request_Header_Complete;
 		bool _responseSent;
 		bool _keepAlive;
+		bool _header_falg;
+		bool _isopen;
+		std::ifstream file;
+		// ofset for file
+		size_t _fileOffset;
+
+	bool _isChunkedFile;
+	std::ifstream _fileToSend;
+	size_t _fileBytesRemaining;
+	size_t _chunkSize;
 		
 		// Helper methods for handling different HTTP methods
-		void handleGetRequest();
+		int handleGetRequest();
 		// void handlePostRequest();
 		void handleDeleteRequest();
 		// Helper for determining content type
@@ -36,7 +46,7 @@ class Client {
 		// Parse HTTP request
 		bool parse_Header_Request(std::string& line_buf);
 		// Generate HTTP response
-		void generateResponse_GET_DELETE();
+		int generateResponse_GET_DELETE();
 		// Send HTTP response
 		bool sendResponse(int client_fd);
 		// Send error response

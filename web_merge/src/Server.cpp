@@ -56,8 +56,8 @@ int Server::handleClientData(int client_fd, Client &client) {
 	char buffer[BUFFER_SIZE];
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
 	if (bytes_read <= 0) {
-		// if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))
-		// 	return -1; // No data available yet
+		if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))
+			return -1; // No data available yet
 		std::cout << "Client disconnected from server on port " << port << ": FD " << client_fd << std::endl;
 		return -1;
 	}
@@ -73,11 +73,10 @@ int Server::handleClientData(int client_fd, Client &client) {
 		if (client._request.getMethod() == "POST")
 			std::cout << "POST request received" << std::endl;
 		else if (client._request.getMethod() == "GET" || client._request.getMethod() == "DELETE")
-			client.generateResponse_GET_DELETE();
+			if (client.generateResponse_GET_DELETE() == 0)
+				return 0;
 		if (client._request.getStatusCode() >= 400)
 			client.genetate_error_response(client._request.getStatusCode(), client_fd);
-		// send response
-		client.sendResponse(client_fd);
 		std::cout << "Response generated" << std::endl;
 		return 1;
 	}
