@@ -278,7 +278,7 @@ int Client::handleGetRequest() {
         // File exists, serve it
         std::cout << "File exists, serve it" << std::endl;
         std::string content_type = get_MimeType(path);
-        const size_t CHUNK_SIZE = 8192; // Increased chunk size for better performance
+        const size_t CHUNK_SIZE = 1024; // Increased chunk size for better performance
         
         // If this is the first call for this file or a new file request
         if (_header_falg == false) {
@@ -318,7 +318,7 @@ int Client::handleGetRequest() {
             _header_falg = true;
             _responseBuffer = headers.str();
             std::cout << "Headers sent, file size: " << file_size << " bytes" << std::endl;
-			std::cout << "client_fd: " << _clientFd << std::endl;
+			std::cout << "getClientFd: " << getClientFd() << std::endl;
             send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
 			std::cout << "headers: " << _responseBuffer << std::endl;
             _responseBuffer.clear();
@@ -336,6 +336,7 @@ int Client::handleGetRequest() {
             
             if (bytes_read > 0) {
                 std::cout << "Sending chunk of " << bytes_read << " bytes, offset: " << _fileOffset << std::endl;
+				std::cout << "buffer: " << buffer << std::endl;
                 ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
 				std::cout << "sent: " << sent << std::endl;
                 if (sent > 0) {

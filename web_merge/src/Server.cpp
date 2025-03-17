@@ -54,6 +54,8 @@ int Server::acceptNewConnection() {
 
 int Server::handleClientData(int client_fd, Client &client) {
 	char buffer[BUFFER_SIZE];
+	client.setClientFd(client_fd);
+	std::cout << "Reading data from client on port " << port << ": FD " << client.getClientFd() << std::endl;
 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
 	if (bytes_read <= 0) {
 		if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))
