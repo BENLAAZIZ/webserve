@@ -92,7 +92,7 @@ bool Client::generate_header_map(std::string& line)
 	std::string value = line.substr(colonPos + 1);
 	value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
 	_request.setHeader(key, value);
-	// std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+	std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
 	return true;
 }
 // ------------------------
@@ -166,32 +166,41 @@ void Client::handleGetRequest() {
 	struct stat fileStat;
 	if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
 		// File exists, serve it
-		std::ifstream file(fullPath, std::ios::binary);
-		if (file) {
-			// Determine content type based on file extension
-			std::string extension = getExtension(path);
-			
-			// Read file content
-			std::string fileContent((std::istreambuf_iterator<char>(file)),
-									 std::istreambuf_iterator<char>());
-			// Generate HTTP response
-			std::ostringstream response;
-			response << "HTTP/1.1 200 OK\r\n";
-			response << "Content-Type: " << extension << "\r\n";
-			response << "Content-Length: " << fileContent.size() << "\r\n";
-			if (_keepAlive)
-				response << "Connection: keep-alive\r\n";
-			else
-				response << "Connection: close\r\n";
-			response << "\r\n";
-			response << fileContent;
-			
-			_responseBuffer = response.str();
+
+		if (fileStat.st_size > 100000)
+		{
+			std::cout << "File too large" << std::endl;
 		}
 		else
-			_request.set_status_code(500);
+		{
+				std::ifstream file(fullPath, std::ios::binary);
+				if (file) {
+					// Determine content type based on file extension
+					std::string content_type = get_MimeType (path);
+					
+					// Read file content
+					std::string fileContent((std::istreambuf_iterator<char>(file)),
+											std::istreambuf_iterator<char>());
+					// Generate HTTP response
+					std::ostringstream response;
+					response << "HTTP/1.1 200 OK\r\n";
+					response << "Content-Type: " << content_type << "\r\n";
+					response << "Content-Length: " << fileContent.size() << "\r\n";
+					if (_keepAlive)
+						response << "Connection: keep-alive\r\n";
+					else
+						response << "Connection: close\r\n";
+					response << "\r\n";
+					response << fileContent;
+					
+					_responseBuffer = response.str();
+				}
+			else
+				_request.set_status_code(500);
+		}
 	}
 	else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
+
 		// Directory listing (optional, could redirect to index or show listing)
 		_request.set_status_code(403);
 	} 
@@ -211,7 +220,7 @@ void Client::handleDeleteRequest() {
 	response << "Content-Type: text/plain\r\n";
 }
 
-std::string Client::getExtension(const std::string& path) {
+std::string Client::get_MimeType (const std::string& path) {
 	// Determine content type based on file extension
 	std::string contentType = "text/plain";
 	size_t dotPos = path.find_last_of('.');

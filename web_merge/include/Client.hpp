@@ -20,7 +20,7 @@ class Client {
 		// void handlePostRequest();
 		void handleDeleteRequest();
 		// Helper for determining content type
-		std::string getExtension(const std::string& path);
+		std::string get_MimeType (const std::string& path);
 		// set client_fd
 		void setClientFd(int client_fd);
 		// get client_fd

@@ -20,11 +20,11 @@
 // };
 
 
-typedef struct StatusCode 
-{
-	std::size_t	code;
-	std::string	message;
-} StatusCode;
+// typedef struct StatusCode 
+// {
+// 	std::size_t	code;
+// 	std::string	message;
+// } StatusCode;
 
 class Request 
 {
@@ -56,7 +56,7 @@ class Request
 		std::string	getMethod() const;
 		std::string	getpath() const;
 		std::string	getVersion() const;
-		std::string	getExtension() const;
+		std::string	get_MimeType () const;
 		std::string	getHeader(const std::string& key) const;
 		std::string	get_error_missage(int errorCode) const;
 		std::string	getBody() const;
@@ -85,12 +85,12 @@ class Request
 		void 		set_status_code(int code);
 
 		// Methods
-		void		genetate_error_missage(int errorCode);
+		std::string		genetate_error_missage(int errorCode);
 		bool		parseFirstLine(const std::string& line);
 		// bool		parseHeader(std::string& line);
 		void 		reset();
 		bool		checkPath(std::string& path);
-		void		initializeEncode();
+		// void		initializeEncode();
 
 		std::string urlDecode(const std::string& str);
 };

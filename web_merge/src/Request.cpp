@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/15 03:50:27 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/03/16 23:37:42 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ std::string Request::getpath() const
 std::string Request::getVersion() const 
 { return version; }
 
-std::string Request::getExtension() const 
+std::string Request::get_MimeType () const 
 { return extension; }
 
 std::string Request::getHeader(const std::string& key) const
