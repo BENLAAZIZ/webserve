@@ -17,6 +17,8 @@ class Client {
 		bool _header_falg;
 		bool _isopen;
 		std::ifstream file;
+		std::ofstream filetest;
+		int fd;
 		// ofset for file
 		size_t _fileOffset;
 

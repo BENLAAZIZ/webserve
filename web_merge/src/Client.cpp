@@ -1,6 +1,7 @@
 
 
 #include "../include/web.h"
+#include <fcntl.h>
 
 Client::Client() : request_Header_Complete(false), 
 							_responseSent(false), 
@@ -8,6 +9,11 @@ Client::Client() : request_Header_Complete(false),
 								_header_falg(false),
 								  _isopen(false),
 								  _fileOffset(0) {
+	// create a filetest with mode append to write to it
+	// filetest.open("filetest.txt", std::ios::app);
+	fd = open("filetest.txt", O_RDWR | O_CREAT | O_APPEND, 0644);
+	// write to filetest
+	// filetest << "filetest" << std::endl;
 	// _response = Response();
 }
 
@@ -98,12 +104,10 @@ bool Client::generate_header_map(std::string& line)
 	std::string value = line.substr(colonPos + 1);
 	value.erase(0, value.find_first_not_of(" ")); // Trim leading spaces
 	_request.setHeader(key, value);
-	std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+	// std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
 	return true;
 }
-// ------------------------
 
-// ========================
 void Client::end_of_headers(std::string& line, int *flag)
 {
 	if (line.empty()) {
@@ -156,105 +160,6 @@ int Client::generateResponse_GET_DELETE() {
 	return 0;
 }
 
-// ========================
-// int Client::handleGetRequest() {
-//     std::string path = _request.getpath();
-//     if (path == "/") {
-//         path = "/index.html"; // Default page
-//     }
-//     // Check for directory traversal attempts
-//     if (path.find("..") != std::string::npos) {
-//         std::cerr << "Directory traversal attempt: " << path << std::endl;
-//         _request.set_status_code(403);
-//         return 1;
-//     }
-    
-//     // Prepend document root from config
-//     std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
-//     std::cout << "fullPath: " << fullPath << std::endl;
-
-//     // Check if file exists
-//     struct stat fileStat;
-//     if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
-//         // File exists, serve it
-// 		std::cout << "File exists, serve it" << std::endl;
-//         std::string content_type = get_MimeType(path);
-//         const size_t CHUNK_SIZE = 1024; // 1KB chunks
-
-//         // Handle file serving
-//         if (_header_falg == false) {
-//             // std::ifstream file;
-
-// 			file.open(fullPath, std::ios::binary);
-// 			_isopen = true;
-
-//             file.seekg(0, std::ios::end);
-//             size_t file_size = file.tellg();
-
-            
-//             // Generate headers
-//             std::ostringstream headers;
-//             headers << "HTTP/1.1 200 OK\r\n";
-//             headers << "Content-Type: " << content_type << "\r\n";
-//             headers << "Content-Length: " << file_size << "\r\n";
-//             headers << "Accept-Ranges: bytes\r\n";
-//             if (_keepAlive)
-//                 headers << "Connection: keep-alive\r\n";
-//             else
-//                 headers << "Connection: close\r\n";
-//             headers << "\r\n";
-            
-//             _header_falg = true;
-//             _responseBuffer = headers.str();
-// 			std::cout << "headers: " << _responseBuffer << std::endl;
-//             send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
-//             _responseBuffer.clear();
-//         }
-//         if (this->_isopen) {
-//             // Seek to current offset
-//             file.seekg(_fileOffset);
-            
-//             // Read chunk
-//             char buffer[CHUNK_SIZE];
-//             file.read(buffer, CHUNK_SIZE);
-//             int bytes_to_read = file.gcount();
-            
-//             if (bytes_to_read > 0) {
-//                 _responseBuffer.assign(buffer, bytes_to_read);
-// 				std::cout << "body: " << _responseBuffer << std::endl;
-//                 send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
-//                 _responseBuffer.clear();
-//                 _fileOffset += bytes_to_read;
-//             } else {
-//                 _responseSent = true;
-//                 _header_falg = false;
-//                 _fileOffset = 0;
-//                 file.close();
-//             }
-//         }
-        
-//         if (_responseSent)
-//             return 1;
-//     }
-// 	else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
-//         // Directory listing (optional, could redirect to index or show listing)
-//         std::cout << "Directory listing not implemented" << std::endl;
-//         _request.set_status_code(403);
-//         return 1;
-//     } else {
-//         // File not found
-//         _request.set_status_code(404);
-//         return 1;
-//     }
-    
-//     return 0;
-// }
-
-// ========================
-
-
-
-// ************************
 int Client::handleGetRequest() {
     std::string path = _request.getpath();
     if (path == "/") {
@@ -270,7 +175,7 @@ int Client::handleGetRequest() {
     
     // Prepend document root from config
     std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
-    std::cout << "fullPath: " << fullPath << std::endl;
+    // std::cout << "fullPath: " << fullPath << std::endl;
 
     // Check if file exists
     struct stat fileStat;
@@ -283,13 +188,9 @@ int Client::handleGetRequest() {
         // If this is the first call for this file or a new file request
         if (_header_falg == false) {
             // Close any previously opened file
-            if (_isopen) {
-                file.close();
-                _isopen = false;
-            }
-            
             // Open new file
             file.open(fullPath, std::ios::binary);
+            
             if (!file) {
                 std::cerr << "Failed to open file: " << fullPath << std::endl;
                 _request.set_status_code(500);
@@ -299,10 +200,12 @@ int Client::handleGetRequest() {
             _fileOffset = 0;  // Reset offset for new file
             
             // Get file size
-            file.seekg(0, std::ios::end);
+            file.seekg(_fileOffset, std::ios::end);
             size_t file_size = file.tellg();
-            file.seekg(0, std::ios::beg);  // Reset to beginning for reading
-            
+            file.seekg(_fileOffset, std::ios::beg);  // Reset to beginning for reading
+
+			if (file_size > CHUNK_SIZE)
+				_keepAlive = true;            
             // Generate headers
             std::ostringstream headers;
             headers << "HTTP/1.1 200 OK\r\n";
@@ -320,29 +223,27 @@ int Client::handleGetRequest() {
             std::cout << "Headers sent, file size: " << file_size << " bytes" << std::endl;
 			std::cout << "getClientFd: " << getClientFd() << std::endl;
             send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
-			std::cout << "headers: " << _responseBuffer << std::endl;
+			// std::cout << "headers: " << _responseBuffer << std::endl;
+			// filetest << _responseBuffer << std::endl;
             _responseBuffer.clear();
         }
-        
         // Continue reading the file in chunks
         if (_isopen) {
             // Make sure we're at the correct position
-            file.seekg(_fileOffset);
-            
+            file.seekg(_fileOffset, std::ios::beg);
             // Read chunk
             char buffer[CHUNK_SIZE];
             file.read(buffer, CHUNK_SIZE);
             int bytes_read = file.gcount();
-            
             if (bytes_read > 0) {
-                std::cout << "Sending chunk of " << bytes_read << " bytes, offset: " << _fileOffset << std::endl;
-				std::cout << "buffer: " << buffer << std::endl;
+				// std::istringstream iss(buffer);
+
                 ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
-				std::cout << "sent: " << sent << std::endl;
+				// filetest << buffer << std::endl;
+				write(fd, buffer, bytes_read);
                 if (sent > 0) {
                     _fileOffset += sent;
-                    std::cout << "New offset: " << _fileOffset << std::endl;
-                    
+                    // std::cout << "New offset: " << _fileOffset << std::endl;
                     // Check if we've reached the end of the file
                     if (file.eof()) {
                         std::cout << "File transfer complete" << std::endl;
@@ -419,6 +320,35 @@ std::string Client::get_MimeType (const std::string& path) {
 		else if (ext == ".pdf") contentType = "application/pdf";
 		else if (ext == ".txt") contentType = "text/plain";
 		else if (ext == ".xml") contentType = "application/xml";
+		else if (ext == ".mp4") contentType = "video/mp4";
+		else if (ext == ".webm") contentType = "video/webm";
+		else if (ext == ".ogg") contentType = "video/ogg";
+		else if (ext == ".mp3") contentType = "audio/mpeg";
+		else if (ext == ".wav") contentType = "audio/wav";
+		else if (ext == ".flac") contentType = "audio/flac";
+		else if (ext == ".zip") contentType = "application/zip";
+		else if (ext == ".tar") contentType = "application/x-tar";
+		else if (ext == ".gz") contentType = "application/gzip";
+		else if (ext == ".bz2") contentType = "application/x-bzip2";
+		else if (ext == ".7z") contentType = "application/x-7z-compressed";
+		else if (ext == ".rar") contentType = "application/x-rar-compressed";
+		else if (ext == ".exe") contentType = "application/x-msdownload";
+		else if (ext == ".doc") contentType = "application/msword";
+		else if (ext == ".docx") contentType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+		else if (ext == ".xls") contentType = "application/vnd.ms-excel";
+		else if (ext == ".xlsx") contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+		else if (ext == ".ppt") contentType = "application/vnd.ms-powerpoint";
+		else if (ext == ".pptx") contentType = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
+		else if (ext == ".csv") contentType = "text/csv";
+		else if (ext == ".rtf") contentType = "application/rtf";
+		else if (ext == ".wav") contentType = "audio/wav";
+		else if (ext == ".avi") contentType = "video/x-msvideo";
+		else if (ext == ".mov") contentType = "video/quicktime";
+		else if (ext == ".wmv") contentType = "video/x-ms-wmv";
+		else if (ext == ".mpg") contentType = "video/mpeg";
+		else if (ext == ".mpeg") contentType = "video/mpeg";
+		else if (ext == ".webp") contentType = "image/webp";
+	
 	}
 	return contentType;
 }

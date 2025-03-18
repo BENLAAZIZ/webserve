@@ -1,4 +1,4 @@
-
+ 
 #include "../include/web.h"
 
 Server::Server(int port) : port(port) {
@@ -53,22 +53,7 @@ int Server::acceptNewConnection() {
 }
 
 int Server::handleClientData(int client_fd, Client &client) {
-	char buffer[BUFFER_SIZE];
-	client.setClientFd(client_fd);
-	std::cout << "Reading data from client on port " << port << ": FD " << client.getClientFd() << std::endl;
-	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
-	if (bytes_read <= 0) {
-		if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))
-			return -1; // No data available yet
-		std::cout << "Client disconnected from server on port " << port << ": FD " << client_fd << std::endl;
-		return -1;
-	}
-	std::string data(buffer, bytes_read);
-	client._requestBuffer += data; // Append new data to client's buffer
-	if (client._requestBuffer.size() > MAX_REQUEST_SIZE)
-		return (client._request.set_status_code(413), -1);
-	if (!client.is_Header_Complete())
-		client.parse_Header_Request(client._requestBuffer);
+
 	if (client.is_Header_Complete())
 	{
 		std::cout << "Request header complete" << std::endl;
@@ -81,6 +66,23 @@ int Server::handleClientData(int client_fd, Client &client) {
 			client.genetate_error_response(client._request.getStatusCode(), client_fd);
 		std::cout << "Response generated" << std::endl;
 		return 1;
+	}
+	else
+	{
+			char buffer[BUFFER_SIZE];
+			client.setClientFd(client_fd);
+			ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
+			if (bytes_read <= 0) {
+				if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))
+					return -1; // No data available yet
+				return -1;
+			}
+			std::string data(buffer, bytes_read);
+			client._requestBuffer += data; // Append new data to client's buffer
+			if (client._requestBuffer.size() > MAX_REQUEST_SIZE)
+				return (client._request.set_status_code(413), -1);
+			if (!client.is_Header_Complete())
+				client.parse_Header_Request(client._requestBuffer);
 	}
 	return 0;
 }

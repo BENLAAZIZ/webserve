@@ -13,7 +13,7 @@ int main() {
 		std::vector<int> ports;
 		ports.push_back(8080);
 		ports.push_back(5050);
-		ports.push_back(8082);
+		// ports.push_back(8082);
 
 		ConfigFile configFile;
 
@@ -27,3 +27,6 @@ int main() {
 	}
 	return 0;
 }
+
+// -rw-r--r--  1 hben-laz  candidate  7836024 Mar 17 23:08 vid.mp4
+//-rw-r--r--  1 hben-laz  candidate   1740492 Mar 18 00:51 filetest.txt
