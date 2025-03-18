@@ -5,32 +5,34 @@
 ConfigFile::ConfigFile() {
 }
 
-ConfigFile::~ConfigFile() {
+ConfigFile::~ConfigFile() 
+{
 	// Clean up all servers
 	for (size_t i = 0; i < servers.size(); ++i) {
 		delete servers[i];
 	}
-	
 	// Close any remaining client connections
 	for (std::map<int, int>::iterator it = client_server_map.begin(); it != client_server_map.end(); ++it) {
 		close(it->first);
 	}
 }
 
-void ConfigFile::addServer(int port) {
+void ConfigFile::addServer(int port) 
+{
 	Server* server = new Server(port);
 	// ========================
 	server->setConfig(this);
 	// ========================
 	servers.push_back(server);
-	
+
 	struct pollfd pfd;
 	pfd.fd = server->getServerFd();
 	pfd.events = POLLIN;
 	poll_fds.push_back(pfd);
 }
 
-void ConfigFile::cleanupDisconnectedClient(int client_fd) {
+void ConfigFile::cleanupDisconnectedClient(int client_fd) 
+{
 	close(client_fd);
 	client_server_map.erase(client_fd);
 	
@@ -70,7 +72,8 @@ void ConfigFile::handleEvents() {
 			}
 		}
 
-		if (is_server) { // Handle new connection on this server
+		if (is_server) 
+		{ // Handle new connection on this server
 			int client_fd = servers[server_index]->acceptNewConnection();
 			if (client_fd >= 0) {
 				struct pollfd pfd;
@@ -82,7 +85,9 @@ void ConfigFile::handleEvents() {
 				client.setClientFd(client_fd);
 				set_client_map(client_fd, client);
 			}
-		} else { // This is a client, handle the data
+		} 
+		else 
+		{ // This is a client, handle the data
 			if (client_server_map.find(current_fd) != client_server_map.end()) {
 				int res = 0;
 				int owner_server = client_server_map[current_fd];

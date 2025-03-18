@@ -56,7 +56,7 @@ int Server::handleClientData(int client_fd, Client &client) {
 
 	if (client.is_Header_Complete())
 	{
-		std::cout << "Request header complete" << std::endl;
+		// std::cout << "Request header complete" << std::endl;
 		if (client._request.getMethod() == "POST")
 			std::cout << "POST request received" << std::endl;
 		else if (client._request.getMethod() == "GET" || client._request.getMethod() == "DELETE")

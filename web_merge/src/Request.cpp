@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   Request.cpp                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/03/04 18:00:58 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/03/16 23:37:42 by hben-laz         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 
 #include "../include/web.h"
 
@@ -18,7 +6,7 @@ Request::Request()
 	code = 200; // default status code
 	content_length = 0;
 	flag_end_of_headers = false;
-	headersParsed = false;
+	// headersParsed = false;
 	bodyFlag = false;
 	transferEncodingExist = false;
 }
@@ -27,13 +15,11 @@ Request::~Request()
 {
 }
 
-Request::Request(const Request& other)
-{
+Request::Request(const Request& other) {
 	*this = other;
 }
 
-Request& Request::operator=(const Request& other)
-{
+Request& Request::operator=(const Request& other) {
 	if (this != &other)
 	{
 		method = other.method;
@@ -46,7 +32,8 @@ Request& Request::operator=(const Request& other)
 	return *this;
 }
 
-// Getters
+/*=========== Getters =============*/
+
 std::string Request::getMethod() const 
 { return method; }
 
@@ -170,8 +157,6 @@ void Request::set_status_code(int code)
 	this->code = code;
 }
 
-/*=========== parseFirstLine =============*/
-
 bool Request::parseFirstLine(const std::string& line)
 {
 	std::istringstream iss(line);
@@ -200,10 +185,9 @@ void	Request::reset()
 	version.clear();
 	extension.clear();
 	headers.clear();
-	// body.clear();
 	content_length = 0;
 	flag_end_of_headers = false;
-	headersParsed = false;
+	// headersParsed = false;
 	bodyFlag = false;
 	transferEncodingExist = false;
 }
@@ -224,9 +208,15 @@ bool Request::checkPath(std::string& path){
 			return (set_status_code(400), false);
 	}
 	path = urlDecode(path);
+	std::string pathCopy = path;
 	size_t queryPos = path.find('?');
 	if (queryPos != std::string::npos)
+	{
+		pathCopy = path.substr(queryPos, path.size());
+		// std::cout << "pathCopy: " << pathCopy << std::endl;
 		path = path.substr(0, queryPos);
+		// std::cout << "path: " << path << std::endl;
+	}
 	return true;
 }
 

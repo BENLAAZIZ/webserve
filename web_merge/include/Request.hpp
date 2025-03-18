@@ -3,28 +3,6 @@
 
 #include "web.h"
 
-// enum RequestParseState {
-//     PARSE_START_LINE,
-//     PARSE_HEADERS,
-//     PARSE_BODY,
-//     PARSE_CHUNKED_BODY,
-//     PARSE_COMPLETE,
-//     PARSE_ERROR
-// };
-
-// enum RequestMethod {
-//     GET,
-//     POST,
-//     DELETE,
-//     UNKNOWN
-// };
-
-
-// typedef struct StatusCode 
-// {
-// 	std::size_t	code;
-// 	std::string	message;
-// } StatusCode;
 
 class Request 
 {
@@ -35,19 +13,16 @@ class Request
 		std::string	extension;
 		std::map<std::string, std::string> headers;
 		
-		bool bodyFlag;
-		bool flag_end_of_headers;
+		bool		bodyFlag;
+		bool		flag_end_of_headers;
 		std::size_t	code;
-		// int statusCode;
-		bool headersParsed;
+		// bool headersParsed;
 	public:
-		std::map<std::string, std::string> encode;
-		// StatusCode statusCode;
 		std::string	body; 
 		std::string content_type;
 		std::string boundary;
-		size_t content_length;
-		bool transferEncodingExist;
+		size_t 		content_length;
+		bool 		transferEncodingExist;
 		Request();
 		~Request();
 		Request(const Request& other);
@@ -81,13 +56,8 @@ class Request
 		void 		setTransferEncodingExist(bool flag);
 		void		setContent_type(const std::string& content_type);
 		void		setBoundary(const std::string& boundary);
-
 		void 		set_status_code(int code);
-
-		// Methods
-		std::string		genetate_error_missage(int errorCode);
 		bool		parseFirstLine(const std::string& line);
-		// bool		parseHeader(std::string& line);
 		void 		reset();
 		bool		checkPath(std::string& path);
 		// void		initializeEncode();
