@@ -37,7 +37,7 @@ class Client {
 		// Check if the request is complete
 		bool is_Header_Complete();
 		// Parse HTTP request
-		bool parse_Header_Request(std::string& line_buf);
+		bool parse_Header_Request();
 		// Generate HTTP response
 		int generateResponse_GET_DELETE();
 		// Send HTTP response
@@ -52,5 +52,6 @@ class Client {
 		void end_of_headers(std::string& line, int *flag);
 		bool generate_header_map(std::string& line);
 		std::string	get_code_error_path(int errorCode) const;
+		int read_data(int client_fd);
 };
 #endif

@@ -19,10 +19,13 @@ class Request
 		// bool headersParsed;
 	public:
 		std::string	body; 
+		std::string	buffer; 
 		std::string content_type;
 		std::string boundary;
 		size_t 		content_length;
 		bool 		transferEncodingExist;
+		std::string _requestBuffer;
+
 		Request();
 		~Request();
 		Request(const Request& other);
@@ -53,7 +56,7 @@ class Request
 		void		setContentLength(int contentLength);
 		void		setFlagEndOfHeaders(bool flag);
 		void		setBodyFlag(bool flag);
-		void 		setTransferEncodingExist(bool flag);
+		// void 		setTransferEncodingExist(bool flag);
 		void		setContent_type(const std::string& content_type);
 		void		setBoundary(const std::string& boundary);
 		void 		set_status_code(int code);
@@ -63,6 +66,8 @@ class Request
 		// void		initializeEncode();
 
 		std::string urlDecode(const std::string& str);
+
+
 };
 
 #endif // REQUEST_HPP

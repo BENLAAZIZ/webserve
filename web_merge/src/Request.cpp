@@ -8,7 +8,7 @@ Request::Request()
 	flag_end_of_headers = false;
 	// headersParsed = false;
 	bodyFlag = false;
-	transferEncodingExist = false;
+	// transferEncodingExist = false;
 }
 
 Request::~Request()
@@ -75,10 +75,10 @@ bool Request::getBodyFlag() const
 int Request::getStatusCode() const 
 { return code; }
 
-bool Request::getTransferEncodingExist() const
-{
-	return transferEncodingExist;
-}
+// bool Request::getTransferEncodingExist() const
+// {
+// 	return transferEncodingExist;
+// }
 
 const std::map<std::string, std::string>& Request::getHeaders() const { 
 	return headers; 
@@ -137,10 +137,10 @@ void Request::setBodyFlag(bool flag)
 	bodyFlag = flag;
 }
 
-void Request::setTransferEncodingExist(bool flag)
-{
-	transferEncodingExist = flag;
-}
+// void Request::setTransferEncodingExist(bool flag)
+// {
+// 	transferEncodingExist = flag;
+// }
 
 void Request::setContent_type(const std::string& content_type)
 {
@@ -189,7 +189,7 @@ void	Request::reset()
 	flag_end_of_headers = false;
 	// headersParsed = false;
 	bodyFlag = false;
-	transferEncodingExist = false;
+	// transferEncodingExist = false;
 }
 
 

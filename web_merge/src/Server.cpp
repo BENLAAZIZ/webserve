@@ -54,35 +54,44 @@ int Server::acceptNewConnection() {
 
 int Server::handleClientData(int client_fd, Client &client) {
 
+	if (!client.is_Header_Complete())
+	{
+		client.setClientFd(client_fd);
+		if (client.read_data(client.getClientFd()))
+			return -1;
+		// if (client._requestBuffer.size() > MAX_REQUEST_SIZE)
+		// 	return (client._request.set_status_code(413), -1);
+		// std::cout << " -- Request buffer: " << client._request._requestBuffer << std::endl;
+		if (!client.is_Header_Complete())
+			client.parse_Header_Request();
+		else
+		{
+			// set pollfd events to POLLout
+			// this.
+		}
+
+	}
 	if (client.is_Header_Complete())
 	{
-		// std::cout << "Request header complete" << std::endl;
+		std::cout << "Request header complete" << std::endl;
+		std::cout << "method : " << client._request.getMethod() << std::endl;
 		if (client._request.getMethod() == "POST")
-			std::cout << "POST request received" << std::endl;
+		{
+			if (client.read_data(client.getClientFd()))
+				return -1;
+			std::cout << "Request post buffer: " << client._request._requestBuffer << std::endl;
+			return 0;
+		}
 		else if (client._request.getMethod() == "GET" || client._request.getMethod() == "DELETE")
+		{
+			std::cout << "method : " << client._request.getMethod() << std::endl;
 			if (client.generateResponse_GET_DELETE() == 0)
 				return 0;
+		}
 		if (client._request.getStatusCode() >= 400)
 			client.genetate_error_response(client._request.getStatusCode(), client_fd);
 		std::cout << "Response generated" << std::endl;
 		return 1;
-	}
-	else
-	{
-			char buffer[BUFFER_SIZE];
-			client.setClientFd(client_fd);
-			ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
-			if (bytes_read <= 0) {
-				if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))
-					return -1; // No data available yet
-				return -1;
-			}
-			std::string data(buffer, bytes_read);
-			client._requestBuffer += data; // Append new data to client's buffer
-			if (client._requestBuffer.size() > MAX_REQUEST_SIZE)
-				return (client._request.set_status_code(413), -1);
-			if (!client.is_Header_Complete())
-				client.parse_Header_Request(client._requestBuffer);
 	}
 	return 0;
 }
@@ -91,3 +100,22 @@ void Server::setConfig(ConfigFile *config)
 {
 	_config = config;
 }
+
+
+	// else
+	// {
+	// 		char buffer[BUFFER_SIZE];
+	// 		client.setClientFd(client_fd);
+	// 		ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
+	// 		if (bytes_read <= 0) {
+	// 			if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))
+	// 				return -1; // No data available yet
+	// 			return -1;
+	// 		}
+	// 		std::string data(buffer, bytes_read);
+	// 		client._requestBuffer += data; // Append new data to client's buffer
+	// 		if (client._requestBuffer.size() > MAX_REQUEST_SIZE)
+	// 			return (client._request.set_status_code(413), -1);
+	// 		if (!client.is_Header_Complete())
+	// 			client.parse_Header_Request(client._requestBuffer);
+	// }

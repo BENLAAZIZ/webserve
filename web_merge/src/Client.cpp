@@ -23,7 +23,7 @@ Client& Client::operator=(const Client& other)
 	if (this != &other)
 	{
 		_request = other._request;
-		_requestBuffer = other._requestBuffer;
+		_request._requestBuffer = other._request._requestBuffer;
 		_responseBuffer = other._responseBuffer;
 		request_Header_Complete = other.request_Header_Complete;
 		_responseSent = other._responseSent;
@@ -36,18 +36,18 @@ bool Client::is_Header_Complete() {
 	return request_Header_Complete;
 }
 
-bool Client::parse_Header_Request(std::string& line_buf) 
+bool Client::parse_Header_Request() 
 {
-	size_t headerEndPos = line_buf.find("\r\n\r\n");
+	size_t headerEndPos = _request._requestBuffer.find("\r\n\r\n");
 	if (headerEndPos != std::string::npos) {
 		this->request_Header_Complete = true;
 	}
 	while (1) {
-		size_t lineEnd = line_buf.find("\r\n");
+		size_t lineEnd = _request._requestBuffer.find("\r\n");
 		if (lineEnd == std::string::npos)
 			break;
-		std::string line = line_buf.substr(0, lineEnd);
-		line_buf.erase(0, lineEnd + 2); // Remove processed line
+		std::string line = _request._requestBuffer.substr(0, lineEnd);
+		_request._requestBuffer.erase(0, lineEnd + 2); // Remove processed line
 		if (_request.getMethod().empty() || _request.getpath().empty() || _request.getVersion().empty()) {
 			if (!_request.parseFirstLine(line)) {
 				this->request_Header_Complete = true;
@@ -94,7 +94,7 @@ bool Client::generate_header_map(std::string& line)
 	std::string value = line.substr(colonPos + 1);
 	value.erase(0, value.find_first_not_of(" "));
 	_request.setHeader(key, value);
-	// std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+	std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
 	return true;
 }
 
@@ -114,8 +114,6 @@ void Client::end_of_headers(std::string& line, int *flag)
 			}
 			else
 				_request.setContentLength(atoi(_request.getHeader("Content-Length").c_str()));
-			if (_request.getHeaders().find("Transfer-Encoding") != _request.getHeaders().end())
-				_request.setTransferEncodingExist(true);
 			if (_request.getHeaders().find("Content-Type") != _request.getHeaders().end())
 			{
 				if (_request.getHeader("Content-Type").find("boundary=") != std::string::npos)
@@ -131,6 +129,11 @@ void Client::end_of_headers(std::string& line, int *flag)
 				}
 			}
 		}
+		// if (_request.getHeaders().find("Connection") != _request.getHeaders().end())
+		// {
+		// 	if (_request.getHeader("Connection") == "keep-alive")
+		// 		_keepAlive = false;
+		// }
 		*flag = 1;
 		return ;
 	}
@@ -417,4 +420,19 @@ std::string	Client::get_code_error_path(int errorCode) const {
 		default: code_path = "/500.html"; break;
 	}
 	return code_path;
+}
+
+
+int Client::read_data(int client_fd)
+{
+	char buffer[BUFFER_SIZE];
+	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
+	if (bytes_read <= 0) {
+		if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))
+			return -1; // No data available yet
+		return -1;
+	}
+	std::string data(buffer, bytes_read);
+	_request._requestBuffer += data; // Append new data to client's buffer
+	return 0;
 }
