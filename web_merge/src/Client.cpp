@@ -7,7 +7,8 @@ Client::Client() : request_Header_Complete(false),
 								_keepAlive(false),
 								_header_falg(false),
 								  _isopen(false),
-								  _fileOffset(0) {
+								  _fileOffset(0),
+								  endOfRequest(false) {
 }
 
 Client::~Client() {
@@ -41,6 +42,8 @@ bool Client::parse_Header_Request()
 	size_t headerEndPos = _request._requestBuffer.find("\r\n\r\n");
 	if (headerEndPos != std::string::npos) {
 		this->request_Header_Complete = true;
+		this->endOfRequest = true;
+
 	}
 	while (1) {
 		size_t lineEnd = _request._requestBuffer.find("\r\n");
@@ -51,6 +54,7 @@ bool Client::parse_Header_Request()
 		if (_request.getMethod().empty() || _request.getpath().empty() || _request.getVersion().empty()) {
 			if (!_request.parseFirstLine(line)) {
 				this->request_Header_Complete = true;
+				this->endOfRequest = true;
 				return false;
 			}
 		}
@@ -61,6 +65,7 @@ bool Client::parse_Header_Request()
 			if (flag == 0)
 			{
 				this->request_Header_Complete = true;
+				this->endOfRequest = true;
 				return false;
 			}
 			else if (flag == 1)
@@ -68,6 +73,7 @@ bool Client::parse_Header_Request()
 			if (generate_header_map(line) == false)
 			{
 				this->request_Header_Complete = true;
+				this->endOfRequest = true;
 				return false;
 			}
 		}	
@@ -202,14 +208,16 @@ int Client::handleGetRequest() {
             std::cout << "Headers sent, file size: " << file_size << " bytes" << std::endl;
 			std::cout << "getClientFd: " << getClientFd() << std::endl;
             send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
-			// std::cout << "headers: " << _responseBuffer << std::endl;
+			std::cout << "headers: " << _responseBuffer << std::endl;
             _responseBuffer.clear();
         }
         if (_isopen) {
+			std::cout << "Sending file data..." << std::endl;
             file.seekg(_fileOffset, std::ios::beg);
             char buffer[CHUNK_SIZE];
             file.read(buffer, CHUNK_SIZE);
             int bytes_read = file.gcount();
+			write(1, buffer, bytes_read);
             if (bytes_read > 0) {
                 ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
                 if (sent > 0) {
@@ -229,6 +237,7 @@ int Client::handleGetRequest() {
 				else 
 				{
                     std::cerr << "Error sending file data: " << strerror(errno) << std::endl;
+					_responseBuffer.clear();
                     _responseSent = true;
                     _header_falg = false;
                     _fileOffset = 0;
@@ -240,6 +249,7 @@ int Client::handleGetRequest() {
 			else 
 			{
                 // File is complete
+				_responseBuffer.clear();
                 std::cout << "File transfer complete" << std::endl;
                 _responseSent = true;
                 _header_falg = false;

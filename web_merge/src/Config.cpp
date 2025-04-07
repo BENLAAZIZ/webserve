@@ -91,21 +91,21 @@ void ConfigFile::handleEvents() {
 			if (client_server_map.find(current_fd) != client_server_map.end()) {
 				int res = 0;
 				int owner_server = client_server_map[current_fd];
-					res = servers[owner_server]->handleClientData(current_fd, _clients[current_fd]);
-					
-					bool client_disconnected = false;
-					
-					if (res < 0)
-						client_disconnected = true;
-					else if (res == 1) {
-						client_disconnected = true;
-					}
-					
-					if (client_disconnected)
-					{
-						std::cerr << "Client disconnected" << std::endl;
-						cleanupDisconnectedClient(current_fd);
-					}
+				res = servers[owner_server]->handleClientData(current_fd, _clients[current_fd]);
+				poll_fds[i].events = POLLOUT; // Set to POLLOUT for sending response
+				bool client_disconnected = false;
+				
+				if (res < 0)
+					client_disconnected = true;
+				else if (res == 1) {
+					client_disconnected = true;
+				}
+				
+				if (client_disconnected)
+				{
+					std::cerr << "Client disconnected" << std::endl;
+					cleanupDisconnectedClient(current_fd);
+				}
 			} 
 			else {
 				std::cerr << "Error: Client FD " << current_fd << " not associated with any server" << std::endl;

@@ -30,6 +30,7 @@ class Client {
 		// get client_fd
 		int getClientFd() const;
 	public:
+		bool 			endOfRequest;
 		Client();
 		~Client();
 		Client(const Client& other);

@@ -64,37 +64,91 @@ int Server::handleClientData(int client_fd, Client &client) {
 		// std::cout << " -- Request buffer: " << client._request._requestBuffer << std::endl;
 		if (!client.is_Header_Complete())
 			client.parse_Header_Request();
-		else
-		{
-			// set pollfd events to POLLout
-			// this.
-		}
-
 	}
 	if (client.is_Header_Complete())
 	{
 		std::cout << "Request header complete" << std::endl;
 		std::cout << "method : " << client._request.getMethod() << std::endl;
-		if (client._request.getMethod() == "POST")
+		if (client._request.getMethod() == "POST" && !client.endOfRequest)
 		{
 			if (client.read_data(client.getClientFd()))
 				return -1;
-			std::cout << "Request post buffer: " << client._request._requestBuffer << std::endl;
+			// std::cout << "Request post buffer: " << client._request._requestBuffer << std::endl;
+			// client._request.handlePostRequest(client);
 			return 0;
+		} else {
+			client.endOfRequest = true;
+		
 		}
-		else if (client._request.getMethod() == "GET" || client._request.getMethod() == "DELETE")
-		{
-			std::cout << "method : " << client._request.getMethod() << std::endl;
-			if (client.generateResponse_GET_DELETE() == 0)
-				return 0;
-		}
-		if (client._request.getStatusCode() >= 400)
-			client.genetate_error_response(client._request.getStatusCode(), client_fd);
-		std::cout << "Response generated" << std::endl;
-		return 1;
 	}
+	if (client.endOfRequest) {
+		if (client._request.getMethod() == "POST" && !client.endOfRequest) {
+			// handlePostResponse(client);
+		}
+		else if (client._request.getMethod() == "GET")
+			client.handleGetRequest();
+		else
+			client.handleDeleteRequest();
 	return 0;
+	}
 }
+
+
+// int Server::handleClientData(int client_fd, Client &client) {
+
+// 	if (!client.is_Header_Complete() && !client.endOfRequest)
+// 	{
+// 		client.setClientFd(client_fd);
+// 		char buffer[BUFFER_SIZE];
+// 		ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
+// 		if (bytes_read <= 0) {
+// 			if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN))
+// 				return -1; // No data available yet
+// 		return -1;
+// 		}
+// 		std::string data(buffer, bytes_read);
+// 		client._request._requestBuffer += data; 
+
+// 		// if (client._requestBuffer.size() > MAX_REQUEST_SIZE)
+// 		// 	return (client._request.set_status_code(413), -1);
+// 		// std::cout << " -- Request buffer: " << client._request._requestBuffer << std::endl;
+// 		if (!client.is_Header_Complete())
+// 			client.parse_Header_Request();	
+// 	}
+// 	// if (client.is_Header_Complete())
+// 	// {
+// 	// 	std::cout << "Request header complete" << std::endl;
+// 	// 	std::cout << "method : " << client._request.getMethod() << std::endl;
+// 	// 	if (client._request.getMethod() == "POST")
+// 	// 	{
+// 	// 		if (client.read_data(client.getClientFd()))
+// 	// 			return -1;
+// 	// 		std::cout << "Request post buffer: " << client._request._requestBuffer << std::endl;
+// 	// 		return 0;
+// 	// 	}
+// 	// 	else if (client._request.getMethod() == "GET" || client._request.getMethod() == "DELETE")
+// 	// 	{
+// 	// 		std::cout << "method : " << client._request.getMethod() << std::endl;
+// 	// 		if (client.generateResponse_GET_DELETE() == 0)
+// 	// 			return 0;
+// 	// 	}
+// 	// 	if (client._request.getStatusCode() >= 400)
+// 	// 		client.genetate_error_response(client._request.getStatusCode(), client_fd);
+// 	// 	std::cout << "Response generated" << std::endl;
+// 	// 	return 1;
+// 	// }
+// 	if (client.is_Header_Complete()) { // GET DELETE
+// 		if (client._request.getMethod() == "POST" && !client.endOfRequest) {
+// 			// std::cout << "POST" << std::endl;
+
+// 		} else if (client._request.getMethod() == "GET" || client._request.getMethod() == "DELETE") {
+// 			std::cout << "method : " << client._request.getMethod() << std::endl;
+// 			if (client.generateResponse_GET_DELETE() == 0)
+// 				return 0;
+// 		}
+// 	}
+// 	return 0;
+// }
 
 void Server::setConfig(ConfigFile *config)
 {
