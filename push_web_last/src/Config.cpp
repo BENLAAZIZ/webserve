@@ -192,6 +192,7 @@ void ConfigFile::handleEvents() {
                 std::cout << "response: " << std::endl;
                 // sendSuccessResponse(current_fd);
                 int res = servers[owner_server]->sendResponse(current_fd, _clients[current_fd]);
+                std::cout << "status: " << _clients[current_fd]._request.getStatusCode() << std::endl;
                 if (res < 0) {
                     // Error sending response
                     std::cerr << "Error sending response to client" << std::endl;

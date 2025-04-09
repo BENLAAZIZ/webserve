@@ -33,28 +33,20 @@ class Response {
         Response(const Response& other);
 		Response& operator=(const Response& other);
 
-        // Setters
 
         // Getters
         int getStatus() const;
-        // const std::string& getHttpVersion() const;
-        // const std::map<std::string, std::string>& getHeaders() const;
-        // const std::string& getBody() const;
 
         // Methods
-        void reset();
-        // bool sendResponse(int client_fd);
-        // int handleGetRequest();
-        void handleGetRequest(int *flag);
-
-        // void genetate_error_response(int statusCode,  int client_fd);
-        // std::string	get_error_missage(int errorCode) const;
-
-        // std::string	get_code_error_path(int errorCode) const;
-
-        bool keepAlive() const;
-
+        bool        sendResponse(int client_fd);
+        bool        keepAlive() const;
+        void        handleGetResponse(int *flag);
+        void        reset();
+        void        generate_error_response(int statusCode,  int client_fd);
+        std::string	get_error_missage(int errorCode) const;
+        std::string	get_code_error_path(int errorCode) const;
         std::string get_MimeType (const std::string& path);
+
 
 };
 

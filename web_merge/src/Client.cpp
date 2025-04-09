@@ -42,7 +42,7 @@ bool Client::parse_Header_Request()
 	size_t headerEndPos = _request._requestBuffer.find("\r\n\r\n");
 	if (headerEndPos != std::string::npos) {
 		this->request_Header_Complete = true;
-		this->endOfRequest = true;
+		// this->endOfRequest = true;
 
 	}
 	while (1) {
@@ -54,7 +54,7 @@ bool Client::parse_Header_Request()
 		if (_request.getMethod().empty() || _request.getpath().empty() || _request.getVersion().empty()) {
 			if (!_request.parseFirstLine(line)) {
 				this->request_Header_Complete = true;
-				this->endOfRequest = true;
+				// this->endOfRequest = true;
 				return false;
 			}
 		}
@@ -65,7 +65,7 @@ bool Client::parse_Header_Request()
 			if (flag == 0)
 			{
 				this->request_Header_Complete = true;
-				this->endOfRequest = true;
+				// this->endOfRequest = true;
 				return false;
 			}
 			else if (flag == 1)
@@ -73,7 +73,7 @@ bool Client::parse_Header_Request()
 			if (generate_header_map(line) == false)
 			{
 				this->request_Header_Complete = true;
-				this->endOfRequest = true;
+				// this->endOfRequest = true;
 				return false;
 			}
 		}	

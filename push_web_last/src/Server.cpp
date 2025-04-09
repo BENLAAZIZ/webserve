@@ -52,55 +52,6 @@ int Server::acceptNewConnection() {
 	return client_fd;
 }
 
-// int Server::handleClientData(int client_fd, Client &client) {
-// 	char buffer[BUFFER_SIZE];
-// 	ssize_t bytes_read = recv(client_fd, buffer, BUFFER_SIZE, 0);
-// 	if (bytes_read <= 0) {
-// 		if (bytes_read < 0 && (errno == EWOULDBLOCK || errno == EAGAIN)) {
-// 			return -1; // No data available yet
-// 		}
-// 		std::cout << "Client disconnected from server on port " << port << ": FD " << client_fd << std::endl;
-// 		// Don't close the fd here - we'll do it in the main loop
-// 		client.sendErrorResponse(413, "Request Entity Too Large");
-// 		return -1;
-// 	}
-
-// 	std::string data(buffer, bytes_read);
-
-// 	client._request._requestBuffer += data; // Append new data to client's buffer
-// 	if (client._request._requestBuffer.size() > MAX_REQUEST_SIZE) {
-// 		client.sendErrorResponse(413, "Request Entity Too Large");
-// 		return -1;
-// 	}
-// 	if (!client.is_Header_Complete())
-// 	{
-// 		if (!client.parse_Header_Request(client._request._requestBuffer))
-// 			std::cerr << "Error parsing request =====" << std::endl;
-// 			// client.sendErrorResponse(client.getStatusCode());
-// 	}
-// 	else
-// 	{
-// 		// std::cout << "Request header complete" << std::endl;
-// 		if (client._request.getMethod() == "POST")
-// 		{
-// 			// std::cout << "POST request received" << std::endl;
-// 			client.handlePostRequest();
-// 			// std::cout << client._request._requestBuffer << std::endl;
-// 			return 0;
-// 		}
-// 		// else
-// 		// {
-// 		// 	std::cout << "GET request received" << std::endl;
-// 		// 	client.generateResponse_GET_DELETE();
-// 		// }
-// 		// else
-// 		// 	std::cout << "Response generated" << std::endl;
-// 		// return 1;
-// 	}
-	
-// 	return 0;
-// }
-
 int Server::handleClientData(int client_fd, Client &client) {
 	client.setClientFd(client_fd);
 	if (!client.is_Header_Complete())
@@ -108,7 +59,14 @@ int Server::handleClientData(int client_fd, Client &client) {
 		if (client.read_data())
 			return -1;
 		if (!client.is_Header_Complete())
-			client.parse_Header_Request();
+		{
+			if (client.parse_Header_Request() == false)
+			{
+				std::cerr << "Error parsing request =====" << std::endl;	
+				return 2;
+			}
+
+		}
 		if (client.is_Header_Complete() && client._request.getMethod() != "POST") {
 			client._request.endOfRequest = true;
 			return 2;
@@ -131,7 +89,6 @@ int Server::handleClientData(int client_fd, Client &client) {
 }
 
 int Server::sendResponse(int client_fd, Client &client) {
-	// std::cout << "Sending response to client FD " << client_fd << std::endl;
 	client.setClientFd(client_fd);
 	client._response._clientFd = client_fd;
 	client._response._request = client._request;
@@ -140,10 +97,10 @@ int Server::sendResponse(int client_fd, Client &client) {
 	{
 		std::cout << "POST request received" << std::endl;
 	}
-	else if (client._request.getMethod() == "GET")
+	else if (client._request.getMethod() == "GET" && client._request.getStatusCode() < 400)
 	{
 		std::cout << "GET response received" << std::endl;
-		client._response.handleGetRequest(&flag);
+		client._response.handleGetResponse(&flag);
 		if (flag == 1)
 			return 1;
 		if (flag == 0)
@@ -155,13 +112,20 @@ int Server::sendResponse(int client_fd, Client &client) {
 			client._response._fileOffset = 0;
 			client._response.file.close();
 			client._response._isopen = false;
-			std::cout << "File transfer complete" << std::endl;
+			client._keepAlive = client._response._keepAlive;
+			std::cout << " keepAlive: " << client._keepAlive << std::endl;
 			return 1;
 		}
 	}
-	else if (client._request.getMethod() == "DELETE")
+	else if (client._request.getMethod() == "DELETE" && client._request.getStatusCode() < 400)
 	{
 		// client._request.endOfRequest = false;
+	}
+	else if (client._request.getStatusCode() >= 400)
+	{
+		// client._keepAlive = client._response._keepAlive;
+		client._response.generate_error_response(client._request.getStatusCode(), client_fd);
+		return 1;
 	}
 	return 0;
 }

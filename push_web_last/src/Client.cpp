@@ -25,8 +25,6 @@ Client& Client::operator=(const Client& other)
 	{
 		_request = other._request;
 		_response = other._response;
-		// _requestBuffer = other._requestBuffer;
-		// _responseBuffer = other._responseBuffer;
 		request_Header_Complete = other.request_Header_Complete;
 		_responseSent = other._responseSent;
 		_keepAlive = other._keepAlive;
@@ -97,7 +95,7 @@ bool Client::generate_header_map(std::string& line)
 	std::string value = line.substr(colonPos + 1);
 	value.erase(0, value.find_first_not_of(" "));
 	_request.setHeader(key, value);
-	std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+	// std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
 	return true;
 }
 
@@ -105,7 +103,9 @@ void Client::end_of_headers(std::string& line, int *flag)
 {
 	if (line.empty()) {
 		if (_request.getHeaders().find("host") == _request.getHeaders().end()) {
+			std::cout << "Host header not found" << std::endl;
 			_request.set_status_code(400);
+			*flag = 0;
 			return ;
 		}
 		if (_request.getMethod() == "POST")
@@ -123,18 +123,11 @@ void Client::end_of_headers(std::string& line, int *flag)
 			{
 				if (_request.getHeader("Content-Type").find("boundary=") != std::string::npos)
 				{
-					// size_t boundary_pos = _request.getHeader("Content-Type").find("boundary=");
-					// _request.boundary += "--";
-					// _request.boundary = _request.getHeader("Content-Type").substr(boundary_pos + 9);
-					// _request.setBoundary(_request.boundary);
-					// _request.boundary_end = _request.boundary + "--";
-					// _request.setContent_type("multipart/form-data");
 						size_t boundary_pos = _request.getHeader("Content-Type").find("boundary=");
 						_request.boundary += "--";
 						_request.boundary += _request.getHeader("Content-Type").substr(boundary_pos + 9);
 						_request.setBoundary(_request.boundary);
 						_request.boundary_end = _request.boundary + "--";
-						//std::cout << "boundary:* " << getBoundary() << std::endl;
 						_request.setContent_type("multipart/form-data");
 				}
 				else
@@ -153,56 +146,29 @@ void Client::end_of_headers(std::string& line, int *flag)
 	return ;
 }
 
-
-
-// std::string Client::getExtension(const std::string& path) {
-// 	// Determine content type based on file extension
-// 	std::string contentType = "text/plain";
-// 	size_t dotPos = path.find_last_of('.');
-// 	if (dotPos != std::string::npos) {
-// 		std::string ext = path.substr(dotPos);
-// 		if (ext == ".html" || ext == ".htm") contentType = "text/html";
-// 		else if (ext == ".css") contentType = "text/css";
-// 		else if (ext == ".js") contentType = "application/javascript";
-// 		else if (ext == ".json") contentType = "application/json";
-// 		else if (ext == ".jpg" || ext == ".jpeg") contentType = "image/jpeg";
-// 		else if (ext == ".png") contentType = "image/png";
-// 		else if (ext == ".gif") contentType = "image/gif";
-// 		else if (ext == ".svg") contentType = "image/svg+xml";
-// 		else if (ext == ".pdf") contentType = "application/pdf";
-// 		else if (ext == ".txt") contentType = "text/plain";
-// 		else if (ext == ".xml") contentType = "application/xml";
-// 	}
-// 	return contentType;
-// }
-
-
 bool Client::keepAlive() const {
 	return _keepAlive;
 }
 
 void Client::reset() {
-	// _requestBuffer.clear();
-	// _responseBuffer.clear();
 	request_Header_Complete = false;
 	_responseSent = false;
 	_request.reset();
+	_response.reset();
 	// Keep the socket and address intact
 }
 
+// set client_fd
+void Client::setClientFd(int client_fd)
+{
+	_clientFd = client_fd;
+}
 
-		// set client_fd
-		void Client::setClientFd(int client_fd)
-		{
-			_clientFd = client_fd;
-		}
-
-		// get client_fd
-		int Client::getClientFd() const
-		{
-			return _clientFd;
-		}
-
+// get client_fd
+int Client::getClientFd() const
+{
+	return _clientFd;
+}
 
 void Client::handlePostRequest() {
 
@@ -242,7 +208,6 @@ void Client::handlePostRequest() {
 // int Client::read_data(int client_fd)
 int Client::read_data()
 {
-	// std::cout << "client_fd: " << _clientFd << std::endl;
 	char buffer[BUFFER_SIZE];
 	ssize_t bytes_read = recv(_clientFd, buffer, BUFFER_SIZE, 0);
 	if (bytes_read <= 0) {

@@ -75,22 +75,29 @@ int Server::handleClientData(int client_fd, Client &client) {
 				return -1;
 			// std::cout << "Request post buffer: " << client._request._requestBuffer << std::endl;
 			// client._request.handlePostRequest(client);
-			return 0;
+			// return 0;
 		} else {
 			client.endOfRequest = true;
 		
 		}
 	}
 	if (client.endOfRequest) {
+		std::cout << "method : " << client._request.getMethod() << std::endl;
 		if (client._request.getMethod() == "POST" && !client.endOfRequest) {
 			// handlePostResponse(client);
 		}
 		else if (client._request.getMethod() == "GET")
-			client.handleGetRequest();
+		{
+			if (client.handleGetRequest() == 0)
+				return 0;
+			else
+				client.genetate_error_response(client._request.getStatusCode(), client_fd);
+
+		}
 		else
 			client.handleDeleteRequest();
-	return 0;
 	}
+	return 0;
 }
 
 

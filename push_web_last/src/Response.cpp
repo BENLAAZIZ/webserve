@@ -51,23 +51,11 @@ void Response::reset() {
 }
 
 
-
-
-
-
-
-
-
-
-
 // ======================================================================
 
 
-void Response::handleGetRequest(int *flag) {
+void Response::handleGetResponse(int *flag) {
 
-
-    std::cout << "Handling GET request" << std::endl;
-    // pause();
     *flag = 0;
     std::string path = _request.getpath();
     if (path == "/") {
@@ -95,7 +83,6 @@ void Response::handleGetRequest(int *flag) {
                 _request.set_status_code(500);
                 *flag = 1;
                 return ;
-
             }
             _isopen = true;
             _fileOffset = 0; 
@@ -118,8 +105,8 @@ void Response::handleGetRequest(int *flag) {
             
             _header_falg = true;
             _responseBuffer = headers.str();
-            std::cout << "Headers sent, file size: " << file_size << " bytes" << std::endl;
-			std::cout << "getClientFd: " << this->_clientFd << std::endl;
+            // std::cout << "Headers sent, file size: " << file_size << " bytes" << std::endl;
+			// std::cout << "getClientFd: " << this->_clientFd << std::endl;
             send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
 			// std::cout << "headers: " << _responseBuffer << std::endl;
             _responseBuffer.clear();
@@ -249,68 +236,68 @@ std::string Response::get_MimeType (const std::string& path) {
 	return contentType;
 }
 
-// void Response::genetate_error_response(int statusCode,  int client_fd) {
+void Response::generate_error_response(int statusCode,  int client_fd) {
 
-//     std::string code_path = "";
-// 	code_path = get_code_error_path(statusCode);
-// 	std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/docs/errors" +  code_path;
-// 	std::ostringstream response;
-// 	// Check if file exists
-// 	struct stat fileStat;
-// 	if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
-// 		std::ifstream file(fullPath, std::ios::binary);
-// 		if (file) {
-// 			// Read file content
-// 			std::string responseBody((std::istreambuf_iterator<char>(file)),
-// 									 std::istreambuf_iterator<char>());
-// 			// Generate HTTP response
-// 			std::ostringstream response;
-// 			response << "HTTP/1.1 "  << get_error_missage(statusCode) << "\r\n";
-// 			response << "Content-Type: text/html\r\n";
-// 			response << "Content-Length: " << responseBody.size() << "\r\n";
-// 			if (_keepAlive) {
-// 				response << "Connection: keep-alive\r\n";
-// 			} else {
-// 				response << "Connection: close\r\n";
-// 			}
-// 			response << "\r\n";
-// 			response << responseBody;
+    std::string code_path = "";
+	code_path = get_code_error_path(statusCode);
+	std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/docs/errors" +  code_path;
+	std::ostringstream response;
+	// Check if file exists
+	struct stat fileStat;
+	if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
+		std::ifstream file(fullPath, std::ios::binary);
+		if (file) {
+			// Read file content
+			std::string responseBody((std::istreambuf_iterator<char>(file)),
+									 std::istreambuf_iterator<char>());
+			// Generate HTTP response
+			std::ostringstream response;
+			response << "HTTP/1.1 "  << get_error_missage(statusCode) << "\r\n";
+			response << "Content-Type: text/html\r\n";
+			response << "Content-Length: " << responseBody.size() << "\r\n";
+			if (_keepAlive) {
+				response << "Connection: keep-alive\r\n";
+			} else {
+				response << "Connection: close\r\n";
+			}
+			response << "\r\n";
+			response << responseBody;
 			
-// 			_responseBuffer = response.str();
-// 		}
-// 	}
-// 	_keepAlive = false;  // Don't keep alive on errors
-// 	sendResponse(client_fd);
-// }
+			_responseBuffer = response.str();
+		}
+	}
+	_keepAlive = false;  // Don't keep alive on errors
+	sendResponse(client_fd);
+}
 
-// bool Response::sendResponse(int client_fd) {
-// 	if (_responseBuffer.empty())
-// 	{
-// 		_responseSent = true;
-// 		return false;
-// 	}
-// 	ssize_t bytesSent = send(client_fd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
-// 	if (bytesSent < 0)
-// 	{
-// 		if (errno == EAGAIN || errno == EWOULDBLOCK) {
-// 			// Would block, try again later
-// 			return true;
-// 		}
-// 		std::cerr << "Error sending response: " << strerror(errno) << std::endl;
-// 		return false;
-// 	}
-// 	if (bytesSent > 0) {
-// 		// Remove sent data from buffer
-// 		_responseBuffer.erase(0, bytesSent);
-// 	}
-// 	// Check if we're done sending
-// 	if (_responseBuffer.empty())
-// 	{
-// 		_responseSent = true;
-// 		return false;
-// 	}
-// 	return true;
-// }
+bool Response::sendResponse(int client_fd) {
+	if (_responseBuffer.empty())
+	{
+		_responseSent = true;
+		return false;
+	}
+	ssize_t bytesSent = send(client_fd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+	if (bytesSent < 0)
+	{
+		if (errno == EAGAIN || errno == EWOULDBLOCK) {
+			// Would block, try again later
+			return true;
+		}
+		std::cerr << "Error sending response: " << strerror(errno) << std::endl;
+		return false;
+	}
+	if (bytesSent > 0) {
+		// Remove sent data from buffer
+		_responseBuffer.erase(0, bytesSent);
+	}
+	// Check if we're done sending
+	if (_responseBuffer.empty())
+	{
+		_responseSent = true;
+		return false;
+	}
+	return true;
+}
 
 
 bool Response::keepAlive() const {
@@ -335,37 +322,37 @@ bool Response::keepAlive() const {
 // 	return _clientFd;
 // }
 
-// std::string	Response::get_code_error_path(int errorCode) const {
-// 	std::string code_path = "";
-// 	switch (errorCode) {
-// 		case 400: code_path = "/400.html"; break;
-// 		case 403: code_path = "/403.html"; break;
-// 		case 404: code_path = "/404.html"; break;
-// 		case 405: code_path = "/405.html"; break;
-// 		case 411: code_path = "/411.html"; break;
-// 		case 413: code_path = "/413.html"; break;
-// 		case 414: code_path = "/414.html"; break;
-// 		case 500: code_path = "/500.html"; break;
-// 		case 505: code_path = "/505.html"; break;
-// 		default: code_path = "/500.html"; break;
-// 	}
-// 	return code_path;
-// }
+std::string	Response::get_code_error_path(int errorCode) const {
+	std::string code_path = "";
+	switch (errorCode) {
+		case 400: code_path = "/400.html"; break;
+		case 403: code_path = "/403.html"; break;
+		case 404: code_path = "/404.html"; break;
+		case 405: code_path = "/405.html"; break;
+		case 411: code_path = "/411.html"; break;
+		case 413: code_path = "/413.html"; break;
+		case 414: code_path = "/414.html"; break;
+		case 500: code_path = "/500.html"; break;
+		case 505: code_path = "/505.html"; break;
+		default: code_path = "/500.html"; break;
+	}
+	return code_path;
+}
 
-// std::string	Response::get_error_missage(int errorCode) const
-// {
-// 	std::string errorMessage = "";
-// 	switch (errorCode) {
-// 		case 400: errorMessage = "400 Bad Request"; break;
-// 		case 403: errorMessage = "403 Forbidden"; break;
-// 		case 404: errorMessage = "404 Not Found"; break;
-// 		case 405: errorMessage = "405 Method Not Allowed"; break;
-// 		case 411: errorMessage = "411 Length Required"; break;
-// 		case 413: errorMessage = "413 Payload Too Large"; break;
-// 		case 414: errorMessage = "414 Request-URI Too Long"; break;
-// 		case 500: errorMessage = "500 Internal Server Error"; break;
-// 		case 505: errorMessage = "505  Version Not Supported"; break;
-// 		default: errorMessage = "500 Internal Server Error"; break;
-// 	}
-// 	return errorMessage;
-// }
+std::string	Response::get_error_missage(int errorCode) const
+{
+	std::string errorMessage = "";
+	switch (errorCode) {
+		case 400: errorMessage = "400 Bad Request"; break;
+		case 403: errorMessage = "403 Forbidden"; break;
+		case 404: errorMessage = "404 Not Found"; break;
+		case 405: errorMessage = "405 Method Not Allowed"; break;
+		case 411: errorMessage = "411 Length Required"; break;
+		case 413: errorMessage = "413 Payload Too Large"; break;
+		case 414: errorMessage = "414 Request-URI Too Long"; break;
+		case 500: errorMessage = "500 Internal Server Error"; break;
+		case 505: errorMessage = "505  Version Not Supported"; break;
+		default: errorMessage = "500 Internal Server Error"; break;
+	}
+	return errorMessage;
+}

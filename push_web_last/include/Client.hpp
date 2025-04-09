@@ -21,14 +21,14 @@ class Client {
 		size_t			_fileOffset;
 		
 		// Helper methods for handling different HTTP methods
-		// void handleGetRequest();
+		// void handleGetResponse();
 		// void handlePostRequest();
 		// void handleDeleteRequest();
 
 		void handlePostRequest();
 		// Helper for determining content type
-		std::string getExtension(const std::string& path);
-		std::string get_MimeType (const std::string& path);
+		// std::string getExtension(const std::string& path);
+		// std::string get_MimeType (const std::string& path);
 		// set client_fd
 		void setClientFd(int client_fd);
 		// get client_fd
