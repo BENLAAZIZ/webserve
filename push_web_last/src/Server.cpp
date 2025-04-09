@@ -93,20 +93,17 @@ int Server::sendResponse(int client_fd, Client &client) {
 	client._response._clientFd = client_fd;
 	client._response._request = client._request;
 	int flag;
-	std::cout << "statussssssss |1| : " << client._request.getStatusCode() << std::endl;
 	if (client._request.getMethod() == "POST")
 	{
 		std::cout << "POST request received" << std::endl;
 	}
 	else if (client._request.getMethod() == "GET" && client._request.getStatusCode() < 400)
 	{
-		std::cout << "GET response received" << std::endl;
+		// std::cout << "GET response received" << std::endl;
 		client._response.handleGetResponse(&flag);
-	std::cout << "statussssssss |2| : " << client._response._request.getStatusCode() << std::endl;
 	 	if (client._response._request.getStatusCode() >= 400)
 		{
 			client._keepAlive = client._response._keepAlive;
-			std::cout << " statussssssss |3| : " << client._response._request.getStatusCode() << std::endl;
 			client._response.generate_error_response(client._response._request.getStatusCode(), client_fd);
 			return 1;
 		}
@@ -122,7 +119,6 @@ int Server::sendResponse(int client_fd, Client &client) {
 			client._response.file.close();
 			client._response._isopen = false;
 			client._keepAlive = client._response._keepAlive;
-			std::cout << " keepAlive: " << client._keepAlive << std::endl;
 			return 1;
 		}
 	}
@@ -133,7 +129,6 @@ int Server::sendResponse(int client_fd, Client &client) {
 	if (client._response._request.getStatusCode() >= 400)
 	{
 		client._keepAlive = client._response._keepAlive;
-		std::cout << " statussssssss |3| : " << client._response._request.getStatusCode() << std::endl;
 		client._response.generate_error_response(client._response._request.getStatusCode(), client_fd);
 		return 1;
 	}

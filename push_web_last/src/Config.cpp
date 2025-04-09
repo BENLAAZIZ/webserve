@@ -189,7 +189,7 @@ void ConfigFile::handleEvents() {
         else if (current_fds[i].revents & POLLOUT) {
             if (client_server_map.find(current_fd) != client_server_map.end()) {
                 int owner_server = client_server_map[current_fd];
-                std::cout << "response: " << std::endl;
+                // std::cout << "response: " << std::endl;
                 // sendSuccessResponse(current_fd);
                 int res = servers[owner_server]->sendResponse(current_fd, _clients[current_fd]);
                 if (res < 0) {
@@ -201,7 +201,6 @@ void ConfigFile::handleEvents() {
                     // Response fully sent, reset to POLLIN for next request or close connection
                     if (_clients[current_fd].keepAlive()) {
                         // If keep-alive is set, switch back to POLLIN for next request
-                        std::cout << "Switching back to POLLIN for keep-alive" << std::endl;
                         for (size_t j = 0; j < poll_fds.size(); ++j) {
                             if (poll_fds[j].fd == current_fd) {
                                 poll_fds[j].events = POLLIN;

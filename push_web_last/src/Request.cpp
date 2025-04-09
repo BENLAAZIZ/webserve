@@ -217,6 +217,8 @@ void	Request::reset()
 	headersParsed = false;
 	bodyFlag = false;
 	transferEncodingExist = false;
+	buffer.clear(); // check if needed
+	_requestBuffer.clear();
 }
 
 // void Request::initializeEncode(){
