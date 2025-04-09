@@ -56,53 +56,62 @@ void Response::reset() {
 
 void Response::send_header_response(size_t CHUNK_SIZE, std::string path) 
 {
-	std::string content_type = get_MimeType(path);
-	_isopen = true;
-	_fileOffset = 0; 
-	file.seekg(_fileOffset, std::ios::end);
-	size_t file_size = file.tellg();
-	file.seekg(_fileOffset, std::ios::beg);  // Reset to beginning for reading
-	if (file_size > CHUNK_SIZE)
-		_keepAlive = true;            
-	// Generate headers
-	std::ostringstream headers;
-	headers << "HTTP/1.1 200 OK\r\n";
-	headers << "Content-Type: " << content_type << "\r\n";
-	headers << "Content-Length: " << file_size << "\r\n";
-	headers << "Accept-Ranges: bytes\r\n";
-	if (_keepAlive)
-		headers << "Connection: keep-alive\r\n";
-	else
-		headers << "Connection: close\r\n";
-	headers << "\r\n";
-	_header_falg = true;
-	_responseBuffer = headers.str();
-	send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
-	_responseBuffer.clear();
+			std::string content_type = get_MimeType(path);
+	      _isopen = true;
+            _fileOffset = 0; 
+            file.seekg(_fileOffset, std::ios::end);
+            size_t file_size = file.tellg();
+            file.seekg(_fileOffset, std::ios::beg);  // Reset to beginning for reading
+			if (file_size > CHUNK_SIZE)
+				_keepAlive = true;            
+            // Generate headers
+            std::ostringstream headers;
+            headers << "HTTP/1.1 200 OK\r\n";
+            headers << "Content-Type: " << content_type << "\r\n";
+            headers << "Content-Length: " << file_size << "\r\n";
+            headers << "Accept-Ranges: bytes\r\n";
+            if (_keepAlive)
+                headers << "Connection: keep-alive\r\n";
+            else
+                headers << "Connection: close\r\n";
+            headers << "\r\n";
+            _header_falg = true;
+            _responseBuffer = headers.str();
+            send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+            _responseBuffer.clear();
 }
 
 
 int	Response::send_file_response(char *buffer, int bytes_read)
 {
-	ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
-	if (sent > 0) {
-		_fileOffset += sent;
-		if (file.eof()) 
-		{
-			reset();
-			_responseSent = true;
-			return 2;
-		}
-		// Not done yet, return  to continue processing
-		return 0;
-	} 
-	else 
-	{
-		std::cerr << "Error sending file data: " << strerror(errno) << std::endl;
-		reset();
-		_responseSent = true;
-		return 1;
-	}
+	 			 ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
+                if (sent > 0) {
+                    _fileOffset += sent;
+                    if (file.eof()) 
+					{
+                        // _responseSent = true;
+                        // _header_falg = false;
+                        // _fileOffset = 0;
+                        // file.close();
+                        // _isopen = false;
+						reset();
+                        return 2;
+                    }
+                    // Not done yet, return  to continue processing
+                    return 0;
+                } 
+				else 
+				{
+                    std::cerr << "Error sending file data: " << strerror(errno) << std::endl;
+					// _responseBuffer.clear();
+                    // _responseSent = true;
+                    // _header_falg = false;
+                    // _fileOffset = 0;
+                    // file.close();
+                    // _isopen = false;
+					reset();
+                    return 1;
+                }
 }
 
 
@@ -163,6 +172,7 @@ void Response::handleGetResponse(int *flag) {
             char buffer[CHUNK_SIZE];
             file.read(buffer, CHUNK_SIZE);
             int bytes_read = file.gcount();
+			// write(1, buffer, bytes_read);
             if (bytes_read > 0)
 				*flag =  send_file_response(buffer, bytes_read);
 			else 

@@ -111,7 +111,6 @@ void ConfigFile::cleanupDisconnectedClient(int client_fd) {
 // 	}
 // }
 
-
 //----- start added -----//
 
 void ConfigFile::handleEvents() {
