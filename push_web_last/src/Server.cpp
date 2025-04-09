@@ -93,6 +93,7 @@ int Server::sendResponse(int client_fd, Client &client) {
 	client._response._clientFd = client_fd;
 	client._response._request = client._request;
 	int flag;
+	std::cout << "statussssssss |1| : " << client._request.getStatusCode() << std::endl;
 	if (client._request.getMethod() == "POST")
 	{
 		std::cout << "POST request received" << std::endl;
@@ -101,6 +102,14 @@ int Server::sendResponse(int client_fd, Client &client) {
 	{
 		std::cout << "GET response received" << std::endl;
 		client._response.handleGetResponse(&flag);
+	std::cout << "statussssssss |2| : " << client._response._request.getStatusCode() << std::endl;
+	 	if (client._response._request.getStatusCode() >= 400)
+		{
+			client._keepAlive = client._response._keepAlive;
+			std::cout << " statussssssss |3| : " << client._response._request.getStatusCode() << std::endl;
+			client._response.generate_error_response(client._response._request.getStatusCode(), client_fd);
+			return 1;
+		}
 		if (flag == 1)
 			return 1;
 		if (flag == 0)
@@ -117,14 +126,15 @@ int Server::sendResponse(int client_fd, Client &client) {
 			return 1;
 		}
 	}
-	else if (client._request.getMethod() == "DELETE" && client._request.getStatusCode() < 400)
+	else if (client._request.getMethod() == "DELETE" && client._response._request.getStatusCode() < 400)
 	{
 		// client._request.endOfRequest = false;
 	}
-	else if (client._request.getStatusCode() >= 400)
+	if (client._response._request.getStatusCode() >= 400)
 	{
-		// client._keepAlive = client._response._keepAlive;
-		client._response.generate_error_response(client._request.getStatusCode(), client_fd);
+		client._keepAlive = client._response._keepAlive;
+		std::cout << " statussssssss |3| : " << client._response._request.getStatusCode() << std::endl;
+		client._response.generate_error_response(client._response._request.getStatusCode(), client_fd);
 		return 1;
 	}
 	return 0;

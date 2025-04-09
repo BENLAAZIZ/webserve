@@ -192,7 +192,6 @@ void ConfigFile::handleEvents() {
                 std::cout << "response: " << std::endl;
                 // sendSuccessResponse(current_fd);
                 int res = servers[owner_server]->sendResponse(current_fd, _clients[current_fd]);
-                std::cout << "status: " << _clients[current_fd]._request.getStatusCode() << std::endl;
                 if (res < 0) {
                     // Error sending response
                     std::cerr << "Error sending response to client" << std::endl;
@@ -214,6 +213,7 @@ void ConfigFile::handleEvents() {
                     } else {
                         // If not keep-alive, close the connection
                         std::cout << "Closing connection" << std::endl;
+                        _clients[current_fd].reset();
                         cleanupDisconnectedClient(current_fd);
                     }
                 }

@@ -48,6 +48,7 @@ void Response::reset() {
     _fileOffset = 0;
     _responseBuffer.clear();
     file.close();
+    _request.reset();
 }
 
 

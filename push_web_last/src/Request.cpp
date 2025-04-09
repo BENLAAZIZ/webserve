@@ -77,8 +77,6 @@ std::string Request::getHeader(const std::string& key) const
 	std::map<std::string, std::string>::const_iterator it = headers.find(key);
 	return (it != headers.end()) ? it->second : "";
 }
-// std::string Request::getStatusCodeMessage() const 
-// { return statusCode.message; }
 
 std::string Request::getBody() const 
 { return body;}
@@ -207,6 +205,7 @@ bool Request::parseFirstLine(const std::string& line)
 
 void	Request::reset()
 {
+	code = 200;
 	method.clear();
 	path.clear();
 	version.clear();
@@ -288,8 +287,6 @@ std::string Request::urlDecode(const std::string& str) {
 	}
 	return decoded;
 }
-
-
 
 //---------------------------------(chunked data)
 void Request::handleChunkedData(Request& request) {
