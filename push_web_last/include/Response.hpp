@@ -38,6 +38,8 @@ class Response {
         int getStatus() const;
 
         // Methods
+
+        bool        is_CGI();
         bool        sendResponse(int client_fd);
         bool        keepAlive() const;
         void        handleGetResponse(int *flag);
@@ -46,6 +48,10 @@ class Response {
         std::string	get_error_missage(int errorCode) const;
         std::string	get_code_error_path(int errorCode) const;
         std::string get_MimeType (const std::string& path);
+        // void        send_header_response(size_t CHUNK_SIZE);
+        void        send_header_response(size_t CHUNK_SIZE, std::string path);
+        int        send_file_response(char *buffer, int bytes_read);
+        int         open_file(int *flag, std::string fullPath);
 
 
 };

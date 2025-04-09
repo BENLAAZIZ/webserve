@@ -51,6 +51,76 @@ void Response::reset() {
     _request.reset();
 }
 
+
+
+
+void Response::send_header_response(size_t CHUNK_SIZE, std::string path) 
+{
+	std::string content_type = get_MimeType(path);
+	_isopen = true;
+	_fileOffset = 0; 
+	file.seekg(_fileOffset, std::ios::end);
+	size_t file_size = file.tellg();
+	file.seekg(_fileOffset, std::ios::beg);  // Reset to beginning for reading
+	if (file_size > CHUNK_SIZE)
+		_keepAlive = true;            
+	// Generate headers
+	std::ostringstream headers;
+	headers << "HTTP/1.1 200 OK\r\n";
+	headers << "Content-Type: " << content_type << "\r\n";
+	headers << "Content-Length: " << file_size << "\r\n";
+	headers << "Accept-Ranges: bytes\r\n";
+	if (_keepAlive)
+		headers << "Connection: keep-alive\r\n";
+	else
+		headers << "Connection: close\r\n";
+	headers << "\r\n";
+	_header_falg = true;
+	_responseBuffer = headers.str();
+	send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+	_responseBuffer.clear();
+}
+
+
+int	Response::send_file_response(char *buffer, int bytes_read)
+{
+	ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
+	if (sent > 0) {
+		_fileOffset += sent;
+		if (file.eof()) 
+		{
+			reset();
+			_responseSent = true;
+			return 2;
+		}
+		// Not done yet, return  to continue processing
+		return 0;
+	} 
+	else 
+	{
+		std::cerr << "Error sending file data: " << strerror(errno) << std::endl;
+		reset();
+		_responseSent = true;
+		return 1;
+	}
+}
+
+
+
+int Response::open_file(int *flag, std::string fullPath)
+{
+	file.open(fullPath, std::ios::binary);
+	if (!file) {
+		std::cerr << "Failed to open file: " << fullPath << std::endl;
+		_request.set_status_code(500);
+		*flag = 1;
+		return 1;
+	}
+	return 0;
+}
+
+
+
 void Response::handleGetResponse(int *flag) {
 
     *flag = 0;
@@ -66,104 +136,38 @@ void Response::handleGetResponse(int *flag) {
 		return ;
 	}
 
-	
 	// ----------------------------------------
 
 	// find location
-		path = find_location(path);
+		// path = find_location(path);
 	// ----------------------------------------
     // Prepend document root from config
     std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
     // Check if file exists
+	if (is_CGI())
+	{
+			std::cout << "CGI" << std::endl;
+			pause();
+	}
     struct stat fileStat;
     if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
         // File exists, serve it
-        std::string content_type = get_MimeType(path);
         const size_t CHUNK_SIZE = 8000; // Increased chunk size for better performance
         if (_header_falg == false) {
-            file.open(fullPath, std::ios::binary);
-            if (!file) {
-                std::cerr << "Failed to open file: " << fullPath << std::endl;
-                _request.set_status_code(500);
-                *flag = 1;
-                return ;
-            }
-            _isopen = true;
-            _fileOffset = 0; 
-            file.seekg(_fileOffset, std::ios::end);
-            size_t file_size = file.tellg();
-            file.seekg(_fileOffset, std::ios::beg);  // Reset to beginning for reading
-			if (file_size > CHUNK_SIZE)
-				_keepAlive = true;            
-            // Generate headers
-            std::ostringstream headers;
-            headers << "HTTP/1.1 200 OK\r\n";
-            headers << "Content-Type: " << content_type << "\r\n";
-            headers << "Content-Length: " << file_size << "\r\n";
-            headers << "Accept-Ranges: bytes\r\n";
-            if (_keepAlive)
-                headers << "Connection: keep-alive\r\n";
-            else
-                headers << "Connection: close\r\n";
-            headers << "\r\n";
-            
-            _header_falg = true;
-            _responseBuffer = headers.str();
-            // std::cout << "Headers sent, file size: " << file_size << " bytes" << std::endl;
-			// std::cout << "getClientFd: " << this->_clientFd << std::endl;
-            send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
-			// std::cout << "headers: " << _responseBuffer << std::endl;
-            _responseBuffer.clear();
+			if (open_file(flag, fullPath) == 1)
+			    return ;
+			send_header_response(CHUNK_SIZE, path);
         }
         if (_isopen) {
-			// std::cout << "Sending file data..." << std::endl;
             file.seekg(_fileOffset, std::ios::beg);
             char buffer[CHUNK_SIZE];
             file.read(buffer, CHUNK_SIZE);
             int bytes_read = file.gcount();
-			// write(1, buffer, bytes_read);
-            if (bytes_read > 0) {
-                ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
-                if (sent > 0) {
-                    _fileOffset += sent;
-                    if (file.eof()) 
-					{
-                        _responseSent = true;
-                        _header_falg = false;
-                        _fileOffset = 0;
-                        file.close();
-                        _isopen = false;
-                        std::cout << "File transfer complete" << std::endl;
-
-                        *flag = 2;
-                        return ;
-                    }
-                    // Not done yet, return  to continue processing
-                    return ;
-                } 
-				else 
-				{
-                    std::cerr << "Error sending file data: " << strerror(errno) << std::endl;
-					_responseBuffer.clear();
-                    _responseSent = true;
-                    _header_falg = false;
-                    _fileOffset = 0;
-                    file.close();
-                    _isopen = false;
-                    *flag = 1;
-                    return ;
-                }
-            } 
+            if (bytes_read > 0)
+				*flag =  send_file_response(buffer, bytes_read);
 			else 
 			{
-                // File is complete
-				_responseBuffer.clear();
-                std::cout << "File transfer complete" << std::endl;
-                _responseSent = true;
-                _header_falg = false;
-                _fileOffset = 0;
-                file.close();
-                _isopen = false;
+				reset();
                 *flag = 1;
                 return ;
             }
@@ -175,7 +179,7 @@ void Response::handleGetResponse(int *flag) {
         *flag = 1;
         return ;
     } else {
-		std::cout << "fullPath: " << fullPath << std::endl;
+		std::cout << "==   fullPath: " << fullPath << std::endl;
         // File not found
         _request.set_status_code(404);
         *flag = 1;
@@ -340,4 +344,14 @@ std::string	Response::get_error_missage(int errorCode) const
 		default: errorMessage = "500 Internal Server Error"; break;
 	}
 	return errorMessage;
+}
+
+bool        Response::is_CGI()
+{
+	if (_request.getMethod() == "POST" || _request.getMethod() == "GET")
+	{
+		if (_request.getpath().find(".php") != std::string::npos || _request.getpath().find(".js") != std::string::npos)
+			return true;
+	}
+	return false;
 }
