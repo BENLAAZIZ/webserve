@@ -51,10 +51,6 @@ void Response::reset() {
     _request.reset();
 }
 
-
-// ======================================================================
-
-
 void Response::handleGetResponse(int *flag) {
 
     *flag = 0;
@@ -69,6 +65,13 @@ void Response::handleGetResponse(int *flag) {
         *flag = 1;
 		return ;
 	}
+
+	
+	// ----------------------------------------
+
+	// find location
+		path = find_location(path);
+	// ----------------------------------------
     // Prepend document root from config
     std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
     // Check if file exists
@@ -113,7 +116,7 @@ void Response::handleGetResponse(int *flag) {
             _responseBuffer.clear();
         }
         if (_isopen) {
-			std::cout << "Sending file data..." << std::endl;
+			// std::cout << "Sending file data..." << std::endl;
             file.seekg(_fileOffset, std::ios::beg);
             char buffer[CHUNK_SIZE];
             file.read(buffer, CHUNK_SIZE);
@@ -300,28 +303,9 @@ bool Response::sendResponse(int client_fd) {
 	return true;
 }
 
-
 bool Response::keepAlive() const {
 	return _keepAlive;
 }
-
-// void Response::reset() {
-// 	_requestBuffer.clear();
-// 	_responseBuffer.clear();
-// 	request_Header_Complete = false;
-// 	_responseSent = false;
-// 	_request.reset();
-// }
-
-// set client_fd
-// void Response::setClientFd(int client_fd){
-// 	_clientFd = client_fd;
-// }
-
-// // get client_fd
-// int Response::getClientFd() const {
-// 	return _clientFd;
-// }
 
 std::string	Response::get_code_error_path(int errorCode) const {
 	std::string code_path = "";

@@ -11,7 +11,11 @@ Request::Request()
 	headersParsed = false;
 	bodyFlag = false;
 	transferEncodingExist = false;
-
+	extension = "";
+	query = "";
+	method = "";
+	path = "";
+	version = "";
 	//boundary
 	formData.flag = 0;
 	formData.pos = 0;
@@ -197,6 +201,7 @@ bool Request::parseFirstLine(const std::string& line)
 		setMethod(method);
 		setPath(path);
 		setVersion(version);
+
 	}
 	else
 		return false;
@@ -209,6 +214,7 @@ void	Request::reset()
 	method.clear();
 	path.clear();
 	version.clear();
+	query.clear();
 	extension.clear();
 	headers.clear();
 	body.clear();
@@ -219,6 +225,8 @@ void	Request::reset()
 	transferEncodingExist = false;
 	buffer.clear(); // check if needed
 	_requestBuffer.clear();
+
+
 }
 
 // void Request::initializeEncode(){
@@ -260,15 +268,22 @@ bool Request::checkPath(std::string& path){
 			return (set_status_code(400), false);
 	}
 	path = urlDecode(path);
-	std::string pathCopy = path;
+	// std::string pathCopy = path;
 	size_t queryPos = path.find('?');
 	if (queryPos != std::string::npos)
 	{
-		pathCopy = path.substr(queryPos, path.size());
-		// std::cout << "pathCopy: " << pathCopy << std::endl;
+		this->query  = path.substr(queryPos, path.size());
+		// this->query = pathCopy;
 		path = path.substr(0, queryPos);
-		// std::cout << "path: " << path << std::endl;
+		// =====
 	}
+		size_t dotPos = path.find_last_of('.');
+		if (dotPos != std::string::npos) 
+			this->extension = path.substr(dotPos);
+		std::cout << "query: " << query << std::endl;
+		std::cout << "extension: " << extension << std::endl;
+		// =====
+		std::cout << "path: " << path << std::endl;
 	return true;
 }
 

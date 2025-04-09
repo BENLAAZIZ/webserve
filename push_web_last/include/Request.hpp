@@ -56,6 +56,7 @@ class Request
 		std::string	path;
 		std::string	version;
 		std::string	extension;
+		std::string query;
 		std::map<std::string, std::string> headers;
 		
 		bool bodyFlag;
