@@ -84,34 +84,34 @@ void Response::send_header_response(size_t CHUNK_SIZE, std::string path)
 
 int	Response::send_file_response(char *buffer, int bytes_read)
 {
-	 			 ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
-                if (sent > 0) {
-                    _fileOffset += sent;
-                    if (file.eof()) 
-					{
-                        // _responseSent = true;
-                        // _header_falg = false;
-                        // _fileOffset = 0;
-                        // file.close();
-                        // _isopen = false;
-						reset();
-                        return 2;
-                    }
-                    // Not done yet, return  to continue processing
-                    return 0;
-                } 
-				else 
-				{
-                    std::cerr << "Error sending file data: " << strerror(errno) << std::endl;
-					// _responseBuffer.clear();
-                    // _responseSent = true;
-                    // _header_falg = false;
-                    // _fileOffset = 0;
-                    // file.close();
-                    // _isopen = false;
-					reset();
-                    return 1;
-                }
+		ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
+	if (sent > 0) {
+		_fileOffset += sent;
+		if (file.eof()) 
+		{
+			// _responseSent = true;
+			// _header_falg = false;
+			// _fileOffset = 0;
+			// file.close();
+			// _isopen = false;
+			reset();
+			return 2;
+		}
+		// Not done yet, return  to continue processing
+		return 0;
+	} 
+	else 
+	{
+		std::cerr << "Error sending file data: " << strerror(errno) << std::endl;
+		// _responseBuffer.clear();
+		// _responseSent = true;
+		// _header_falg = false;
+		// _fileOffset = 0;
+		// file.close();
+		// _isopen = false;
+		reset();
+		return 1;
+	}
 }
 
 
@@ -148,7 +148,7 @@ void Response::handleGetResponse(int *flag) {
 	// ----------------------------------------
 
 	// find location
-		// path = find_location(path);
+	    //  path = resolve_request_path(path, locations, default_root);
 	// ----------------------------------------
     // Prepend document root from config
     std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
@@ -365,3 +365,95 @@ bool        Response::is_CGI()
 	}
 	return false;
 }
+
+
+
+// ====== location ======
+
+// std::string Response::resolve_request_path(const std::string& uri, std::vector<Location>& locations, const std::string& default_root) {
+//     Location* loc = find_matching_location(uri, locations);
+//     std::string root = loc ? loc->root_name : default_root;
+//     std::string full_path = join_paths(root, uri);
+
+//     if (is_directory(full_path)) {
+//         if (!has_trailing_slash(uri)) {
+//             return "301 Redirect to " + uri + "/";
+//         }
+
+//         if (loc && !loc->index.empty()) {
+//             std::string index_path = join_paths(full_path, loc->index);
+//             if (file_exists(index_path)) {
+//                 return index_path;
+//             }
+//         }
+
+//         if (loc && loc->autoindex) {
+//             return generate_directory_listing(full_path);
+//         }
+
+//         return "403 Forbidden";
+//     }
+
+//     if (file_exists(full_path)) {
+//         return full_path;
+//     }
+//     return "404 Not Found";
+// }
+
+// ======= find matching location =======
+
+// Location* Response::find_matching_location(const std::string& uri, std::vector<Location>& locations) {
+//     Location* best_match = NULL;
+//     size_t best_length = 0;
+
+//     for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); ++it) {
+//         if (uri.find(it->path) == 0 && it->path.length() > best_length) {
+//             best_match = &(*it);
+//             best_length = it->path.length();
+//         }
+//     }
+//     return best_match;
+// }
+
+// ========== join paths ==========
+
+// std::string Response::join_paths(const std::string& a, const std::string& b) {
+//     if (a.empty()) return b;
+//     if (b.empty()) return a;
+
+//     if (a[a.size() - 1] == '/' && b[0] == '/')
+//         return a + b.substr(1);
+//     if (a[a.size() - 1] != '/' && b[0] != '/')
+//         return a + "/" + b;
+
+//     return a + b;
+// }
+
+// ========== is directory ==========
+
+// bool is_directory(const std::string& path) {
+//     struct stat info;
+//     if (stat(path.c_str(), &info) != 0)
+//         return false;
+//     return S_ISDIR(info.st_mode);
+// }
+
+// ========= file exist ==========
+
+// bool file_exists(const std::string& path) {
+//     struct stat info;
+//     return (stat(path.c_str(), &info) == 0 && S_ISREG(info.st_mode));
+// }
+
+// ========== has trailing slash ==========
+// bool has_trailing_slash(const std::string& path) {
+// 	return !path.empty() && path[path.size() - 1] == '/';
+// }
+
+// ========== generate directory listing ==========
+// std::string generate_directory_listing(const std::string& path) {
+// 	// Implement directory listing generation here
+// 	return "<html><body>Directory listing not implemented</body></html>";
+// }
+
+// ========== end location ==========

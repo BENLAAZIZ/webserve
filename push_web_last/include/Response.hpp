@@ -25,6 +25,8 @@ class Response {
 		bool			_isopen;
 		int				_clientFd;
 		size_t			_fileOffset;
+        // stuct of location 
+        // Location        _location;
 
 
     public:
@@ -52,7 +54,10 @@ class Response {
         void        send_header_response(size_t CHUNK_SIZE, std::string path);
         int        send_file_response(char *buffer, int bytes_read);
         int         open_file(int *flag, std::string fullPath);
+        //=============
 
+        // std::string resolve_request_path(const std::string& uri, std::vector<Location>& locations, const std::string& default_root)
+        //Location* find_matching_location(const std::string& uri, std::vector<Location>& locations);
 
 };
 
