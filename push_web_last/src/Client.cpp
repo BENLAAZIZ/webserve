@@ -95,7 +95,7 @@ bool Client::generate_header_map(std::string& line)
 	std::string value = line.substr(colonPos + 1);
 	value.erase(0, value.find_first_not_of(" "));
 	_request.setHeader(key, value);
-	// std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+	std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
 	return true;
 }
 

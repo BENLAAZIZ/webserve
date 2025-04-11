@@ -11,6 +11,7 @@ Request::Request()
 	headersParsed = false;
 	bodyFlag = false;
 	transferEncodingExist = false;
+	isCGI = false;
 	extension = "";
 	query = "";
 	method = "";
@@ -201,6 +202,12 @@ bool Request::parseFirstLine(const std::string& line)
 		setMethod(method);
 		setPath(path);
 		setVersion(version);
+		// check is CGI
+		if (getMethod() == "POST" || getMethod() == "GET")
+		{
+			if (getpath().find(".php") != std::string::npos || getpath().find(".js") != std::string::npos)
+				isCGI = true;
+		}
 
 	}
 	else
@@ -277,13 +284,13 @@ bool Request::checkPath(std::string& path){
 		path = path.substr(0, queryPos);
 		// =====
 	}
-		size_t dotPos = path.find_last_of('.');
-		if (dotPos != std::string::npos) 
-			this->extension = path.substr(dotPos);
-		std::cout << "query: " << query << std::endl;
-		std::cout << "extension: " << extension << std::endl;
-		// =====
-		std::cout << "path: " << path << std::endl;
+	size_t dotPos = path.find_last_of('.');
+	if (dotPos != std::string::npos) 
+		this->extension = path.substr(dotPos);
+	std::cout << "query: " << query << std::endl;
+	std::cout << "extension: " << extension << std::endl;
+	// =====
+	std::cout << "path: " << path << std::endl;
 	return true;
 }
 

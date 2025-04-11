@@ -5,6 +5,9 @@ Response::Response() : _responseSent(false),
                 _header_falg(false),
                     _isopen(false),
                     _fileOffset(0) {
+				fd = open("red_t.txt", O_CREAT | O_RDWR | O_APPEND, 0644);
+				fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www";
+				flag_p = 0;
 }
 
 Response::~Response() {
@@ -22,7 +25,7 @@ Response& Response::operator=(const Response& other)
 	if (this != &other)
 	{
 		_responseBuffer = other._responseBuffer;
-        _request = other._request;
+        // _request = other._request;
         _responseSent = other._responseSent;
         _keepAlive = other._keepAlive;
         _header_falg = other._header_falg;
@@ -34,9 +37,9 @@ Response& Response::operator=(const Response& other)
 	return *this;
 }
 
-int Response::getStatus() const {
-    return _request.getStatusCode();
-}
+// int Response::getStatus() const {
+//     return _request.getStatusCode();
+// }
 
 
 
@@ -48,7 +51,8 @@ void Response::reset() {
     _fileOffset = 0;
     _responseBuffer.clear();
     file.close();
-    _request.reset();
+	// fullPath.clear();
+	flag_p = 0;
 }
 
 
@@ -78,7 +82,9 @@ void Response::send_header_response(size_t CHUNK_SIZE, std::string path)
             _header_falg = true;
             _responseBuffer = headers.str();
             send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+			std::cout << "Headers sent: " << _responseBuffer << std::endl;
             _responseBuffer.clear();
+
 }
 
 
@@ -89,12 +95,15 @@ int	Response::send_file_response(char *buffer, int bytes_read)
 		_fileOffset += sent;
 		if (file.eof()) 
 		{
-			// _responseSent = true;
-			// _header_falg = false;
-			// _fileOffset = 0;
-			// file.close();
-			// _isopen = false;
-			reset();
+			_responseSent = true;
+			_header_falg = false;
+			_fileOffset = 0;
+			file.close();
+			_isopen = false;
+				fullPath.clear();
+				flag_p = 0;
+			std::cout << "File sent successfully" << std::endl;
+			// reset();
 			return 2;
 		}
 		// Not done yet, return  to continue processing
@@ -103,44 +112,49 @@ int	Response::send_file_response(char *buffer, int bytes_read)
 	else 
 	{
 		std::cerr << "Error sending file data: " << strerror(errno) << std::endl;
-		// _responseBuffer.clear();
-		// _responseSent = true;
-		// _header_falg = false;
-		// _fileOffset = 0;
-		// file.close();
-		// _isopen = false;
-		reset();
+		_responseBuffer.clear();
+		_responseSent = true;
+		_header_falg = false;
+		_fileOffset = 0;
+		file.close();
+		_isopen = false;
+		fullPath.clear();
+		flag_p = 0;
+		// reset();
 		return 1;
 	}
 }
 
 
 
-int Response::open_file(int *flag, std::string fullPath)
+int Response::open_file(int *flag, std::string fullPath, int *code)
 {
 	file.open(fullPath, std::ios::binary);
 	if (!file) {
 		std::cerr << "Failed to open file: " << fullPath << std::endl;
-		_request.set_status_code(500);
+		// _request.set_status_code(500);
+		*code = 500;
 		*flag = 1;
 		return 1;
 	}
+	std::cout << "File opened successfully: " << fullPath << std::endl;
 	return 0;
 }
 
 
 
-void Response::handleGetResponse(int *flag) {
+void Response::handleGetResponse(int *flag, Request &request) {
 
     *flag = 0;
-    std::string path = _request.getpath();
+
+    std::string path = request.getpath();
     if (path == "/") {
         path = "/index.html"; // Default page
     }
 	// Check for directory traversal attempts
 	if (path.find("..") != std::string::npos) {
 		std::cerr << "Directory traversal attempt: " << path << std::endl;
-		_request.set_status_code(403);
+		request.set_status_code(403);
         *flag = 1;
 		return ;
 	}
@@ -148,22 +162,31 @@ void Response::handleGetResponse(int *flag) {
 	// ----------------------------------------
 
 	// find location
-	    //  path = resolve_request_path(path, locations, default_root);
+	    //  path = resolverequest_path(path, locations, default_root);
 	// ----------------------------------------
-    // Prepend document root from config
-    std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
+    // std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
+    // fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
+	if (flag_p == 0)
+	{
+		// path = resolverequest_path(path, locations, default_root);
+		fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www";
+	      fullPath = fullPath + path;
+		resolverequest_path22(fullPath);
+		  flag_p = 1;
+	}
     // Check if file exists
-	if (is_CGI())
+	if (request.isCGI)
 	{
 			std::cout << "CGI" << std::endl;
 			pause();
 	}
-    struct stat fileStat;
-    if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
+    // struct stat fileStat;
+    // if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
+    if (this->is_file == 0) {
         // File exists, serve it
-        const size_t CHUNK_SIZE = 8000; // Increased chunk size for better performance
+        const size_t CHUNK_SIZE = 1024; // Increased chunk size for better performance
         if (_header_falg == false) {
-			if (open_file(flag, fullPath) == 1)
+			if (open_file(flag, fullPath, &request.code) == 1)
 			    return ;
 			send_header_response(CHUNK_SIZE, path);
         }
@@ -172,26 +195,28 @@ void Response::handleGetResponse(int *flag) {
             char buffer[CHUNK_SIZE];
             file.read(buffer, CHUNK_SIZE);
             int bytes_read = file.gcount();
-			// write(1, buffer, bytes_read);
+			// write(1, "88888\n", 8);
             if (bytes_read > 0)
 				*flag =  send_file_response(buffer, bytes_read);
 			else 
 			{
+				std::cerr << "Error reading file: " << strerror(errno) << std::endl;
 				reset();
                 *flag = 1;
                 return ;
             }
         }
-    } else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
+    // } else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
+    } else if (this->is_file == 1) {
         // Directory listing (optional, could redirect to index or show listing)
         std::cout << "Directory listing not implemented" << std::endl;
-        _request.set_status_code(403);
+        request.set_status_code(403);
         *flag = 1;
         return ;
     } else {
 		std::cout << "==   fullPath: " << fullPath << std::endl;
         // File not found
-        _request.set_status_code(404);
+        request.set_status_code(404);
         *flag = 1;
         return ;
     }
@@ -249,6 +274,18 @@ std::string Response::get_MimeType (const std::string& path) {
 		else if (ext == ".wmv") contentType = "video/x-ms-wmv";
 		else if (ext == ".mpg") contentType = "video/mpeg";
 		else if (ext == ".mpeg") contentType = "video/mpeg";
+		else if (ext == ".mkv") contentType = "video/x-matroska";
+		else if (ext == ".flv") contentType = "video/x-flv";
+		else if (ext == ".ico") contentType = "image/vnd.microsoft.icon";
+		else if (ext == ".bmp") contentType = "image/bmp";
+		else if (ext == ".tiff") contentType = "image/tiff";
+		else if (ext == ".svg") contentType = "image/svg+xml";
+		else if (ext == ".woff") contentType = "font/woff";
+		else if (ext == ".woff2") contentType = "font/woff2";
+		else if (ext == ".eot") contentType = "application/vnd.ms-fontobject";
+		else if (ext == ".otf") contentType = "font/otf";
+		else if (ext == ".ttf") contentType = "font/ttf";
+
 		else if (ext == ".webp") contentType = "image/webp";
 	}
 	return contentType;
@@ -356,17 +393,6 @@ std::string	Response::get_error_missage(int errorCode) const
 	return errorMessage;
 }
 
-bool        Response::is_CGI()
-{
-	if (_request.getMethod() == "POST" || _request.getMethod() == "GET")
-	{
-		if (_request.getpath().find(".php") != std::string::npos || _request.getpath().find(".js") != std::string::npos)
-			return true;
-	}
-	return false;
-}
-
-
 
 // ====== location ======
 
@@ -431,19 +457,19 @@ bool        Response::is_CGI()
 
 // ========== is directory ==========
 
-// bool is_directory(const std::string& path) {
-//     struct stat info;
-//     if (stat(path.c_str(), &info) != 0)
-//         return false;
-//     return S_ISDIR(info.st_mode);
-// }
+bool is_directory(const std::string& path) {
+    struct stat info;
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    return S_ISDIR(info.st_mode);
+}
 
 // ========= file exist ==========
 
-// bool file_exists(const std::string& path) {
-//     struct stat info;
-//     return (stat(path.c_str(), &info) == 0 && S_ISREG(info.st_mode));
-// }
+bool file_exists(const std::string& path) {
+    struct stat info;
+    return (stat(path.c_str(), &info) == 0 && S_ISREG(info.st_mode));
+}
 
 // ========== has trailing slash ==========
 // bool has_trailing_slash(const std::string& path) {
@@ -457,3 +483,19 @@ bool        Response::is_CGI()
 // }
 
 // ========== end location ==========
+
+
+
+// state of path
+int Response::resolverequest_path22(std::string& path)
+{
+	if (file_exists(path))
+		return 0;
+	else if (is_directory(path))
+	   return 1;
+	else 
+		return 2;
+
+}
+
+

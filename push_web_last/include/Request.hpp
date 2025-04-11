@@ -61,10 +61,11 @@ class Request
 		
 		bool bodyFlag;
 		bool flag_end_of_headers;
-		int code;
 		bool headersParsed;
 	public:
+		int code;
 		bool 			endOfRequest;
+		bool 			isCGI;
 		std::map<std::string, std::string> encode;
 		// StatusCode statusCode;
 		std::string content_type;
@@ -122,6 +123,7 @@ class Request
 		// void		initializeEncode();
 		std::string urlDecode(const std::string& str);
 		bool checkPath(std::string& path);
+
 
 		//-----POst
 		void handleChunkedData(Request& request);

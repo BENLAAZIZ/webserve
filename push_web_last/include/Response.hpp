@@ -14,9 +14,8 @@ class Response {
 
         std::ifstream	file;
 		std::ofstream	filetest;
-		// std::string		_requestBuffer;
 		std::string		_responseBuffer;
-		Request			_request;
+		// Request			_request;
 		// Responce		_responce;
 		// bool			request_Header_Complete;
 		bool			_responseSent;
@@ -25,6 +24,10 @@ class Response {
 		bool			_isopen;
 		int				_clientFd;
 		size_t			_fileOffset;
+        int				fd;
+        std::string		fullPath;
+        int flag_p;
+        int is_file;
         // stuct of location 
         // Location        _location;
 
@@ -37,14 +40,14 @@ class Response {
 
 
         // Getters
-        int getStatus() const;
+        // int getStatus() const;
 
         // Methods
 
-        bool        is_CGI();
+        // bool        is_CGI();
         bool        sendResponse(int client_fd);
         bool        keepAlive() const;
-        void        handleGetResponse(int *flag);
+        void        handleGetResponse(int *flag, Request &request);
         void        reset();
         void        generate_error_response(int statusCode,  int client_fd);
         std::string	get_error_missage(int errorCode) const;
@@ -53,11 +56,12 @@ class Response {
         // void        send_header_response(size_t CHUNK_SIZE);
         void        send_header_response(size_t CHUNK_SIZE, std::string path);
         int        send_file_response(char *buffer, int bytes_read);
-        int         open_file(int *flag, std::string fullPath);
+        int         open_file(int *flag, std::string fullPath, int *code);
         //=============
 
         // std::string resolve_request_path(const std::string& uri, std::vector<Location>& locations, const std::string& default_root)
         //Location* find_matching_location(const std::string& uri, std::vector<Location>& locations);
+        int resolverequest_path22(std::string& path);
 
 };
 

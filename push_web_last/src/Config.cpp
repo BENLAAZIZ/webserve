@@ -191,6 +191,8 @@ void ConfigFile::handleEvents() {
                 // std::cout << "response: " << std::endl;
                 // sendSuccessResponse(current_fd);
                 int res = servers[owner_server]->sendResponse(current_fd, _clients[current_fd]);
+
+                // std::cout << "--------------------------------------res: " << res << std::endl;
                 if (res < 0) {
                     // Error sending response
                     std::cerr << "Error sending response to client" << std::endl;
@@ -198,7 +200,9 @@ void ConfigFile::handleEvents() {
                 }
                 else if (res == 1) {
                     // Response fully sent, reset to POLLIN for next request or close connection
+                    std::cout << "sdfsdfsdfsdfsdfsdf res : "  << res << std::endl;
                     if (_clients[current_fd].keepAlive()) {
+                        std::cout << "Keep-alive: waiting for next request" << std::endl;
                         // If keep-alive is set, switch back to POLLIN for next request
                         for (size_t j = 0; j < poll_fds.size(); ++j) {
                             if (poll_fds[j].fd == current_fd) {
@@ -214,6 +218,7 @@ void ConfigFile::handleEvents() {
                         _clients[current_fd].reset();
                         cleanupDisconnectedClient(current_fd);
                     }
+                    // pause();
                 }
                 // If res == 0, response is still being sent, continue with POLLOUT
             }
