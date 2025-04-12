@@ -8,8 +8,6 @@ class Client {
 	public:
 		std::ifstream	file;
 		std::ofstream	filetest;
-		// std::string		_requestBuffer;
-		// std::string		_responseBuffer;
 		Request			_request;
 		Response		_response;
 		bool			request_Header_Complete;
@@ -20,18 +18,8 @@ class Client {
 		int				_clientFd;
 		size_t			_fileOffset;
 		
-		// Helper methods for handling different HTTP methods
-		// void handleGetResponse();
-		// void handlePostRequest();
-		// void handleDeleteRequest();
-
 		void handlePostRequest();
-		// Helper for determining content type
-		// std::string getExtension(const std::string& path);
-		// std::string get_MimeType (const std::string& path);
-		// set client_fd
 		void setClientFd(int client_fd);
-		// get client_fd
 		int getClientFd() const;
 	public:
 		Client();
@@ -42,21 +30,12 @@ class Client {
 		bool is_Header_Complete();
 		// Parse HTTP request
 		bool parse_Header_Request();
-		// Generate HTTP response
-		// int generateResponse_GET_DELETE();
-		// Send HTTP response
-		// bool sendResponse(int client_fd);
-		// Send error response
-		// void genetate_error_response(int statusCode, int client_fd);
-		// Check if connection should be kept alive
 		bool keepAlive() const;
 		// Reset client for new request
 		void reset();
 		// end_of_headers
 		void end_of_headers(std::string& line, int *flag);
 		bool generate_header_map(std::string& line);
-		// std::string	get_code_error_path(int errorCode) const;
-		// int read_data(int client_fd);
 		int read_data();
 };
 #endif // CLIENT_HPP

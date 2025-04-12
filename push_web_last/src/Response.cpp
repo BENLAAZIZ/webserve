@@ -5,9 +5,12 @@ Response::Response() : _responseSent(false),
                 _header_falg(false),
                     _isopen(false),
                     _fileOffset(0) {
-				fd = open("red_t.txt", O_CREAT | O_RDWR | O_APPEND, 0644);
-				fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www";
+				// fd = open("red_t.txt", O_CREAT | O_RDWR | O_APPEND, 0644);
+
 				flag_p = 0;
+				is_file = 0;
+				is_dir = 0;
+				bytes_sent = 0;
 }
 
 Response::~Response() {
@@ -182,7 +185,7 @@ void Response::handleGetResponse(int *flag, Request &request) {
 	}
     // struct stat fileStat;
     // if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
-    if (this->is_file == 0) {
+    if (this->is_file) {
         // File exists, serve it
         const size_t CHUNK_SIZE = 1024; // Increased chunk size for better performance
         if (_header_falg == false) {
@@ -197,7 +200,16 @@ void Response::handleGetResponse(int *flag, Request &request) {
             int bytes_read = file.gcount();
 			// write(1, "88888\n", 8);
             if (bytes_read > 0)
+			{
 				*flag =  send_file_response(buffer, bytes_read);
+				bytes_sent += bytes_read;
+				if (*flag == 2)
+				{
+					std::cout << "bytes_sent: " << bytes_sent << std::endl;
+
+				}
+				
+			}
 			else 
 			{
 				std::cerr << "Error reading file: " << strerror(errno) << std::endl;
@@ -207,7 +219,7 @@ void Response::handleGetResponse(int *flag, Request &request) {
             }
         }
     // } else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
-    } else if (this->is_file == 1) {
+    } else if (this->is_dir) {
         // Directory listing (optional, could redirect to index or show listing)
         std::cout << "Directory listing not implemented" << std::endl;
         request.set_status_code(403);
@@ -487,15 +499,13 @@ bool file_exists(const std::string& path) {
 
 
 // state of path
-int Response::resolverequest_path22(std::string& path)
+void Response::resolverequest_path22(std::string& path)
 {
 	if (file_exists(path))
-		return 0;
+		is_file = 1;
 	else if (is_directory(path))
-	   return 1;
-	else 
-		return 2;
-
+	   is_dir = 1;
+	return ;
 }
 
 

@@ -37,6 +37,8 @@ Request::Request()
 
 Request::~Request()
 {
+	std::cout << "Request destructor called" << std::endl;
+	reset();
 }
 
 Request::Request(const Request& other)

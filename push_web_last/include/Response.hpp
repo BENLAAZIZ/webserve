@@ -7,17 +7,10 @@
 
 class Response {
     public:
-        // bool _header_falg;
-        // std::string _responseBuffer;
-        // bool _responseSent;
-        // bool _keepAlive;
 
         std::ifstream	file;
 		std::ofstream	filetest;
 		std::string		_responseBuffer;
-		// Request			_request;
-		// Responce		_responce;
-		// bool			request_Header_Complete;
 		bool			_responseSent;
 		bool			_keepAlive;
 		bool			_header_falg;
@@ -28,6 +21,8 @@ class Response {
         std::string		fullPath;
         int flag_p;
         int is_file;
+        int is_dir;
+        int bytes_sent;
         // stuct of location 
         // Location        _location;
 
@@ -61,7 +56,7 @@ class Response {
 
         // std::string resolve_request_path(const std::string& uri, std::vector<Location>& locations, const std::string& default_root)
         //Location* find_matching_location(const std::string& uri, std::vector<Location>& locations);
-        int resolverequest_path22(std::string& path);
+        void resolverequest_path22(std::string& path);
 
 };
 
