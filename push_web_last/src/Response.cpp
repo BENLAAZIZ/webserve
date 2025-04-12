@@ -1,4 +1,7 @@
 #include "../include/web.h"
+#include <sys/mman.h> // for mmap()
+#include <sys/stat.h> // for fstat()
+#include <unistd.h>   // for close()
 
 Response::Response() : _responseSent(false), 
                 _keepAlive(false),
@@ -61,35 +64,113 @@ void Response::reset() {
 
 
 
-void Response::send_header_response(size_t CHUNK_SIZE, std::string path) 
+// void Response::send_header_response(size_t CHUNK_SIZE, std::string path) 
+// {
+// 	std::string content_type = get_MimeType(path);
+// 	_isopen = true;
+// 	_fileOffset = 0; 
+// 	file.seekg(_fileOffset, std::ios::end);
+// 	size_t file_size = file.tellg();
+// 	file.seekg(_fileOffset, std::ios::beg);  // Reset to beginning for reading
+// 	if (file_size > CHUNK_SIZE)
+// 		_keepAlive = true;            
+// 	// Generate headers
+// 	std::ostringstream headers;
+// 	headers << "HTTP/1.1 200 OK\r\n";
+// 	headers << "Content-Type: " << content_type << "\r\n";
+// 	headers << "Content-Length: " << file_size << "\r\n";
+// 	headers << "Accept-Ranges: bytes\r\n";
+// 	if (_keepAlive)
+// 		headers << "Connection: keep-alive\r\n";
+// 	else
+// 		headers << "Connection: close\r\n";
+// 	headers << "\r\n";
+// 	_header_falg = true;
+// 	_responseBuffer = headers.str();
+// 	send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+// 	std::cout << "\n*********************** Headers response *********************" <<  std::endl;
+// 	std::cout  << _responseBuffer ;
+// 	std::cout << "*********************** end of header response *********************\n" <<  std::endl;
+// 	_responseBuffer.clear();
+// }
+
+// ========== send header response ==========
+
+void Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request &request) 
 {
 	std::string content_type = get_MimeType(path);
 	_isopen = true;
 	_fileOffset = 0; 
-	file.seekg(_fileOffset, std::ios::end);
+
+	file.seekg(0, std::ios::end);
 	size_t file_size = file.tellg();
-	file.seekg(_fileOffset, std::ios::beg);  // Reset to beginning for reading
-	if (file_size > CHUNK_SIZE)
-		_keepAlive = true;            
+	file.seekg(0, std::ios::beg);  // Reset to beginning
+
+	size_t start = 0;
+	size_t end = file_size - 1;
+	bool partial = false;
+
+	// Parse Range Header (example: Range: bytes=500-1000)
+	if (request.hasHeader("Range")) {
+		std::string range = request.getHeader("Range"); // ex: "bytes=500-1000"
+		size_t pos = range.find("bytes=");
+		if (pos != std::string::npos) {
+			range = range.substr(pos + 6); // skip "bytes="
+			size_t dash = range.find("-");
+			if (dash != std::string::npos) {
+				std::string startStr = range.substr(0, dash);
+				std::string endStr = range.substr(dash + 1);
+				start = std::stoul(startStr);
+				if (!endStr.empty())
+					end = std::stoul(endStr);
+				if (end >= file_size)
+					end = file_size - 1;
+				if (start < file_size && start <= end)
+					partial = true;
+			}
+		}
+	}
+
+	size_t content_length = end - start + 1;
+	_fileOffset = start;
+	file.seekg(_fileOffset, std::ios::beg);
+
+	if (content_length > CHUNK_SIZE)
+		_keepAlive = true;
+
 	// Generate headers
 	std::ostringstream headers;
-	headers << "HTTP/1.1 200 OK\r\n";
+	if (partial)
+		headers << "HTTP/1.1 206 Partial Content\r\n";
+	else
+		headers << "HTTP/1.1 200 OK\r\n";
+
 	headers << "Content-Type: " << content_type << "\r\n";
-	headers << "Content-Length: " << file_size << "\r\n";
+	headers << "Content-Length: " << content_length << "\r\n";
 	headers << "Accept-Ranges: bytes\r\n";
+
+	if (partial)
+		headers << "Content-Range: bytes " << start << "-" << end << "/" << file_size << "\r\n";
+
 	if (_keepAlive)
 		headers << "Connection: keep-alive\r\n";
 	else
 		headers << "Connection: close\r\n";
+
 	headers << "\r\n";
+
 	_header_falg = true;
 	_responseBuffer = headers.str();
 	send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+
 	std::cout << "\n*********************** Headers response *********************" <<  std::endl;
 	std::cout  << _responseBuffer ;
 	std::cout << "*********************** end of header response *********************\n" <<  std::endl;
+
 	_responseBuffer.clear();
 }
+
+// ============================
 
 
 int	Response::send_file_response(char *buffer, int bytes_read)
@@ -156,11 +237,13 @@ int Response::open_file(int *flag, std::string fullPath, int *code)
 	// 	// request.set_status_code(404);
 	// 	*code = 500;
 	// 	*flag = 1;
-	// 	return;
+	// 	return 1;
 	// }
 	// fileSize = lseek(fd, 0, SEEK_END);
 	// lseek(fd, 0, SEEK_SET);
 	// _isopen = true;
+	// _fileOffset = 0;
+	// return 0;
 }
 
 
@@ -211,7 +294,8 @@ void Response::handleGetResponse(int *flag, Request &request) {
 			std::cout << "_header_flag: " << _header_falg << std::endl;
 			if (open_file(flag, fullPath, &request.code) == 1)
 			    return ;
-			send_header_response(CHUNK_SIZE, path);
+			// send_header_response(CHUNK_SIZE, path);
+			send_header_response(CHUNK_SIZE, path, request);
         }
         if (_isopen) {
             file.seekg(_fileOffset, std::ios::beg);
@@ -254,6 +338,12 @@ void Response::handleGetResponse(int *flag, Request &request) {
     }
     return ;
 }
+
+// ========================================
+
+
+
+// =======================================
 
 // void Response::handleDeleteRequest() {
 // 	// Simple DELETE handler

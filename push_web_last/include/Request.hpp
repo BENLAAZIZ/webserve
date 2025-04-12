@@ -123,6 +123,7 @@ class Request
 		// void		initializeEncode();
 		std::string urlDecode(const std::string& str);
 		bool checkPath(std::string& path);
+		bool hasHeader(const std::string& key) const;
 
 
 		//-----POst

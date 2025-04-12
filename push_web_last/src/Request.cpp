@@ -117,6 +117,11 @@ const std::map<std::string, std::string>& Request::getHeaders() const {
 	return headers; 
 }
 
+// hadi yalah zatha
+bool Request::hasHeader(const std::string& key) const {
+	return headers.find(key) != headers.end();
+}
+
 std::string Request::getContent_type() const
 {
 	return content_type;
