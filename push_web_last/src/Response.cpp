@@ -63,37 +63,39 @@ void Response::reset() {
 
 void Response::send_header_response(size_t CHUNK_SIZE, std::string path) 
 {
-			std::string content_type = get_MimeType(path);
-	      _isopen = true;
-            _fileOffset = 0; 
-            file.seekg(_fileOffset, std::ios::end);
-            size_t file_size = file.tellg();
-            file.seekg(_fileOffset, std::ios::beg);  // Reset to beginning for reading
-			if (file_size > CHUNK_SIZE)
-				_keepAlive = true;            
-            // Generate headers
-            std::ostringstream headers;
-            headers << "HTTP/1.1 200 OK\r\n";
-            headers << "Content-Type: " << content_type << "\r\n";
-            headers << "Content-Length: " << file_size << "\r\n";
-            headers << "Accept-Ranges: bytes\r\n";
-            if (_keepAlive)
-                headers << "Connection: keep-alive\r\n";
-            else
-                headers << "Connection: close\r\n";
-            headers << "\r\n";
-            _header_falg = true;
-            _responseBuffer = headers.str();
-            send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
-			std::cout << "Headers sent: " << _responseBuffer << std::endl;
-            _responseBuffer.clear();
-
+	std::string content_type = get_MimeType(path);
+	_isopen = true;
+	_fileOffset = 0; 
+	file.seekg(_fileOffset, std::ios::end);
+	size_t file_size = file.tellg();
+	file.seekg(_fileOffset, std::ios::beg);  // Reset to beginning for reading
+	if (file_size > CHUNK_SIZE)
+		_keepAlive = true;            
+	// Generate headers
+	std::ostringstream headers;
+	headers << "HTTP/1.1 200 OK\r\n";
+	headers << "Content-Type: " << content_type << "\r\n";
+	headers << "Content-Length: " << file_size << "\r\n";
+	headers << "Accept-Ranges: bytes\r\n";
+	if (_keepAlive)
+		headers << "Connection: keep-alive\r\n";
+	else
+		headers << "Connection: close\r\n";
+	headers << "\r\n";
+	_header_falg = true;
+	_responseBuffer = headers.str();
+	send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+	std::cout << "\n*********************** Headers response *********************" <<  std::endl;
+	std::cout  << _responseBuffer ;
+	std::cout << "*********************** end of header response *********************\n" <<  std::endl;
+	_responseBuffer.clear();
 }
 
 
 int	Response::send_file_response(char *buffer, int bytes_read)
 {
 		ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
+		buffer[bytes_read] = '\0'; // Null-terminate the buffer for safety
 	if (sent > 0) {
 		_fileOffset += sent;
 		if (file.eof()) 
@@ -105,7 +107,7 @@ int	Response::send_file_response(char *buffer, int bytes_read)
 			_isopen = false;
 				fullPath.clear();
 				flag_p = 0;
-			std::cout << "File sent successfully" << std::endl;
+			std::cout << " end of file : File sent successfully" << std::endl;
 			// reset();
 			return 2;
 		}
@@ -127,7 +129,6 @@ int	Response::send_file_response(char *buffer, int bytes_read)
 		return 1;
 	}
 }
-
 
 
 int Response::open_file(int *flag, std::string fullPath, int *code)
@@ -189,6 +190,7 @@ void Response::handleGetResponse(int *flag, Request &request) {
         // File exists, serve it
         const size_t CHUNK_SIZE = 1024; // Increased chunk size for better performance
         if (_header_falg == false) {
+			std::cout << "_header_flag: " << _header_falg << std::endl;
 			if (open_file(flag, fullPath, &request.code) == 1)
 			    return ;
 			send_header_response(CHUNK_SIZE, path);
@@ -201,7 +203,7 @@ void Response::handleGetResponse(int *flag, Request &request) {
 			// write(1, "88888\n", 8);
             if (bytes_read > 0)
 			{
-				*flag =  send_file_response(buffer, bytes_read);
+				*flag = send_file_response(buffer, bytes_read);
 				bytes_sent += bytes_read;
 				if (*flag == 2)
 				{
@@ -328,13 +330,19 @@ void Response::generate_error_response(int statusCode,  int client_fd) {
 				response << "Connection: close\r\n";
 			}
 			response << "\r\n";
+	std::cout << "\n*********************** Headers response *********************" <<  std::endl;
+	std::string resss;
+	resss = response.str();
+	std::cout  << resss ;
+	std::cout << "*********************** end of header response *********************\n" <<  std::endl;
 			response << responseBody;
-			
 			_responseBuffer = response.str();
 		}
 	}
+
 	_keepAlive = false;  // Don't keep alive on errors
 	sendResponse(client_fd);
+	_responseBuffer.clear();
 }
 
 bool Response::sendResponse(int client_fd) {

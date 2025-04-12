@@ -204,13 +204,6 @@ bool Request::parseFirstLine(const std::string& line)
 		setMethod(method);
 		setPath(path);
 		setVersion(version);
-		// check is CGI
-		if (getMethod() == "POST" || getMethod() == "GET")
-		{
-			if (getpath().find(".php") != std::string::npos || getpath().find(".js") != std::string::npos)
-				isCGI = true;
-		}
-
 	}
 	else
 		return false;
@@ -289,10 +282,14 @@ bool Request::checkPath(std::string& path){
 	size_t dotPos = path.find_last_of('.');
 	if (dotPos != std::string::npos) 
 		this->extension = path.substr(dotPos);
-	std::cout << "query: " << query << std::endl;
-	std::cout << "extension: " << extension << std::endl;
+	if (extension == ".php" || extension == ".py")
+	{
+		this->isCGI = true;
+	}
+	// std::cout << "query: " << query << std::endl;
+	// std::cout << "extension: " << extension << std::endl;
 	// =====
-	std::cout << "path: " << path << std::endl;
+	// std::cout << "path: " << path << std::endl;
 	return true;
 }
 

@@ -91,7 +91,6 @@ int Server::handleClientData(int client_fd, Client &client) {
 int Server::sendResponse(int client_fd, Client &client) {
 	client.setClientFd(client_fd);
 	client._response._clientFd = client_fd;
-	// client._response._request = client._request;
 	int flag;
 	if (client._request.getMethod() == "POST")
 	{
@@ -99,18 +98,18 @@ int Server::sendResponse(int client_fd, Client &client) {
 	}
 	else if (client._request.getMethod() == "GET" && client._request.getStatusCode() < 400)
 	{
-		// std::cout << "GET response received" << std::endl;
 		client._response.handleGetResponse(&flag, client._request);
-	 	if (client._request.getStatusCode() >= 400)
+		if (flag == 1)
 		{
-			client._keepAlive = client._response._keepAlive;
+			std::cout << "+++++++ File sent successfully flag = 1" << std::endl;
 			client._response.generate_error_response(client._request.getStatusCode(), client_fd);
 			return 1;
 		}
-		if (flag == 1)
-			return 1;
 		if (flag == 0)
+		{
+			// std::cout << "File sent not yet successfully flag = 0" << std::endl;
 			return 0;
+		}
 		if (flag == 2)
 		{
 			std::cout << "File sent successfully flag = 2" << std::endl;
@@ -119,7 +118,7 @@ int Server::sendResponse(int client_fd, Client &client) {
 			client._response._fileOffset = 0;
 			client._response.file.close();
 			client._response._isopen = false;
-			// client._response.reset();
+			client._response.reset();
 			client._keepAlive = client._response._keepAlive;
 			return 1;
 		}

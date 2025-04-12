@@ -1,23 +1,18 @@
 Server fd: 3 listening on port 8080
 Server fd: 4 listening on port 5050
 Server fd: 5 listening on port 8082
-Server on port 8080 accepted new connection: FD 6 from 127.0.0.1:52950
+Server on port 5050 accepted new connection: FD 6 from 127.0.0.1:53432
 Request destructor called
-query: 
-extension: .mp4
-path: /film.mp4
-Header: ||User-Agent|| = ||PostmanRuntime/7.33.0||
-Header: ||Accept|| = ||*/*||
-Header: ||Cache-Control|| = ||no-cache||
-Header: ||Postman-Token|| = ||a5b5bd95-5597-4f78-a641-fe727aaaa4d5||
-Header: ||host|| = ||localhost:8080||
-Header: ||Accept-Encoding|| = ||gzip, deflate, br||
-Header: ||Connection|| = ||keep-alive||
+-----------  res : 2 request complite from client : | 6 | --> pass to response -------------
+_header_flag: 0
 File opened successfully: /Users/hben-laz/Desktop/webserve/web_merge/www/film.mp4
-Headers sent: HTTP/1.1 200 OK
+
+*********************** Headers response *********************
+HTTP/1.1 200 OK
 Content-Type: video/mp4
 Content-Length: 460200890
 Accept-Ranges: bytes
 Connection: keep-alive
 
+*********************** end of header response *********************
 
