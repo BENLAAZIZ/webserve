@@ -195,11 +195,6 @@ void ConfigFile::handleEvents() {
                 int res = servers[owner_server]->sendResponse(current_fd, _clients[current_fd]);
 
                 // std::cout << "--------------------------------------res: " << res << std::endl;
-                if (res == 0) {
-                    // No data to send, continue to read
-                    // std::cout << "No data to send, continue reading" << std::endl;
-                    return ; 
-                }
                if (res < 0) {
                     // Error sending response
                     std::cerr << "Error sending response to client" << std::endl;

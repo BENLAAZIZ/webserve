@@ -96,7 +96,7 @@ int	Response::send_file_response(char *buffer, int bytes_read)
 {
 		ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
 		buffer[bytes_read] = '\0'; // Null-terminate the buffer for safety
-	if (sent > 0) {
+	if (sent >= 0) {
 		_fileOffset += sent;
 		if (file.eof()) 
 		{
@@ -116,6 +116,13 @@ int	Response::send_file_response(char *buffer, int bytes_read)
 	} 
 	else 
 	{
+		// ============ Error handling ================
+		if (errno == EAGAIN || errno == EWOULDBLOCK) {
+			// Socket not ready yet, try again later
+			std::cout << "Socket not ready yet, try again later" << std::endl;
+			return 0;
+		}
+		// ==========================================
 		std::cerr << "Error sending file data: " << strerror(errno) << std::endl;
 		_responseBuffer.clear();
 		_responseSent = true;
@@ -143,6 +150,17 @@ int Response::open_file(int *flag, std::string fullPath, int *code)
 	}
 	std::cout << "File opened successfully: " << fullPath << std::endl;
 	return 0;
+	// fd = open(fullPath.c_str(), O_RDONLY);
+	// if (fd < 0) {
+	// 	std::cerr << "Error opening file: " << strerror(errno) << std::endl;
+	// 	// request.set_status_code(404);
+	// 	*code = 500;
+	// 	*flag = 1;
+	// 	return;
+	// }
+	// fileSize = lseek(fd, 0, SEEK_END);
+	// lseek(fd, 0, SEEK_SET);
+	// _isopen = true;
 }
 
 

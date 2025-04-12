@@ -25,6 +25,7 @@ class Response {
         int bytes_sent;
         // stuct of location 
         // Location        _location;
+        off_t			fileSize;
 
 
     public:

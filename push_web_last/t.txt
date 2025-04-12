@@ -1,7 +1,7 @@
 Server fd: 3 listening on port 8080
 Server fd: 4 listening on port 5050
 Server fd: 5 listening on port 8082
-Server on port 5050 accepted new connection: FD 6 from 127.0.0.1:53432
+Server on port 5050 accepted new connection: FD 6 from 127.0.0.1:53689
 Request destructor called
 -----------  res : 2 request complite from client : | 6 | --> pass to response -------------
 _header_flag: 0
