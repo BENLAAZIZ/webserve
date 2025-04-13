@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/10 23:45:31 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/04/09 00:10:44 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/04/13 22:09:13 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "web.h"
 
 
+class ConfigParser;
 class Server;
 class Client;
 
@@ -24,7 +25,7 @@ class ConfigFile {
 		ConfigFile();
 		~ConfigFile();
 	
-		void addServer(int port);
+		void addServer(int port, Server_holder& serv_hldr);
 		void run();
 
 	public:
@@ -32,6 +33,8 @@ class ConfigFile {
 		std::vector<Server*> servers;
 		std::map<int, int> client_server_map;  // Maps client fd -> server index to track which server a client is connected to
 		std::map<int, Client> _clients;
+
+		ConfigParser parser;
 
 		void handleEvents();
 		void cleanupDisconnectedClient(int client_fd);

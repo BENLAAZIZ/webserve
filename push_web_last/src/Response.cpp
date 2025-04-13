@@ -1,19 +1,286 @@
+// #include "../include/web.h"
+
+// Response::Response() : 
+//     _status(OK_200),
+//     _httpVersion("HTTP/1.1"),
+//     _isServingFile(false),
+//     _fileSize(0),
+//     _bytesSent(0),
+//     _state(RESPONSE_BUILDING),
+//     _bufferPosition(0) {
+// }
+
+// Response::~Response() {
+//     if (_fileStream.is_open()) {
+//         _fileStream.close();
+//     }
+// }
+
+// void Response::setStatus(ResponseStatus status) {
+//     _status = status;
+//     _statusMessage = getStatusMessage(status);
+// }
+
+// void Response::setHeader(const std::string& key, const std::string& value) {
+//     _headers[key] = value;
+// }
+
+// void Response::setBody(const std::string& body) {
+//     _body = body;
+//     _headers["Content-Length"] = std::to_string(body.size());
+// }
+
+// bool Response::setFileToServe(const std::string& path) {
+//     // Check if file exists and is readable
+//     struct stat fileStat;
+//     if (stat(path.c_str(), &fileStat) != 0) {
+//         return false;
+//     }
+    
+//     // Open the file
+//     _fileStream.open(path, std::ios::binary);
+//     if (!_fileStream.is_open()) {
+//         return false;
+//     }
+    
+//     _filePath = path;
+//     _isServingFile = true;
+//     _fileSize = fileStat.st_size;
+//     _headers["Content-Length"] = std::to_string(_fileSize);
+//     _headers["Content-Type"] = getMimeType(path);
+    
+//     return true;
+// }
+
+// void Response::buildResponse() {
+//     // First, add any missing headers
+//     buildHeaders();
+    
+//     // Create the response header section
+//     std::stringstream ss;
+//     ss << _httpVersion << " " << _status << " " << _statusMessage << "\r\n";
+    
+//     // Add headers
+//     for (const auto& header : _headers) {
+//         ss << header.first << ": " << header.second << "\r\n";
+//     }
+    
+//     // End of headers
+//     ss << "\r\n";
+    
+//     // Add body if not serving a file
+//     if (!_isServingFile) {
+//         ss << _body;
+//     }
+    
+//     // Store in buffer
+//     _buffer = ss.str();
+//     _bufferPosition = 0;
+//     _state = RESPONSE_READY;
+// }
+
+// void Response::buildHeaders() {
+//     // Set date header
+//     // This would be better with a proper date/time library
+//     time_t now = time(0);
+//     struct tm* gmtm = gmtime(&now);
+//     char dateStr[100];
+//     strftime(dateStr, sizeof(dateStr), "%a, %d %b %Y %H:%M:%S GMT", gmtm);
+//     _headers["Date"] = dateStr;
+    
+//     // Set server header
+//     _headers["Server"] = "webserv/1.0";
+    
+//     // Set connection header
+//     if (_headers.find("Connection") == _headers.end()) {
+//         _headers["Connection"] = "keep-alive";
+//     }
+    
+//     // Set content-type if not already set
+//     if (_headers.find("Content-Type") == _headers.end() && !_body.empty()) {
+//         _headers["Content-Type"] = "text/html";
+//     }
+// }
+
+// bool Response::hasMoreData() const {
+//     if (_isServingFile) {
+//         return _bufferPosition < _buffer.size() || _bytesSent < _fileSize;
+//     } else {
+//         return _bufferPosition < _buffer.size();
+//     }
+// }
+
+// const char* Response::getNextDataChunk(size_t& length) {
+//     // If we still have header data to send
+//     if (_bufferPosition < _buffer.size()) {
+//         length = _buffer.size() - _bufferPosition;
+//         return _buffer.c_str() + _bufferPosition;
+//     }
+    
+//     // If we're serving a file and have file data to send
+//     if (_isServingFile && _bytesSent < _fileSize) {
+//         // Buffer size for file reading
+//         const size_t BUFFER_SIZE = 8192;
+//         static char fileBuffer[BUFFER_SIZE];
+        
+//         // Read from file
+//         _fileStream.read(fileBuffer, BUFFER_SIZE);
+//         length = _fileStream.gcount();
+        
+//         return fileBuffer;
+//     }
+    
+//     // No more data
+//     length = 0;
+//     return nullptr;
+// }
+
+// void Response::advancePosition(size_t sent) {
+//     // If we're still sending the header/non-file body
+//     if (_bufferPosition < _buffer.size()) {
+//         size_t headerRemaining = _buffer.size() - _bufferPosition;
+//         if (sent <= headerRemaining) {
+//             _bufferPosition += sent;
+//             return;
+//         }
+//         // We've sent all the header and some file data
+//         _bufferPosition = _buffer.size();
+//         sent -= headerRemaining;
+//     }
+    
+//     // Update file position if we're serving a file
+//     if (_isServingFile) {
+//         _bytesSent += sent;
+//     }
+    
+//     // Check if we're done
+//     if (!hasMoreData()) {
+//         _state = RESPONSE_COMPLETE;
+//     }
+// }
+
+// ResponseState Response::getState() const {
+//     return _state;
+// }
+
+// void Response::setState(ResponseState state) {
+//     _state = state;
+// }
+
+// void Response::reset() {
+//     _status = OK_200;
+//     _statusMessage = getStatusMessage(_status);
+//     _headers.clear();
+//     _body.clear();
+//     _buffer.clear();
+//     _bufferPosition = 0;
+    
+//     if (_fileStream.is_open()) {
+//         _fileStream.close();
+//     }
+    
+//     _filePath.clear();
+//     _isServingFile = false;
+//     _fileSize = 0;
+//     _bytesSent = 0;
+    
+//     _state = RESPONSE_BUILDING;
+// }
+
+// void Response::generateErrorPage(ResponseStatus status) {
+//     setStatus(status);
+    
+//     std::stringstream ss;
+//     ss << "<!DOCTYPE html>\n";
+//     ss << "<html>\n";
+//     ss << "<head><title>" << _status << " " << _statusMessage << "</title></head>\n";
+//     ss << "<body>\n";
+//     ss << "<h1>" << _status << " " << _statusMessage << "</h1>\n";
+//     ss << "<hr>\n";
+//     ss << "<p>webserv/1.0</p>\n";
+//     ss << "</body>\n";
+//     ss << "</html>";
+    
+//     setBody(ss.str());
+//     setHeader("Content-Type", "text/html");
+// }
+
+// std::string Response::getStatusMessage(ResponseStatus status) {
+//     switch (status) {
+//         case OK_200: return "OK";
+//         case CREATED_201: return "Created";
+//         case NO_CONTENT_204: return "No Content";
+//         case MOVED_PERMANENTLY_301: return "Moved Permanently";
+//         case FOUND_302: return "Found";
+//         case BAD_REQUEST_400: return "Bad Request";
+//         case UNAUTHORIZED_401: return "Unauthorized";
+//         case FORBIDDEN_403: return "Forbidden";
+//         case NOT_FOUND_404: return "Not Found";
+//         case METHOD_NOT_ALLOWED_405: return "Method Not Allowed";
+//         case REQUEST_TIMEOUT_408: return "Request Timeout";
+//         case LENGTH_REQUIRED_411: return "Length Required";
+//         case PAYLOAD_TOO_LARGE_413: return "Payload Too Large";
+//         case URI_TOO_LONG_414: return "URI Too Long";
+//         case UNSUPPORTED_MEDIA_TYPE_415: return "Unsupported Media Type";
+//         case INTERNAL_SERVER_ERROR_500: return "Internal Server Error";
+//         case NOT_IMPLEMENTED_501: return "Not Implemented";
+//         case BAD_GATEWAY_502: return "Bad Gateway";
+//         case SERVICE_UNAVAILABLE_503: return "Service Unavailable";
+//         case GATEWAY_TIMEOUT_504: return "Gateway Timeout";
+//         case HTTP_VERSION_NOT_SUPPORTED_505: return "HTTP Version Not Supported";
+//         default: return "Unknown Status";
+//     }
+// }
+
+// std::string Response::getMimeType(const std::string& path) {
+//     // Extract file extension
+//     size_t dotPos = path.find_last_of('.');
+//     if (dotPos == std::string::npos) {
+//         return "application/octet-stream";
+//     }
+    
+//     std::string ext = path.substr(dotPos + 1);
+    
+//     // Convert to lowercase
+//     std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
+    
+//     // Common MIME types
+//     if (ext == "html" || ext == "htm") return "text/html";
+//     if (ext == "css") return "text/css";
+//     if (ext == "js") return "application/javascript";
+//     if (ext == "jpg" || ext == "jpeg") return "image/jpeg";
+//     if (ext == "png") return "image/png";
+//     if (ext == "gif") return "image/gif";
+//     if (ext == "svg") return "image/svg+xml";
+//     if (ext == "ico") return "image/x-icon";
+//     if (ext == "txt") return "text/plain";
+//     if (ext == "pdf") return "application/pdf";
+//     if (ext == "xml") return "application/xml";
+//     if (ext == "json") return "application/json";
+    
+//     // Default
+//     return "application/octet-stream";
+// }
+
+
+
+
+// =================================================================================
+
+
+
+
 #include "../include/web.h"
-#include <sys/mman.h> // for mmap()
-#include <sys/stat.h> // for fstat()
-#include <unistd.h>   // for close()
 
 Response::Response() : _responseSent(false), 
-                _keepAlive(false),
-                _header_falg(false),
-                    _isopen(false),
-                    _fileOffset(0) {
-				// fd = open("red_t.txt", O_CREAT | O_RDWR | O_APPEND, 0644);
-
-				flag_p = 0;
-				is_file = 0;
-				is_dir = 0;
-				bytes_sent = 0;
+                        _keepAlive(false),
+                        _header_falg(false),
+                        _isopen(false),
+                        _fileOffset(0),
+                        flag_p(0),
+                        is_file(0),
+                        is_dir (0),
+                        bytes_sent(0){
 }
 
 Response::~Response() {
@@ -31,23 +298,14 @@ Response& Response::operator=(const Response& other)
 	if (this != &other)
 	{
 		_responseBuffer = other._responseBuffer;
-        // _request = other._request;
         _responseSent = other._responseSent;
         _keepAlive = other._keepAlive;
         _header_falg = other._header_falg;
         _isopen = other._isopen;
         _fileOffset = other._fileOffset;
-        // file = other.file;
-        // filetest = other.filetest;
 	}
 	return *this;
 }
-
-// int Response::getStatus() const {
-//     return _request.getStatusCode();
-// }
-
-
 
 void Response::reset() {
     _responseSent = false;
@@ -57,42 +315,9 @@ void Response::reset() {
     _fileOffset = 0;
     _responseBuffer.clear();
     file.close();
-	// fullPath.clear();
+	fullPath.clear();
 	flag_p = 0;
 }
-
-
-
-
-// void Response::send_header_response(size_t CHUNK_SIZE, std::string path) 
-// {
-// 	std::string content_type = get_MimeType(path);
-// 	_isopen = true;
-// 	_fileOffset = 0; 
-// 	file.seekg(_fileOffset, std::ios::end);
-// 	size_t file_size = file.tellg();
-// 	file.seekg(_fileOffset, std::ios::beg);  // Reset to beginning for reading
-// 	if (file_size > CHUNK_SIZE)
-// 		_keepAlive = true;            
-// 	// Generate headers
-// 	std::ostringstream headers;
-// 	headers << "HTTP/1.1 200 OK\r\n";
-// 	headers << "Content-Type: " << content_type << "\r\n";
-// 	headers << "Content-Length: " << file_size << "\r\n";
-// 	headers << "Accept-Ranges: bytes\r\n";
-// 	if (_keepAlive)
-// 		headers << "Connection: keep-alive\r\n";
-// 	else
-// 		headers << "Connection: close\r\n";
-// 	headers << "\r\n";
-// 	_header_falg = true;
-// 	_responseBuffer = headers.str();
-// 	send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
-// 	std::cout << "\n*********************** Headers response *********************" <<  std::endl;
-// 	std::cout  << _responseBuffer ;
-// 	std::cout << "*********************** end of header response *********************\n" <<  std::endl;
-// 	_responseBuffer.clear();
-// }
 
 // ========== send header response ==========
 
@@ -170,9 +395,6 @@ void Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request
 	_responseBuffer.clear();
 }
 
-// ============================
-
-
 int	Response::send_file_response(char *buffer, int bytes_read)
 {
 		ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
@@ -224,59 +446,27 @@ int Response::open_file(int *flag, std::string fullPath, int *code)
 	file.open(fullPath, std::ios::binary);
 	if (!file) {
 		std::cerr << "Failed to open file: " << fullPath << std::endl;
-		// _request.set_status_code(500);
 		*code = 500;
 		*flag = 1;
 		return 1;
 	}
 	std::cout << "File opened successfully: " << fullPath << std::endl;
 	return 0;
-	// fd = open(fullPath.c_str(), O_RDONLY);
-	// if (fd < 0) {
-	// 	std::cerr << "Error opening file: " << strerror(errno) << std::endl;
-	// 	// request.set_status_code(404);
-	// 	*code = 500;
-	// 	*flag = 1;
-	// 	return 1;
-	// }
-	// fileSize = lseek(fd, 0, SEEK_END);
-	// lseek(fd, 0, SEEK_SET);
-	// _isopen = true;
-	// _fileOffset = 0;
-	// return 0;
 }
-
-
 
 void Response::handleGetResponse(int *flag, Request &request) {
 
     *flag = 0;
 
     std::string path = request.getpath();
-    if (path == "/") {
-        path = "/index.html"; // Default page
-    }
-	// Check for directory traversal attempts
-	if (path.find("..") != std::string::npos) {
-		std::cerr << "Directory traversal attempt: " << path << std::endl;
-		request.set_status_code(403);
-        *flag = 1;
-		return ;
-	}
 
-	// ----------------------------------------
-
-	// find location
-	    //  path = resolverequest_path(path, locations, default_root);
-	// ----------------------------------------
-    // std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
-    // fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www" + path;
+    std::cout << "==   path  =: " << path << std::endl;
 	if (flag_p == 0)
 	{
-		// path = resolverequest_path(path, locations, default_root);
-		fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www";
-	      fullPath = fullPath + path;
-		resolverequest_path22(fullPath);
+	// 	// path = resolverequest_path(path, locations, default_root);
+	// 	fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/www";
+	//       fullPath = fullPath + path;
+		resolverequest_path22(path);
 		  flag_p = 1;
 	}
     // Check if file exists
@@ -285,16 +475,15 @@ void Response::handleGetResponse(int *flag, Request &request) {
 			std::cout << "CGI" << std::endl;
 			pause();
 	}
-    // struct stat fileStat;
-    // if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
+//    pause();
     if (this->is_file) {
         // File exists, serve it
+		std::cout << "/////   fullPath: " << path << std::endl;
         const size_t CHUNK_SIZE = 1024; // Increased chunk size for better performance
         if (_header_falg == false) {
 			std::cout << "_header_flag: " << _header_falg << std::endl;
-			if (open_file(flag, fullPath, &request.code) == 1)
+			if (open_file(flag, path, &request.code) == 1)
 			    return ;
-			// send_header_response(CHUNK_SIZE, path);
 			send_header_response(CHUNK_SIZE, path, request);
         }
         if (_isopen) {
@@ -322,7 +511,6 @@ void Response::handleGetResponse(int *flag, Request &request) {
                 return ;
             }
         }
-    // } else if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISDIR(fileStat.st_mode)) {
     } else if (this->is_dir) {
         // Directory listing (optional, could redirect to index or show listing)
         std::cout << "Directory listing not implemented" << std::endl;
@@ -330,7 +518,7 @@ void Response::handleGetResponse(int *flag, Request &request) {
         *flag = 1;
         return ;
     } else {
-		std::cout << "==   fullPath: " << fullPath << std::endl;
+		std::cout << "==   fullPath: " << path << std::endl;
         // File not found
         request.set_status_code(404);
         *flag = 1;
@@ -339,11 +527,6 @@ void Response::handleGetResponse(int *flag, Request &request) {
     return ;
 }
 
-// ========================================
-
-
-
-// =======================================
 
 // void Response::handleDeleteRequest() {
 // 	// Simple DELETE handler
@@ -524,65 +707,6 @@ std::string	Response::get_error_missage(int errorCode) const
 
 // ====== location ======
 
-// std::string Response::resolve_request_path(const std::string& uri, std::vector<Location>& locations, const std::string& default_root) {
-//     Location* loc = find_matching_location(uri, locations);
-//     std::string root = loc ? loc->root_name : default_root;
-//     std::string full_path = join_paths(root, uri);
-
-//     if (is_directory(full_path)) {
-//         if (!has_trailing_slash(uri)) {
-//             return "301 Redirect to " + uri + "/";
-//         }
-
-//         if (loc && !loc->index.empty()) {
-//             std::string index_path = join_paths(full_path, loc->index);
-//             if (file_exists(index_path)) {
-//                 return index_path;
-//             }
-//         }
-
-//         if (loc && loc->autoindex) {
-//             return generate_directory_listing(full_path);
-//         }
-
-//         return "403 Forbidden";
-//     }
-
-//     if (file_exists(full_path)) {
-//         return full_path;
-//     }
-//     return "404 Not Found";
-// }
-
-// ======= find matching location =======
-
-// Location* Response::find_matching_location(const std::string& uri, std::vector<Location>& locations) {
-//     Location* best_match = NULL;
-//     size_t best_length = 0;
-
-//     for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); ++it) {
-//         if (uri.find(it->path) == 0 && it->path.length() > best_length) {
-//             best_match = &(*it);
-//             best_length = it->path.length();
-//         }
-//     }
-//     return best_match;
-// }
-
-// ========== join paths ==========
-
-// std::string Response::join_paths(const std::string& a, const std::string& b) {
-//     if (a.empty()) return b;
-//     if (b.empty()) return a;
-
-//     if (a[a.size() - 1] == '/' && b[0] == '/')
-//         return a + b.substr(1);
-//     if (a[a.size() - 1] != '/' && b[0] != '/')
-//         return a + "/" + b;
-
-//     return a + b;
-// }
-
 // ========== is directory ==========
 
 bool is_directory(const std::string& path) {
@@ -598,17 +722,6 @@ bool file_exists(const std::string& path) {
     struct stat info;
     return (stat(path.c_str(), &info) == 0 && S_ISREG(info.st_mode));
 }
-
-// ========== has trailing slash ==========
-// bool has_trailing_slash(const std::string& path) {
-// 	return !path.empty() && path[path.size() - 1] == '/';
-// }
-
-// ========== generate directory listing ==========
-// std::string generate_directory_listing(const std::string& path) {
-// 	// Implement directory listing generation here
-// 	return "<html><body>Directory listing not implemented</body></html>";
-// }
 
 // ========== end location ==========
 

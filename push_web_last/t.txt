@@ -1,19 +1,120 @@
+after host: localhost
+host: 127.0.0.1
 Server fd: 3 listening on port 8080
-Server fd: 4 listening on port 5050
-Server fd: 5 listening on port 8082
-Server on port 8080 accepted new connection: FD 6 from 127.0.0.1:54308
-Request destructor called
------------  res : 2 request complite from client : | 6 | --> pass to response -------------
+after host: localhost
+host: 127.0.0.1
+Server fd: 4 listening on port 8081
+Server on port 8080 accepted new connection: FD 5 from 127.0.0.1:55802
+--------------------------------
+root: /docs/upload
+get path: /upload
+--------------------------------
+is dir: 
+*******: 
+
+index_path: /Users/hben-laz/Desktop/push_web_last/docs/upload/index.html
+---> index_path exist: /Users/hben-laz/Desktop/push_web_last/docs/upload/index.html
+,,,,,,,, file exist: /Users/hben-laz/Desktop/push_web_last/docs/upload/index.html
+GET response received
+==   path  =: /Users/hben-laz/Desktop/push_web_last/docs/upload/index.html
+/////   fullPath: /Users/hben-laz/Desktop/push_web_last/docs/upload/index.html
 _header_flag: 0
-File opened successfully: /Users/hben-laz/Desktop/webserve/web_merge/www/5.mp4
+File opened successfully: /Users/hben-laz/Desktop/push_web_last/docs/upload/index.html
 
 *********************** Headers response *********************
-HTTP/1.1 206 Partial Content
-Content-Type: video/mp4
-Content-Length: 1001
+HTTP/1.1 200 OK
+Content-Type: text/html
+Content-Length: 1765
 Accept-Ranges: bytes
-Content-Range: bytes 1000-2000/17824595
+Connection: keep-alive
+
+*********************** end of header response *********************
+
+--------------------------------
+root: /docs/html
+get path: /Users/hben-laz/Desktop/push_web_last/docs/upload/index.html
+--------------------------------
+is dir: 
+*******: 
+
+index_path: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+---> index_path exist: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+,,,,,,,, file exist: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+GET response received
+==   path  =: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+/////   fullPath: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+ end of file : File sent successfully
+bytes_sent: 1765
+File sent successfully flag = 2
+Server on port 8080 accepted new connection: FD 5 from 127.0.0.1:55803
+--------------------------------
+root: /docs/html
+get path: /style.css
+--------------------------------
+-------- 404 Not Found: --------
+---- Error: 404
+
+*********************** Headers response *********************
+HTTP/1.1 404 Not Found
+Content-Type: text/html
+Content-Length: 231
 Connection: close
 
 *********************** end of header response *********************
 
+Server on port 8080 accepted new connection: FD 5 from 127.0.0.1:55804
+--------------------------------
+root: /docs/html
+get path: /favicon.ico
+--------------------------------
+-------- 404 Not Found: --------
+---- Error: 404
+
+*********************** Headers response *********************
+HTTP/1.1 404 Not Found
+Content-Type: text/html
+Content-Length: 231
+Connection: close
+
+*********************** end of header response *********************
+
+Server on port 8080 accepted new connection: FD 5 from 127.0.0.1:55807
+POST request received
+Filename: /Users/hben-laz/goinfre/uploads/giff.gif
+End of request
+--------------------------------
+root: /docs/upload
+get path: /upload
+--------------------------------
+is dir: 
+*******: 
+
+index_path: /Users/hben-laz/Desktop/push_web_last/docs/upload/index.html
+---> index_path exist: /Users/hben-laz/Desktop/push_web_last/docs/upload/index.html
+,,,,,,,, file exist: /Users/hben-laz/Desktop/push_web_last/docs/upload/index.html
+POST request received
+filePath: /Users/hben-laz/Desktop/push_web_last/docs/upload/index.html
+--------------------------------
+root: /docs/html
+get path: /Users/hben-laz/Desktop/push_web_last/docs/upload/index.html
+--------------------------------
+is dir: 
+*******: 
+
+index_path: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+---> index_path exist: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+,,,,,,,, file exist: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+POST request received
+filePath: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+--------------------------------
+root: /docs/html
+get path: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+--------------------------------
+is dir: 
+*******: 
+
+index_path: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+---> index_path exist: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+,,,,,,,, file exist: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html
+POST request received
+filePath: /Users/hben-laz/Desktop/push_web_last/docs/html/index.html

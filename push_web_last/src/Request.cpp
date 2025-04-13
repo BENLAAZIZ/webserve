@@ -11,12 +11,14 @@ Request::Request()
 	headersParsed = false;
 	bodyFlag = false;
 	transferEncodingExist = false;
+
 	isCGI = false;
 	extension = "";
 	query = "";
 	method = "";
 	path = "";
 	version = "";
+
 	//boundary
 	formData.flag = 0;
 	formData.pos = 0;
@@ -33,12 +35,11 @@ Request::Request()
 
 	// end of request
 	endOfRequest = false;
+	my_root = "/Users/hben-laz/Desktop/push_web_last";
 }
 
 Request::~Request()
 {
-	std::cout << "Request destructor called" << std::endl;
-	reset();
 }
 
 Request::Request(const Request& other)
@@ -59,6 +60,13 @@ Request& Request::operator=(const Request& other)
 		path = other.path;
 		version = other.version;
 		extension = other.extension;
+		query = other.query;
+		body = other.body;
+		content_length = other.content_length;
+		flag_end_of_headers = other.flag_end_of_headers;
+		headersParsed = other.headersParsed;
+		bodyFlag = other.bodyFlag;
+		transferEncodingExist = other.transferEncodingExist;
 		// statusCode = other.statusCode;
 		code = other.code;
 		headers = other.headers;
@@ -84,6 +92,8 @@ std::string Request::getHeader(const std::string& key) const
 	std::map<std::string, std::string>::const_iterator it = headers.find(key);
 	return (it != headers.end()) ? it->second : "";
 }
+// std::string Request::getStatusCodeMessage() const 
+// { return statusCode.message; }
 
 std::string Request::getBody() const 
 { return body;}
@@ -117,7 +127,6 @@ const std::map<std::string, std::string>& Request::getHeaders() const {
 	return headers; 
 }
 
-// hadi yalah zatha
 bool Request::hasHeader(const std::string& key) const {
 	return headers.find(key) != headers.end();
 }
@@ -221,8 +230,8 @@ void	Request::reset()
 	method.clear();
 	path.clear();
 	version.clear();
-	query.clear();
 	extension.clear();
+	query.clear();
 	headers.clear();
 	body.clear();
 	content_length = 0;
@@ -230,10 +239,9 @@ void	Request::reset()
 	headersParsed = false;
 	bodyFlag = false;
 	transferEncodingExist = false;
-	buffer.clear(); // check if needed
+	buffer.clear();
 	_requestBuffer.clear();
-
-
+	endOfRequest = false;
 }
 
 // void Request::initializeEncode(){
@@ -279,10 +287,14 @@ bool Request::checkPath(std::string& path){
 	size_t queryPos = path.find('?');
 	if (queryPos != std::string::npos)
 	{
-		this->query  = path.substr(queryPos, path.size());
+		// this->query  = path.substr(queryPos, path.size());
 		// this->query = pathCopy;
 		path = path.substr(0, queryPos);
 		// =====
+	}
+	if (path.find("..") != std::string::npos) {
+		std::cerr << "Directory traversal attempt: " << path << std::endl;
+		return (set_status_code(403), false);
 	}
 	size_t dotPos = path.find_last_of('.');
 	if (dotPos != std::string::npos) 
@@ -291,10 +303,6 @@ bool Request::checkPath(std::string& path){
 	{
 		this->isCGI = true;
 	}
-	// std::cout << "query: " << query << std::endl;
-	// std::cout << "extension: " << extension << std::endl;
-	// =====
-	// std::cout << "path: " << path << std::endl;
 	return true;
 }
 
@@ -315,6 +323,8 @@ std::string Request::urlDecode(const std::string& str) {
 	}
 	return decoded;
 }
+
+
 
 //---------------------------------(chunked data)
 void Request::handleChunkedData(Request& request) {

@@ -12,13 +12,17 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <cstring>      // for memset, strerror
+#include <netdb.h>      // for getaddrinfo, addrinfo
 #include <fcntl.h>
 #include <unistd.h>
 #include <poll.h>
 #include <exception>
+
 #include <sys/stat.h>
 #include <fstream>
 
+#include "ConfigParser.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Server.hpp"

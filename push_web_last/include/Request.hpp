@@ -20,6 +20,12 @@
 // };
 
 
+// typedef struct StatusCode 
+// {
+// 	std::size_t	code;
+// 	std::string	message;
+// } StatusCode;
+
 struct FormData{
     std::string name;
     std::string filename;
@@ -36,6 +42,7 @@ struct FormData{
 	std::size_t totalBytesRead;
 	std::size_t totalBytes;
 };
+
 
 struct ChunkedData {
     ssize_t chunkSize;
@@ -66,6 +73,7 @@ class Request
 		int code;
 		bool 			endOfRequest;
 		bool 			isCGI;
+		std::string			my_root;
 		std::map<std::string, std::string> encode;
 		// StatusCode statusCode;
 		std::string content_type;
@@ -90,7 +98,7 @@ class Request
 		std::string	getVersion() const;
 		std::string	getExtension() const;
 		std::string	getHeader(const std::string& key) const;
-		std::string	getStatusCodeMessage() const;
+		// std::string	getStatusCodeMessage() const;
 		std::string	getBody() const;
 		std::string	getContent_type() const;
 		std::size_t	getContentLength() const;
@@ -125,12 +133,12 @@ class Request
 		bool checkPath(std::string& path);
 		bool hasHeader(const std::string& key) const;
 
-
 		//-----POst
 		void handleChunkedData(Request& request);
 		void handleBoundary(Request& request);
 		void handleChunkedBoundary(Request& request);
 };
+
 
 //chunked
 int hexToDecimal(const std::string& str);

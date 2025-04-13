@@ -17,8 +17,9 @@ ConfigFile::~ConfigFile() {
 	}
 }
 
-void ConfigFile::addServer(int port) {
-	Server* server = new Server(port);
+void ConfigFile::addServer(int port, Server_holder& serv_hldr) {
+	Server* server = new Server(port, serv_hldr);
+    server->serv_hldr = serv_hldr;
 	// ========================
 	server->setConfig(this);
 	// ========================
@@ -111,6 +112,7 @@ void ConfigFile::cleanupDisconnectedClient(int client_fd) {
 // 	}
 // }
 
+
 //----- start added -----//
 
 void ConfigFile::handleEvents() {
@@ -138,7 +140,6 @@ void ConfigFile::handleEvents() {
                     break;
                 }
             }
-
             if (is_server) { // Handle new connection on this server
                 int client_fd = servers[server_index]->acceptNewConnection();
                 if (client_fd >= 0) {
@@ -158,10 +159,9 @@ void ConfigFile::handleEvents() {
 
                     res = servers[owner_server]->handleClientData(current_fd, _clients[current_fd]);
                     
-                    // if (res < 0 || res == 1) {
-                    if (res < 0) {
+                    if (res < 0 || res == 1) {
                         // Client disconnected or error
-                        std::cerr << "(in pollin) -> Client disconnected from client : | " << current_fd << " | " << std::endl;
+                        std::cerr << "Client disconnected" << std::endl;
                         cleanupDisconnectedClient(current_fd);
                     }
                     else if (res == 0) {
@@ -170,7 +170,6 @@ void ConfigFile::handleEvents() {
                     }
                     else if (res == 2) {
                         // Request fully received, switch to POLLOUT to send response
-                        std::cout << "-----------  res : "  << res << " request complite from client : | " << current_fd << " | --> pass to response -------------" << std::endl;
                         for (size_t j = 0; j < poll_fds.size(); ++j) {
                             if (poll_fds[j].fd == current_fd) {
                                 poll_fds[j].events = POLLOUT;
@@ -190,25 +189,24 @@ void ConfigFile::handleEvents() {
         else if (current_fds[i].revents & POLLOUT) {
             if (client_server_map.find(current_fd) != client_server_map.end()) {
                 int owner_server = client_server_map[current_fd];
-                // std::cout << "response: " << std::endl;
+                // std::cout << "-------------------------------> " << servers[owner_server]->serv_hldr.locations[0].path << std::endl; 
+                // std::cout << "-------------------------------> " << servers[owner_server]->serv_hldr.locations[1].path << std::endl; 
+                // std::cout << "-------------------------------> " << servers[owner_server]->serv_hldr.locations[2].path << std::endl; 
                 // sendSuccessResponse(current_fd);
                 int res = servers[owner_server]->sendResponse(current_fd, _clients[current_fd]);
-
-                // std::cout << "--------------------------------------res: " << res << std::endl;
-               if (res < 0) {
+                if (res < 0) {
                     // Error sending response
                     std::cerr << "Error sending response to client" << std::endl;
                     cleanupDisconnectedClient(current_fd);
                 }
                 else if (res == 1) {
                     // Response fully sent, reset to POLLIN for next request or close connection
-                    std::cout << "============  res : "  << res << " response complite from client : | " << current_fd  << " | ===============" <<  std::endl;
                     if (_clients[current_fd].keepAlive()) {
-                        std::cout << "Keep-alive: waiting for next request" << std::endl;
                         // If keep-alive is set, switch back to POLLIN for next request
                         for (size_t j = 0; j < poll_fds.size(); ++j) {
                             if (poll_fds[j].fd == current_fd) {
                                 poll_fds[j].events = POLLIN;
+                                // _clients[current_fd]._request.endOfRequest = false;
                                 // Reset client request state
                                 _clients[current_fd].reset();
                                 break;
@@ -216,12 +214,9 @@ void ConfigFile::handleEvents() {
                         }
                     } else {
                         // If not keep-alive, close the connection
-                        std::cout << "(in pollout) -> Closing connection for client : | " << current_fd << " | " << std::endl;
-                        _clients[current_fd].reset();
                         cleanupDisconnectedClient(current_fd);
                     }
                 }
-
                 // If res == 0, response is still being sent, continue with POLLOUT
             }
         }
@@ -250,5 +245,3 @@ void ConfigFile::set_client_map(int client_fd, Client &client)
 {
 	_clients[client_fd] = client;
 }
-
-

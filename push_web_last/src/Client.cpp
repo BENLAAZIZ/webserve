@@ -25,6 +25,8 @@ Client& Client::operator=(const Client& other)
 	{
 		_request = other._request;
 		_response = other._response;
+		_requestBuffer = other._requestBuffer;
+		_responseBuffer = other._responseBuffer;
 		request_Header_Complete = other.request_Header_Complete;
 		_responseSent = other._responseSent;
 		_keepAlive = other._keepAlive;
@@ -103,9 +105,7 @@ void Client::end_of_headers(std::string& line, int *flag)
 {
 	if (line.empty()) {
 		if (_request.getHeaders().find("host") == _request.getHeaders().end()) {
-			std::cout << "Host header not found" << std::endl;
 			_request.set_status_code(400);
-			*flag = 0;
 			return ;
 		}
 		if (_request.getMethod() == "POST")
@@ -123,11 +123,18 @@ void Client::end_of_headers(std::string& line, int *flag)
 			{
 				if (_request.getHeader("Content-Type").find("boundary=") != std::string::npos)
 				{
+					// size_t boundary_pos = _request.getHeader("Content-Type").find("boundary=");
+					// _request.boundary += "--";
+					// _request.boundary = _request.getHeader("Content-Type").substr(boundary_pos + 9);
+					// _request.setBoundary(_request.boundary);
+					// _request.boundary_end = _request.boundary + "--";
+					// _request.setContent_type("multipart/form-data");
 						size_t boundary_pos = _request.getHeader("Content-Type").find("boundary=");
 						_request.boundary += "--";
 						_request.boundary += _request.getHeader("Content-Type").substr(boundary_pos + 9);
 						_request.setBoundary(_request.boundary);
 						_request.boundary_end = _request.boundary + "--";
+						//std::cout << "boundary:* " << getBoundary() << std::endl;
 						_request.setContent_type("multipart/form-data");
 				}
 				else
@@ -137,7 +144,7 @@ void Client::end_of_headers(std::string& line, int *flag)
 		if (_request.getHeaders().find("Connection") != _request.getHeaders().end())
 		{
 			if (_request.getHeader("Connection") == "keep-alive")
-				_keepAlive = false;
+				_keepAlive = true;
 		}
 		*flag = 1;
 		return ;
@@ -151,13 +158,15 @@ bool Client::keepAlive() const {
 }
 
 void Client::reset() {
+	_requestBuffer.clear();
+	_responseBuffer.clear();
 	request_Header_Complete = false;
 	_responseSent = false;
 	_request.reset();
-	_response.reset();
-	_keepAlive = false;
+	
 	// Keep the socket and address intact
 }
+
 
 // set client_fd
 void Client::setClientFd(int client_fd)
@@ -209,6 +218,7 @@ void Client::handlePostRequest() {
 // int Client::read_data(int client_fd)
 int Client::read_data()
 {
+	// std::cout << "client_fd: " << _clientFd << std::endl;
 	char buffer[BUFFER_SIZE];
 	ssize_t bytes_read = recv(_clientFd, buffer, BUFFER_SIZE, 0);
 	if (bytes_read <= 0) {
@@ -220,3 +230,182 @@ int Client::read_data()
 	_request._requestBuffer += data; // Append new data to client's buffer
 	return 0;
 }
+
+void Client::sendSuccessResponse(int clientSocket, const std::string& path) {
+	// Open the success.html file
+	std::string root = "/Users/hben-laz/Desktop/push_web_last/docs/upload";
+	std::string filePath = root + path;
+	std::ifstream file(filePath);
+				
+	if (!file.is_open()) {
+		std::cerr << "Error: Could not open success.html" << std::endl;
+		return;
+	}
+ 
+	// Read the file contents into a stringstream
+	std::stringstream buffer;
+	buffer << file.rdbuf();
+	std::string htmlContent = buffer.str();
+
+	// Close the file
+	file.close();
+
+	// Prepare the HTTP response
+	std::string response = "HTTP/1.1 200 OK\r\n"
+						"Content-Type: text/html\r\n"
+						"Connection: close\r\n"
+						"Content-Length: " + std::to_string(htmlContent.length()) + "\r\n"
+						"\r\n" +
+						htmlContent;
+ 
+	// Send the response to the client
+	ssize_t bytesSent = send(clientSocket, response.c_str(), response.length(), 0);
+	if (bytesSent == -1) {
+		std::cerr << "Error sending response to client." << std::endl;
+		// Handle the error appropriately
+    }
+}
+
+void Client::handlePostResponse() {
+	// std::string root = "/Users/hben-laz/Desktop/db/push_web_last/docs"; //_request.getRoot();
+	std::string filePath =  _request.getpath();
+	std::cout << "filePath: " << filePath << std::endl;
+	// pause();	
+	// std::ifstream file(filePath);
+	// if (!file) {
+	// 	// File does not exist
+	// 	std::cerr << "File not found: " << filePath << std::endl;
+	// 	_request.set_status_code(404);
+	// 	return;
+	// }
+	// std::cout << "file exist: " << filePath << std::endl;
+	// // pause();
+	sendSuccessResponse(_clientFd, "/success.html");
+	// pause();
+}
+
+//===================================================================
+//===================================================================
+
+
+
+// ====== location ======
+
+int  Client::resolve_request_path(Server_holder & serv_hldr) {
+    Location* loc = find_matching_location(_request, serv_hldr.locations);
+    std::string root = loc ? loc->root : serv_hldr.root;
+	std::cout << "--------------------------------" << std::endl;
+	std::cout << "root: " << root << std::endl;
+	std::cout << "get path: " << _request.getpath() << std::endl;
+	std::cout << "--------------------------------" << std::endl;
+	root = _request.my_root + root;
+    std::string full_path;
+	// pause();	
+
+	if (_request.getExtension() != "")
+		full_path = join_paths(root, _request.getpath());
+	else
+	   full_path = root  + "/";
+	if (file_exists(full_path)) {
+		std::cout << "-------- file exist: --------" << std::endl;
+		_request.setPath(full_path);
+		_request.set_status_code(200);
+		return 200;
+    }
+
+    if (is_directory(full_path)) {
+		
+		std::cout << "is dir: " << std::endl;
+        // if (!has_trailing_slash(_request.getpath())) {
+		// 	_request.set_status_code(301);
+		// 	std::cout << "301 redirect to: " << full_path + "/" << std::endl;
+		// 	return 301;
+        //     // return "301 Redirect to " + uri + "/";
+        // }
+		std::cout << "*******: \n" <<  std::endl;
+        if (loc && !loc->index.empty()) {
+            std::string index_path = join_paths(full_path, loc->index[0]);
+			std::cout << "index_path: " << index_path << std::endl;
+			// 
+            if (file_exists(index_path)) {
+				std::cout << "---> index_path exist: " << index_path << std::endl;
+				_request.setPath(index_path);
+				_request.set_status_code(200);
+                return 200;
+            }
+        }
+        if (loc && loc->autoindex) {
+            // return generate_directory_listing(full_path);
+			std::cout << "-------- autoindex: --------" << std::endl;
+			_request.set_status_code(200);
+			_request.setPath(full_path);
+			return 200;
+        }
+	std::cout << "-------- 403 Forbidden: --------" << std::endl;
+		_request.set_status_code(403);
+		return 403;
+    }
+	std::cout << "-------- 404 Not Found: --------" << std::endl;
+	_request.set_status_code(404);
+	return 404;
+}
+
+// ======= find matching location =======
+
+Location* Client::find_matching_location(Request &request, std::vector<Location>& locations) {
+    Location* best_match = NULL;
+    size_t best_length = 0;
+
+    for (std::vector<Location>::iterator it = locations.begin(); it != locations.end(); ++it) {
+        if (request.getpath().find(it->path) == 0 && it->path.length() > best_length) {
+            best_match = &(*it);
+            best_length = it->path.length();
+        }
+    }
+    return best_match;
+}
+
+// ========== join paths ==========
+
+std::string Client::join_paths(const std::string& a, const std::string& b) {
+    if (a.empty()) return b;
+    if (b.empty()) return a;
+
+    if (a[a.size() - 1] == '/' && b[0] == '/')
+        return a + b.substr(1);
+    if (a[a.size() - 1] != '/' && b[0] != '/')
+        return a + "/" + b;
+
+    return a + b;
+}
+
+// ========== is directory ==========
+
+bool Client::is_directory(const std::string& path) {
+    struct stat info;
+    if (stat(path.c_str(), &info) != 0)
+        return false;
+    return S_ISDIR(info.st_mode);
+}
+
+// ========= file exist ==========
+
+bool Client::file_exists(const std::string& path) {
+    struct stat info;
+    return (stat(path.c_str(), &info) == 0 && S_ISREG(info.st_mode));
+}
+
+// ========== has trailing slash ==========
+bool Client::has_trailing_slash(const std::string& path) {
+	return !path.empty() && path[path.size() - 1] == '/';
+}
+
+// ========== generate directory listing ==========
+std::string Client::generate_directory_listing(const std::string& path) {
+	// Implement directory listing generation here
+	// return "<html><body>Directory listing not implemented</body></html>";
+    return path;
+}
+// ========== end location ==========
+
+

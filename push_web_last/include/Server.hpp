@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/04/09 00:10:44 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/04/13 22:09:13 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ class Server {
     public:
         ConfigFile *_config; 
         Server(int port);
+        Server(int port, Server_holder& serv_hldr);
         ~Server();
         int getServerFd() const { return server_fd; }
         int getPort() const { return port; }
@@ -36,7 +37,9 @@ class Server {
         void setConfig(ConfigFile* config); // Add setter method
         int sendResponse(int client_fd, Client &client);
         void sendSuccessResponse(int clientSocket);
-
+        
+        Server_holder serv_hldr;
+        
     private:
         int server_fd;
         int port;
