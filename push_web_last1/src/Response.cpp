@@ -228,12 +228,12 @@ void Response::handleGetResponse(int *flag, Request &request) {
             if (bytes_read > 0)
 			{
 				*flag = send_file_response(buffer, bytes_read);
-				bytes_sent += bytes_read;
-				if (*flag == 2)
-				{
-					std::cout << "bytes_sent: " << bytes_sent << std::endl;
+				// bytes_sent += bytes_read;
+				// if (*flag == 2)
+				// {
+				// 	std::cout << "bytes_sent: " << bytes_sent << std::endl;
 
-				}
+				// }
 				
 			}
 			else 

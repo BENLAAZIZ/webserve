@@ -318,13 +318,7 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 	full_path = join_paths(_request.my_root, join_paths(root, relative_path));
 
 	std::cout << ">>> Final full_path: " << full_path << std::endl;
-		if (file_exists(full_path)) {
-			std::cout << "-------- file exist: --------" << std::endl;
-			_request.setPath(full_path);
-			full_path.clear();
-			_request.set_status_code(200);
-			return 200;
-		}
+	
 
 		if (is_directory(full_path)) {
 			
@@ -353,6 +347,15 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 			_request.set_status_code(403);
 			return 403;
 		}
+	   else if (file_exists(full_path))
+	   {
+			
+			std::cout << "-------- file exist: --------" << std::endl;
+			_request.setPath(full_path);
+			full_path.clear();
+			_request.set_status_code(200);
+			return 200;
+	   }
 		std::cout << "-------- 404 Not Found: --------" << std::endl;
 		_request.set_status_code(404);
 		return 404;
