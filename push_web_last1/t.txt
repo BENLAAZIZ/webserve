@@ -1,0 +1,84 @@
+after host: localhost
+host: 127.0.0.1
+Server fd: 3 listening on port 8080
+after host: localhost
+host: 127.0.0.1
+Server fd: 4 listening on port 8081
+Server on port 8080 accepted new connection: FD 5 from 127.0.0.1:58842
+Resolving request path...
+location.path: /upload
+request.getpath: /upload
+root: /docs/upload
+>>> Final full_path: /Users/hben-laz/Desktop/webserve/push_web_last1/docs/upload
+is dir: 
+-------- autoindex: --------
+in sendResponse file exist: /Users/hben-laz/Desktop/webserve/push_web_last1/docs/upload
+GET response received
+==   path  = : /Users/hben-laz/Desktop/webserve/push_web_last1/docs/upload
+Directory listing not implemented
++++++++ File sent successfully flag = 1
+
+*********************** Headers response *********************
+HTTP/1.1 403 Forbidden
+Content-Type: text/html
+Content-Length: 231
+Connection: close
+
+*********************** end of header response *********************
+
+Server on port 8080 accepted new connection: FD 5 from 127.0.0.1:58843
+Resolving request path...
+location.path: /
+request.getpath: /favicon.ico
+root: /docs/html
+>>> Final full_path: /Users/hben-laz/Desktop/webserve/push_web_last1/docs/html/favicon.ico
+-------- 404 Not Found: --------
+---- Error: 404
+
+*********************** Headers response *********************
+HTTP/1.1 404 Not Found
+Content-Type: text/html
+Content-Length: 231
+Connection: close
+
+*********************** end of header response *********************
+
+Server on port 8080 accepted new connection: FD 5 from 127.0.0.1:58844
+Resolving request path...
+location.path: /upload
+request.getpath: /upload
+root: /docs/upload
+>>> Final full_path: /Users/hben-laz/Desktop/webserve/push_web_last1/docs/upload
+is dir: 
+-------- autoindex: --------
+in sendResponse file exist: /Users/hben-laz/Desktop/webserve/push_web_last1/docs/upload
+GET response received
+==   path  = : /Users/hben-laz/Desktop/webserve/push_web_last1/docs/upload
+Directory listing not implemented
++++++++ File sent successfully flag = 1
+
+*********************** Headers response *********************
+HTTP/1.1 403 Forbidden
+Content-Type: text/html
+Content-Length: 231
+Connection: close
+
+*********************** end of header response *********************
+
+Server on port 8080 accepted new connection: FD 5 from 127.0.0.1:58845
+Resolving request path...
+location.path: /
+request.getpath: /favicon.ico
+root: /docs/html
+>>> Final full_path: /Users/hben-laz/Desktop/webserve/push_web_last1/docs/html/favicon.ico
+-------- 404 Not Found: --------
+---- Error: 404
+
+*********************** Headers response *********************
+HTTP/1.1 404 Not Found
+Content-Type: text/html
+Content-Length: 231
+Connection: close
+
+*********************** end of header response *********************
+
