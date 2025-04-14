@@ -93,11 +93,14 @@ void Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request
 		}
 	}
 
-	size_t content_length = end - start + 1;
+	// size_t content_length = end - start + 1;
 	_fileOffset = start;
 	file.seekg(_fileOffset, std::ios::beg);
 
-	if (content_length > CHUNK_SIZE)
+	std::cout << "contentlenttttt: " << request.getContentLength() << std::endl;
+
+	// if (content_length > CHUNK_SIZE)
+	if (request.getContentLength() > CHUNK_SIZE)
 		_keepAlive = true;
 
 	// Generate headers
@@ -108,7 +111,8 @@ void Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request
 		headers << "HTTP/1.1 200 OK\r\n";
 
 	headers << "Content-Type: " << content_type << "\r\n";
-	headers << "Content-Length: " << content_length << "\r\n";
+	// headers << "Content-Length: " << content_length << "\r\n";
+	headers << "Content-Length: " << request.getContentLength() << "\r\n";
 	headers << "Accept-Ranges: bytes\r\n";
 
 	if (partial)
@@ -244,6 +248,9 @@ void Response::send_header_response_autoIndex(std::string path, Request &request
 
 	// Step 3: Set content length to the size of the HTML string
 	size_t content_length = html.size();
+	std::cout << "content_length: " << content_length << std::endl;
+		pause();
+
 
 	// Step 4: Build and send the header
 	std::ostringstream headers;
@@ -334,13 +341,15 @@ void Response::handleGetResponse(int *flag, Request &request) {
 		std::cout << "-------- fake_path: 444444444444444 : " << request.get_fake_path() << std::endl;
 
 
-        // send_header_response_autoindex(CHUNK_SIZE, path, request);
-        // send_header_response(CHUNK_SIZE, path, request);
 		// 
 		std::string html = generateAutoIndex(request.getpath(), request.get_fake_path()); // real path, URI path
-		// std::cout << html << std::endl;
-		send_header_response_autoIndex(request.getpath(), request);
+		request.setContentLength(html.length());
+		std::cout << "conentlengh = "  << request.getContentLength() << std::endl;
+        // send_header_response(CHUNK_SIZE, path, request);
+		// pause();
+        send_header_response_autoindex(path, request);
 		send(_clientFd, html.c_str(), html.length(), 0);
+		// reset();
         request.set_status_code(200);
         *flag = 2;
         return ;
