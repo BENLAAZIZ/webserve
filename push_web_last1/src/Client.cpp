@@ -296,10 +296,6 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 	std::string location_path = loc ? loc->path : "/";
 	std::string getpath = _request.getpath();
 
-	// Debug print
-	// std::cout << "location.path: " << location_path << std::endl;
-	// std::cout << "request.getpath: " << getpath << std::endl;
-	// std::cout << "root: " << root << std::endl;
 	_request.set_fake_path(getpath);
 
 	std::string relative_path = getpath;
@@ -313,18 +309,11 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 
 	// Compose full_path
 	full_path = join_paths(_request.my_root, join_paths(root, relative_path));
-
-	// std::cout << ">>> Final full_path: " << full_path << std::endl;
-
 	if (is_directory(full_path)) {
 		
-		// std::cout << "is dir: " << std::endl;
 		if (loc && !loc->index.empty()) {
 			std::string index_path = join_paths(full_path, loc->index[0]);
-			// std::cout << "index_path: " << index_path << std::endl;
-			// 
 			if (file_exists(index_path)) {
-				// std::cout << "---> index_path exist: " << index_path << std::endl;
 				_request.setPath(index_path);
 				full_path.clear();
 				_request.set_status_code(200);
@@ -332,7 +321,6 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 			}
 		}
 		else if (loc && loc->autoindex) {
-			// return generate_directory_listing(full_path);
 			std::cout << "-------- autoindex: --------" << std::endl;
 			_request.set_status_code(200);
 			_request.setPath(full_path);
@@ -403,15 +391,8 @@ bool Client::file_exists(const std::string& path) {
 }
 
 // ========== has trailing slash ==========
-bool Client::has_trailing_slash(const std::string& path) {
-	return !path.empty() && path[path.size() - 1] == '/';
-}
-
-// ========== generate directory listing ==========
-// std::string Client::generate_directory_listing(const std::string& path) {
-// 	// Implement directory listing generation here
-// 	// return "<html><body>Directory listing not implemented</body></html>";
-//     return path;
+// bool Client::has_trailing_slash(const std::string& path) {
+// 	return !path.empty() && path[path.size() - 1] == '/';
 // }
 // ========== end location ==========
 
