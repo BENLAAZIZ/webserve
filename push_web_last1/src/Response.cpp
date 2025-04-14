@@ -282,10 +282,7 @@ void Response::send_header_response_autoIndex(std::string path, Request &request
 void Response::handleGetResponse(int *flag, Request &request) {
 
     *flag = 0;
-
     std::string path = request.getpath();
-
-    std::cout << "==   path  = : " << path << std::endl;
 	if (flag_p == 0)
 	{
 		type_of_path(path);
@@ -532,11 +529,6 @@ std::string	Response::get_error_missage(int errorCode) const
 	return errorMessage;
 }
 
-
-// ====== location ======
-
-// ========== is directory ==========
-
 bool is_directory(const std::string& path) {
     struct stat info;
     if (stat(path.c_str(), &info) != 0)
@@ -544,15 +536,10 @@ bool is_directory(const std::string& path) {
     return S_ISDIR(info.st_mode);
 }
 
-// ========= file exist ==========
-
 bool file_exists(const std::string& path) {
     struct stat info;
     return (stat(path.c_str(), &info) == 0 && S_ISREG(info.st_mode));
 }
-
-// ========== end location ==========
-
 
 
 // state of path
