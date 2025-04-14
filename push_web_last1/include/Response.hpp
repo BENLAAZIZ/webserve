@@ -26,6 +26,9 @@ class Response {
         int bytes_sent;
         off_t			fileSize;
 
+        // const size_t CHUNK_SIZE = 1024;
+        size_t CHUNK_SIZE;
+
 
     public:
         Response();
@@ -35,7 +38,7 @@ class Response {
 
         // Methods
 
-        // bool        is_CGI();
+    
         bool        sendResponse(int client_fd);
         bool        keepAlive() const;
         void        handleGetResponse(int *flag, Request &request);
@@ -44,14 +47,13 @@ class Response {
         std::string	get_error_missage(int errorCode) const;
         std::string	get_code_error_path(int errorCode) const;
         std::string get_MimeType (const std::string& path);
-        // void        send_header_response(size_t CHUNK_SIZE);
-        // void        send_header_response(size_t CHUNK_SIZE, std::string path);
-        void    send_header_response(size_t CHUNK_SIZE, std::string path, Request &request);
-        int        send_file_response(char *buffer, int bytes_read);
+        void        send_header_response(size_t CHUNK_SIZE, std::string path, Request &request);
+        int         send_file_response(char *buffer, int bytes_read);
         int         open_file(int *flag, std::string fullPath, int *code);
         //=============
 
         void resolverequest_path22(std::string& path);// mo2a
+        void send_header_response_autoIndex(std::string path, Request &request);
 
 };
 

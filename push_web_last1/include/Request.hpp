@@ -19,13 +19,6 @@
 //     UNKNOWN
 // };
 
-
-// typedef struct StatusCode 
-// {
-// 	std::size_t	code;
-// 	std::string	message;
-// } StatusCode;
-
 struct FormData{
     std::string name;
     std::string filename;
@@ -64,6 +57,7 @@ class Request
 		std::string	version;
 		std::string	extension;
 		std::string query;
+		 std::string fake_path;
 		std::map<std::string, std::string> headers;
 		
 		bool bodyFlag;
@@ -75,7 +69,6 @@ class Request
 		bool 			isCGI;
 		std::string			my_root;
 		std::map<std::string, std::string> encode;
-		// StatusCode statusCode;
 		std::string content_type;
 		std::string boundary;
 		std::string boundary_end;
@@ -127,8 +120,7 @@ class Request
 		bool		parseFirstLine(const std::string& line);
 		// bool		parseHeader(std::string& line);
 		void 		reset();
-		// bool		checkPath();
-		// void		initializeEncode();
+		
 		std::string urlDecode(const std::string& str);
 		bool checkPath(std::string& path);
 		bool hasHeader(const std::string& key) const;
@@ -137,6 +129,10 @@ class Request
 		void handleChunkedData(Request& request);
 		void handleBoundary(Request& request);
 		void handleChunkedBoundary(Request& request);
+
+		std::string get_fake_path() const;
+		void set_fake_path(std::string path);
+
 };
 
 
@@ -155,5 +151,9 @@ void getHeaderBody(Request& request);
 void writeDataIfNoBoundary(Request& request);
 void eraseBoundary(Request& request, size_t nextBoundaryPos);
 void checkIfBoundaryEndReached(Request& request);
+
+
+
+
 
 #endif // REQUEST_HPP

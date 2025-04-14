@@ -158,6 +158,7 @@ int Server::handleClientData(int client_fd, Client &client) {
 		if (!client.is_Header_Complete())
 			client.parse_Header_Request();
 		if (client.is_Header_Complete() && client._request.getMethod() != "POST") {
+			std::cout << "================= header request ==================" << std::endl;
 			client._request.endOfRequest = true;
 			return 2;
 		}
@@ -219,7 +220,7 @@ int Server::sendResponse(int client_fd, Client &client) {
 		std::cout << "POST request received" << std::endl;
 		client.handlePostResponse();
 	}
-	else if (client._request.getMethod() == "GET")
+	else if (client._request.getMethod() == "GET" && client._request.getStatusCode() == 200)
 	{
 		std::cout << "GET response received" << std::endl;
 		client._response.handleGetResponse(&flag, client._request);
@@ -251,12 +252,12 @@ int Server::sendResponse(int client_fd, Client &client) {
 	{
 		// client._request.endOfRequest = false;
 	}
-	// if (client._request.getStatusCode() >= 400)
-	// {
-	// 	client._keepAlive = client._response._keepAlive;
-	// 	client._response.generate_error_response(client._request.getStatusCode(), client_fd);
-	// 	return 1;
-	// }
+	if (client._request.getStatusCode() >= 400)
+	{
+		client._keepAlive = client._response._keepAlive;
+		client._response.generate_error_response(client._request.getStatusCode(), client_fd);
+		return 1;
+	}
 	return 0;
 }
 

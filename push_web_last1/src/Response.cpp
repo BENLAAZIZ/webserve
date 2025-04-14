@@ -15,7 +15,9 @@ Response::Response() : _responseSent(false),
                         flag_p(0),
                         is_file(0),
                         is_dir (0),
-                        bytes_sent(0){
+                        bytes_sent(0)
+						{
+							CHUNK_SIZE = 1024;
 }
 
 Response::~Response() {
@@ -138,15 +140,15 @@ int	Response::send_file_response(char *buffer, int bytes_read)
 		_fileOffset += sent;
 		if (file.eof()) 
 		{
-			_responseSent = true;
-			_header_falg = false;
-			_fileOffset = 0;
-			file.close();
-			_isopen = false;
-				fullPath.clear();
-				flag_p = 0;
+			// _responseSent = true;
+			// _header_falg = false;
+			// _fileOffset = 0;
+			// file.close();
+			// _isopen = false;
+			// fullPath.clear();
+			// flag_p = 0;
+			reset();
 			std::cout << " end of file : File sent successfully" << std::endl;
-			// reset();
 			return 2;
 		}
 		// Not done yet, return  to continue processing
@@ -189,6 +191,87 @@ int Response::open_file(int *flag, std::string fullPath, int *code)
 	return 0;
 }
 
+#include <dirent.h>
+
+std::string generateAutoIndex(const std::string& dirPath, const std::string& uriPath = "/") {
+    DIR* dir = opendir(dirPath.c_str());
+    if (!dir)
+        return "<html><body><h1>Unable to open directory</h1></body></html>";
+
+    std::ostringstream html;
+    html << "<html><head><title>Index of " << uriPath << "</title>";
+    html << "<style>body { font-family: monospace; } ul { list-style-type: none; padding: 0; }</style>";
+    html << "</head><body>";
+    html << "<h1>Index of " << uriPath << "</h1><ul>";
+    struct dirent* entry;
+
+    while ((entry = readdir(dir)) != NULL) {
+        std::string name(entry->d_name);
+
+        if (name == "." || name == "..")
+            continue;
+
+        std::string fullPath = dirPath + "/" + name;
+        struct stat st;
+        bool isDir = (stat(fullPath.c_str(), &st) == 0 && S_ISDIR(st.st_mode));
+
+        html << "<li><a href=\"" << uriPath;
+		if (uriPath.back() != '/')
+            html << "/";
+        // if (uriPath[uriPath.length() - 1] != '/')
+        //     html << "/";
+        html << name;
+        if (isDir)
+            html << "/";
+        html << "\">" << name << (isDir ? "/" : "") << "</a></li>";
+    }
+
+    closedir(dir);
+    html << "</ul></body></html>";
+	
+    return html.str();
+}
+
+// ================================
+
+
+void Response::send_header_response_autoIndex(std::string path, Request &request) {
+	// Step 1: Generate the autoindex HTML content first
+	std::string html = generateAutoIndex(path, request.get_fake_path());
+
+	// Step 2: Get the content type for HTML
+	std::string content_type = "text/html";
+
+	// Step 3: Set content length to the size of the HTML string
+	size_t content_length = html.size();
+
+	// Step 4: Build and send the header
+	std::ostringstream headers;
+	headers << "HTTP/1.1 200 OK\r\n";
+	headers << "Content-Type: " << content_type << "\r\n";
+	headers << "Content-Length: " << content_length << "\r\n";
+	headers << "Connection: keep-alive\r\n";
+	headers << "\r\n";
+
+	_header_falg = true;
+	_responseBuffer = headers.str();
+
+	// Send headers
+	send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+
+	std::cout << "\n*********************** Headers response *********************" << std::endl;
+	std::cout << _responseBuffer;
+	std::cout << "*********************** end of header response *********************\n" << std::endl;
+
+	_responseBuffer.clear();
+
+	// Optional: if you want to send the body here (instead of in handleGetResponse)
+	// send(_clientFd, html.c_str(), html.size(), 0);
+}
+
+
+// ===============================
+
 void Response::handleGetResponse(int *flag, Request &request) {
 
     *flag = 0;
@@ -211,8 +294,8 @@ void Response::handleGetResponse(int *flag, Request &request) {
 //    pause();
     if (this->is_file) {
         // File exists, serve it
-		std::cout << "/////   fullPath: " << path << std::endl;
-        const size_t CHUNK_SIZE = 1024; // Increased chunk size for better performance
+		std::cout << "is file   fullPath: " << path << std::endl;
+        // const size_t CHUNK_SIZE = 1024; // Increased chunk size for better performance
         if (_header_falg == false) {
 			std::cout << "_header_flag: " << _header_falg << std::endl;
 			if (open_file(flag, path, &request.code) == 1)
@@ -234,7 +317,6 @@ void Response::handleGetResponse(int *flag, Request &request) {
 				// 	std::cout << "bytes_sent: " << bytes_sent << std::endl;
 
 				// }
-				
 			}
 			else 
 			{
@@ -247,8 +329,20 @@ void Response::handleGetResponse(int *flag, Request &request) {
     } else if (this->is_dir) {
         // Directory listing (optional, could redirect to index or show listing)
         std::cout << "Directory listing not implemented" << std::endl;
-        request.set_status_code(403);
-        *flag = 1;
+		std::cout << "-------- autoindex: --------" << std::endl;
+		std::cout << "-------- path: 444444444444444 : " << request.getpath() << std::endl;
+		std::cout << "-------- fake_path: 444444444444444 : " << request.get_fake_path() << std::endl;
+
+
+        // send_header_response_autoindex(CHUNK_SIZE, path, request);
+        // send_header_response(CHUNK_SIZE, path, request);
+		// 
+		std::string html = generateAutoIndex(request.getpath(), request.get_fake_path()); // real path, URI path
+		// std::cout << html << std::endl;
+		send_header_response_autoIndex(request.getpath(), request);
+		send(_clientFd, html.c_str(), html.length(), 0);
+        request.set_status_code(200);
+        *flag = 2;
         return ;
     } else {
 		std::cout << "==   fullPath: " << path << std::endl;
@@ -259,6 +353,8 @@ void Response::handleGetResponse(int *flag, Request &request) {
     }
     return ;
 }
+
+
 
 
 // void Response::handleDeleteRequest() {

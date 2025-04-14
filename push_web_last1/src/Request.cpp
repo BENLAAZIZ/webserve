@@ -16,6 +16,7 @@ Request::Request()
 	method = "";
 	path = "";
 	version = "";
+	fake_path = "";
 
 	//boundary
 	formData.flag = 0;
@@ -240,6 +241,7 @@ void	Request::reset()
 	buffer.clear();
 	_requestBuffer.clear();
 	endOfRequest = false;
+	// fake_path.clear();
 	// my_root.clear();                         
 }
 
@@ -416,4 +418,17 @@ void Request::handleChunkedBoundary(Request& request) {
         return;
 
 	handleBoundary(request);
+}
+
+
+//set_fake_path(getpath)
+std::string Request::get_fake_path() const
+{
+	return fake_path;
+}
+
+
+void Request::set_fake_path(std::string path)
+{
+	fake_path = path;
 }

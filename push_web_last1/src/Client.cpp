@@ -98,7 +98,8 @@ bool Client::generate_header_map(std::string& line)
 	std::string value = line.substr(colonPos + 1);
 	value.erase(0, value.find_first_not_of(" "));
 	_request.setHeader(key, value);
-	// std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+	std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+
 	return true;
 }
 
@@ -304,6 +305,7 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 	std::cout << "location.path: " << location_path << std::endl;
 	std::cout << "request.getpath: " << getpath << std::endl;
 	std::cout << "root: " << root << std::endl;
+	_request.set_fake_path(getpath);
 
 	std::string relative_path = getpath;
 	if (getpath.find(location_path) == 0) {
@@ -318,47 +320,46 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 	full_path = join_paths(_request.my_root, join_paths(root, relative_path));
 
 	std::cout << ">>> Final full_path: " << full_path << std::endl;
-	
 
-		if (is_directory(full_path)) {
-			
-			std::cout << "is dir: " << std::endl;
-			if (loc && !loc->index.empty()) {
-				std::string index_path = join_paths(full_path, loc->index[0]);
-				std::cout << "index_path: " << index_path << std::endl;
-				// 
-				if (file_exists(index_path)) {
-					std::cout << "---> index_path exist: " << index_path << std::endl;
-					_request.setPath(index_path);
-					full_path.clear();
-					_request.set_status_code(200);
-					return 200;
-				}
-			}
-			else if (loc && loc->autoindex) {
-				// return generate_directory_listing(full_path);
-				std::cout << "-------- autoindex: --------" << std::endl;
-				_request.set_status_code(200);
-				_request.setPath(full_path);
+	if (is_directory(full_path)) {
+		
+		std::cout << "is dir: " << std::endl;
+		if (loc && !loc->index.empty()) {
+			std::string index_path = join_paths(full_path, loc->index[0]);
+			std::cout << "index_path: " << index_path << std::endl;
+			// 
+			if (file_exists(index_path)) {
+				std::cout << "---> index_path exist: " << index_path << std::endl;
+				_request.setPath(index_path);
 				full_path.clear();
+				_request.set_status_code(200);
 				return 200;
 			}
-		std::cout << "-------- 403 Forbidden: --------" << std::endl;
-			_request.set_status_code(403);
-			return 403;
 		}
-	   else if (file_exists(full_path))
-	   {
-			
-			std::cout << "-------- file exist: --------" << std::endl;
+		else if (loc && loc->autoindex) {
+			// return generate_directory_listing(full_path);
+			std::cout << "-------- autoindex: --------" << std::endl;
+			_request.set_status_code(200);
 			_request.setPath(full_path);
 			full_path.clear();
-			_request.set_status_code(200);
 			return 200;
-	   }
-		std::cout << "-------- 404 Not Found: --------" << std::endl;
-		_request.set_status_code(404);
-		return 404;
+		}
+	std::cout << "-------- 403 Forbidden: --------" << std::endl;
+		_request.set_status_code(403);
+		return 403;
+	}
+	else if (file_exists(full_path))
+	{
+		
+		std::cout << "-------- file exist: --------" << std::endl;
+		_request.setPath(full_path);
+		full_path.clear();
+		_request.set_status_code(200);
+		return 200;
+	}
+	std::cout << "-------- 404 Not Found: --------" << std::endl;
+	_request.set_status_code(404);
+	return 404;
 }
 
 // ======= find matching location =======
@@ -412,11 +413,11 @@ bool Client::has_trailing_slash(const std::string& path) {
 }
 
 // ========== generate directory listing ==========
-std::string Client::generate_directory_listing(const std::string& path) {
-	// Implement directory listing generation here
-	// return "<html><body>Directory listing not implemented</body></html>";
-    return path;
-}
+// std::string Client::generate_directory_listing(const std::string& path) {
+// 	// Implement directory listing generation here
+// 	// return "<html><body>Directory listing not implemented</body></html>";
+//     return path;
+// }
 // ========== end location ==========
 
 bool Client::is_resolved()
