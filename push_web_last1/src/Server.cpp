@@ -167,7 +167,9 @@ int Server::handleClientData(int client_fd, Client &client) {
 		}
 		else if (client.is_Header_Complete() && client._request.getMethod() == "POST")
 		{
-			std::cout << "POST request received" << std::endl;
+			std::cout << "-------- POST request received----------" << std::endl;
+			// std::cout << "endOfRequest: " << client._request.endOfRequest << std::endl;
+			// std::cout << "requestBuffer: " << client._request._requestBuffer << std::endl;
 			client.handlePostRequest();
 			if (client._request.endOfRequest)
 				return 2;
@@ -207,12 +209,12 @@ int Server::handleResponse(int client_fd, Client &client) {
 		else if (flag == 2)
 		{
 			std::cout << "File sent successfully flag = 2" << std::endl;
-			// client._response._responseBuffer.clear();
-			// client._response._header_falg = false;
-			// client._response._fileOffset = 0;
-			// client._response.file.close();
-			// client._response._isopen = false;
-			client._response.reset();
+			client._response._responseBuffer.clear();
+			client._response._header_falg = false;
+			client._response._fileOffset = 0;
+			client._response.file.close();
+			client._response._isopen = false;
+			// client._response.reset();
 			client._keepAlive = client._response._keepAlive;
 			return 1;
 		}

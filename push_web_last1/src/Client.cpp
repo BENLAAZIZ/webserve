@@ -26,8 +26,6 @@ Client& Client::operator=(const Client& other)
 	{
 		_request = other._request;
 		_response = other._response;
-		_requestBuffer = other._requestBuffer;
-		_responseBuffer = other._responseBuffer;
 		request_Header_Complete = other.request_Header_Complete;
 		_responseSent = other._responseSent;
 		_keepAlive = other._keepAlive;
@@ -160,8 +158,6 @@ bool Client::keepAlive() const {
 }
 
 void Client::reset() {
-	_requestBuffer.clear();
-	_responseBuffer.clear();
 	request_Header_Complete = false;
 	_responseSent = false;
 	_keepAlive = false;
@@ -172,7 +168,6 @@ void Client::reset() {
 	_request.reset();
 	_response.reset();
 	_isResolved = false;
-
 }
 
 

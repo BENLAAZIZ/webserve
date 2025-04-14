@@ -241,8 +241,26 @@ void	Request::reset()
 	buffer.clear();
 	_requestBuffer.clear();
 	endOfRequest = false;
-	// fake_path.clear();
-	// my_root.clear();                         
+
+
+    //------------------------
+	isCGI = false;
+	fake_path.clear();
+
+	
+	//boundary
+	formData.flag = 0;
+	formData.pos = 0;
+	formData.flagData = 0;
+	formData.pos_new_line = 0;
+
+	//initialize chunked struct
+    chunked.bytesRead = 0;
+    chunked.chunkSize = -1;
+    chunked.bytesRemaining = 0;
+    chunked.flag = 0;
+	chunked.fd = -1;
+	chunked.isFinished = false;                         
 }
 
 bool Request::checkPath(std::string& path){
@@ -330,9 +348,10 @@ void Request::handleChunkedData(Request& request) {
 //--------------------boundary-------------------
 
 void Request::handleBoundary(Request& request) {
+	std::cout << "***********>> handleChunkedBoundary" << std::endl;
 	request.buffer += request._requestBuffer;
 
-	// std::cout << "Buffer: " << request.buffer << std::endl;
+	// std::cout << "Buffer: " << request.buffer << "||" << std::endl;
 	request._requestBuffer.clear();
 	while (1) {
 		request.formData.pos = request.buffer.find(request.boundary);

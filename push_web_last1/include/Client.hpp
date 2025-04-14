@@ -8,8 +8,6 @@ class Client {
 	public:
 		std::ifstream	file;
 		std::ofstream	filetest;
-		std::string		_requestBuffer;
-		std::string		_responseBuffer;
 		Request			_request;
 		Response		_response;
 		bool			request_Header_Complete;

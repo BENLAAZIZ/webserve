@@ -54,6 +54,8 @@ void Response::reset() {
     file.close();
 	fullPath.clear();
 	flag_p = 0;
+	is_file = 0;
+	is_dir = 0;
 }
 
 // ========== send header response ==========
@@ -416,37 +418,25 @@ std::string Response::get_MimeType (const std::string& path) {
 }
 
 void Response::generate_error_response(int statusCode,  int client_fd) {
+
     std::string code_path = "";
 	code_path = get_code_error_path(statusCode);
-
-
 	std::string fullPath = "/Users/hben-laz/Desktop/webserve/push_web_last1/docs/errors" +  code_path;
-	// std::ifstream file(fullPath);
 	std::ifstream file(fullPath, std::ios::binary);
-				
 	if (!file.is_open()) {
 		std::cerr << "Error: Could not open success.html" << std::endl;
 		return;
 	}
- 
 	// Read the file contents into a stringstream
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	std::string responseBody = buffer.str();
-
 	// Close the file
 	// file.close();
-
 	std::ostringstream response;
-	// Check if file exists
 	struct stat fileStat;
 	if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
-		// std::ifstream file(fullPath, std::ios::binary);
 		if (file) {
-			// Read file content
-			// std::string responseBody((std::istreambuf_iterator<char>(file)),
-			// 						 std::istreambuf_iterator<char>());
-			// Generate HTTP response
 			std::ostringstream response;
 			response << "HTTP/1.1 "  << get_error_missage(statusCode) << "\r\n";
 			response << "Content-Type: text/html\r\n";
@@ -469,13 +459,10 @@ void Response::generate_error_response(int statusCode,  int client_fd) {
 			_responseBuffer = response.str();
 		}
 	}
-
 	_keepAlive = false;  // Don't keep alive on errors
 	sendResponse(client_fd);
 	_responseBuffer.clear();
 }
-
-
 
 bool Response::sendResponse(int client_fd) {
 	if (_responseBuffer.empty())
