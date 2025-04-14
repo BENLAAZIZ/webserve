@@ -35,6 +35,7 @@ Request::Request()
 	// end of request
 	endOfRequest = false;
 	my_root = "/Users/hben-laz/Desktop/webserve/push_web_last1";
+
 }
 
 Request::~Request()
@@ -242,6 +243,11 @@ void	Request::reset()
 	_requestBuffer.clear();
 	endOfRequest = false;
 
+	boundary.clear();
+	boundary_end.clear();
+	// transferEncodingExist = false;
+
+
 
     //------------------------
 	isCGI = false;
@@ -348,15 +354,17 @@ void Request::handleChunkedData(Request& request) {
 //--------------------boundary-------------------
 
 void Request::handleBoundary(Request& request) {
-	std::cout << "***********>> handleChunkedBoundary" << std::endl;
+	// std::cout << "***********>> handleChunkedBoundary" << std::endl;
 	request.buffer += request._requestBuffer;
-
+	std::cout << "bounary: " << request.boundary << std::endl;
 	// std::cout << "Buffer: " << request.buffer << "||" << std::endl;
 	request._requestBuffer.clear();
 	while (1) {
+		// pause();
 		request.formData.pos = request.buffer.find(request.boundary);
         if (request.formData.pos == std::string::npos && !request.formData.flag)
             break;
+		std::cout << "***********>> handleBoundary" << std::endl;
         if (!request.formData.flag && request.formData.pos != std::string::npos)
 			getHeaderBody(request);
 		
