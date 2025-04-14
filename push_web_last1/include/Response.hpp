@@ -52,7 +52,7 @@ class Response {
         int         open_file(int *flag, std::string fullPath, int *code);
         //=============
 
-        void resolverequest_path22(std::string& path);// mo2a
+        void type_of_path(std::string& path);// mo2a
         void send_header_response_autoIndex(std::string path, Request &request);
 
 };

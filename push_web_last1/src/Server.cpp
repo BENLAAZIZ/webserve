@@ -67,7 +67,7 @@ Server::Server(int port, Server_holder& serv_hldr) : serv_hldr(serv_hldr), port(
 	struct addrinfo hints, *res;
 	int status;
 
-	std::cout << "after host: " << serv_hldr.host << std::endl;
+	// std::cout << "after host: " << serv_hldr.host << std::endl;
 
 	const char* hostStr = (serv_hldr.host == "localhost") ? "127.0.0.1" : serv_hldr.host.c_str();
 
@@ -83,7 +83,7 @@ Server::Server(int port, Server_holder& serv_hldr) : serv_hldr(serv_hldr), port(
 	std::string portStr = portStream.str();
 
 	// Get address info
-	std::cout << "host: " << hostStr << std::endl;
+	// std::cout << "host: " << hostStr << std::endl;
 	status = getaddrinfo(hostStr, portStr.c_str(), &hints, &res);
 	if (status != 0) {
 		throw std::runtime_error(std::string("getaddrinfo error: ") + gai_strerror(status));
@@ -120,7 +120,10 @@ Server::Server(int port, Server_holder& serv_hldr) : serv_hldr(serv_hldr), port(
 	freeaddrinfo(res); // Done with the addrinfo
 
 	setNonBlocking(server_fd);
-	std::cout << "Server fd: " << server_fd << " listening on port " << port << std::endl;
+	// std::cout << "Server fd: " << server_fd << " listening on port " << port << std::endl;
+	std::cout << "Server fd: " << server_fd << ", go to ===> http://" << hostStr << ":" << port << std::endl;
+
+
 }
 
 Server::~Server() {
@@ -158,7 +161,7 @@ int Server::handleClientData(int client_fd, Client &client) {
 		if (!client.is_Header_Complete())
 			client.parse_Header_Request();
 		if (client.is_Header_Complete() && client._request.getMethod() != "POST") {
-			std::cout << "================= header request ==================" << std::endl;
+			// std::cout << "================= header request ==================" << std::endl;
 			client._request.endOfRequest = true;
 			return 2;
 		}
@@ -186,56 +189,25 @@ int Server::handleClientData(int client_fd, Client &client) {
 	return 0;
 }
 
-int Server::sendResponse(int client_fd, Client &client) {
-	client.setClientFd(client_fd);
-	client._response._clientFd = client_fd;
+
+
+int Server::handleResponse(int client_fd, Client &client) {
 
 	int flag = -1;
-	if (!client.is_resolved())
-	{
-		std::cout << "Resolving request path..." << std::endl;
-			if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
-			{
-				std::cout << "---- Error: " << client._request.getStatusCode() << std::endl;
-				client._response.generate_error_response(client._request.getStatusCode(), client_fd);
-				return 1;
-			}
-			client.set_resolved(true);
-
-	}
-	
-	// if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
-	// {
-	// 	std::cout << "---- Error: " << client._request.getStatusCode() << std::endl;
-	// 	client._response.generate_error_response(client._request.getStatusCode(), client_fd);
-	// 	return 1;
-	// }
-	std::string filePath = client._request.getpath();
-	std::cout << "in sendResponse file exist: " << filePath << std::endl;
-
-	// pause();
-	
-	if (client._request.getMethod() == "POST")
-	{
-		std::cout << "POST request received" << std::endl;
-		client.handlePostResponse();
-	}
-	else if (client._request.getMethod() == "GET" && client._request.getStatusCode() == 200)
-	{
-		std::cout << "GET response received" << std::endl;
 		client._response.handleGetResponse(&flag, client._request);
+		std::cout << " here flag = " << flag << std::endl;
 		if (flag == 1)
 		{
-			std::cout << "+++++++ File sent successfully flag = 1" << std::endl;
+			client._keepAlive = client._response._keepAlive;
 			client._response.generate_error_response(client._request.getStatusCode(), client_fd);
 			return 1;
 		}
-		if (flag == 0)
+		else if (flag == 0)
 		{
 			// std::cout << "File sent not yet successfully flag = 0" << std::endl;
 			return 0;
 		}
-		if (flag == 2)
+		else if (flag == 2)
 		{
 			std::cout << "File sent successfully flag = 2" << std::endl;
 			client._response._responseBuffer.clear();
@@ -243,10 +215,94 @@ int Server::sendResponse(int client_fd, Client &client) {
 			client._response._fileOffset = 0;
 			client._response.file.close();
 			client._response._isopen = false;
-			client._response.reset();
+			// client._response.reset();
 			client._keepAlive = client._response._keepAlive;
 			return 1;
 		}
+	return -1;
+}
+
+int Server::sendResponse(int client_fd, Client &client) {
+	client.setClientFd(client_fd);
+	client._response._clientFd = client_fd;
+
+	// int flag = -1;
+	if (!client.is_resolved())
+	{
+		std::cout << "Resolving request path..." << std::endl;
+			if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
+			{
+				std::cout << "===== Error resolving request path ====" << std::endl;
+				client._keepAlive = client._response._keepAlive;
+				client._response.generate_error_response(client._request.getStatusCode(), client_fd);
+				return 1;
+			}
+			client.set_resolved(true);
+
+	}
+	std::string fullPath = client._request.getpath();
+	if (client._request.getMethod() == "POST")
+	{
+		std::cout << "POST request received" << std::endl;
+		std::string fullPath = client._request.my_root + "/docs/upload/success.html";
+		client._request.setPath(fullPath);
+		std::cout << "-----------> >> filePath: " <<  client._request.getpath() << std::endl;
+		return (handleResponse(client_fd, client));
+		// client._response.handleGetResponse(&flag, client._request);
+		// std::cout << " here flag = " << flag << std::endl;
+		// if (flag == 1)
+		// {
+		// 	client._keepAlive = client._response._keepAlive;
+		// 	client._response.generate_error_response(client._request.getStatusCode(), client_fd);
+		// 	return 1;
+		// }
+		// else if (flag == 0)
+		// {
+		// 	// std::cout << "File sent not yet successfully flag = 0" << std::endl;
+		// 	return 0;
+		// }
+		// else if (flag == 2)
+		// {
+		// 	std::cout << "File sent successfully flag = 2" << std::endl;
+		// 	client._response._responseBuffer.clear();
+		// 	client._response._header_falg = false;
+		// 	client._response._fileOffset = 0;
+		// 	client._response.file.close();
+		// 	client._response._isopen = false;
+		// 	// client._response.reset();
+		// 	client._keepAlive = client._response._keepAlive;
+		// 	return 1;
+		// }
+	}
+	if (client._request.getMethod() == "GET" && client._request.getStatusCode() == 200)
+	{
+		std::cout << "GET response received" << std::endl;
+		return (handleResponse(client_fd, client));
+		// client._response.handleGetResponse(&flag, client._request);
+		// std::cout << " here flag = " << flag << std::endl;
+		// if (flag == 1)
+		// {
+		// 	client._keepAlive = client._response._keepAlive;
+		// 	client._response.generate_error_response(client._request.getStatusCode(), client_fd);
+		// 	return 1;
+		// }
+		// else if (flag == 0)
+		// {
+		// 	// std::cout << "File sent not yet successfully flag = 0" << std::endl;
+		// 	return 0;
+		// }
+		// else if (flag == 2)
+		// {
+		// 	// std::cout << "File sent successfully flag = 2" << std::endl;
+		// 	client._response._responseBuffer.clear();
+		// 	client._response._header_falg = false;
+		// 	client._response._fileOffset = 0;
+		// 	client._response.file.close();
+		// 	client._response._isopen = false;
+		// 	// client._response.reset();
+		// 	client._keepAlive = client._response._keepAlive;
+		// 	return 1;
+		// }
 	}
 	else if (client._request.getMethod() == "DELETE")
 	{

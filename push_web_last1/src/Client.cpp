@@ -98,7 +98,7 @@ bool Client::generate_header_map(std::string& line)
 	std::string value = line.substr(colonPos + 1);
 	value.erase(0, value.find_first_not_of(" "));
 	_request.setHeader(key, value);
-	std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
+	// std::cout << "Header: ||" << key << "|| = ||" << value << "||" << std::endl;
 
 	return true;
 }
@@ -241,7 +241,7 @@ int Client::read_data()
 
 void Client::sendSuccessResponse(int clientSocket, const std::string& path) {
 	// Open the success.html file
-	std::string root = "/Users/hben-laz/Desktop/push_web_last/docs/upload";
+	std::string root = "/Users/hben-laz/Desktop/webserve/push_web_last1/docs/upload";
 	std::string filePath = root + path;
 	std::ifstream file(filePath);
 				
@@ -274,23 +274,18 @@ void Client::sendSuccessResponse(int clientSocket, const std::string& path) {
     }
 }
 
-void Client::handlePostResponse() {
-	// std::string root = "/Users/hben-laz/Desktop/db/push_web_last/docs"; //_request.getRoot();
-	std::string filePath =  _request.getpath();
-	std::cout << "filePath: " << filePath << std::endl;
-	// pause();	
-	// std::ifstream file(filePath);
-	// if (!file) {
-	// 	// File does not exist
-	// 	std::cerr << "File not found: " << filePath << std::endl;
-	// 	_request.set_status_code(404);
-	// 	return;
-	// }
-	// std::cout << "file exist: " << filePath << std::endl;
-	// // pause();
-	sendSuccessResponse(_clientFd, "/success.html");
-	// pause();
-}
+// void Client::handlePostResponse() {
+// 	// std::string root = "/Users/hben-laz/Desktop/db/push_web_last/docs"; //_request.getRoot();
+// 	std::string filePath =  _request.getpath();
+// 	// std::cout << "my_root: " << _request.my_root << std::endl;
+// 	std::string root = _request.my_root + "/docs/upload/success.html";
+// 	// std::cout << "filePath: " << filePath << std::endl;
+// 	// handleG();
+// 	_response.handleGetResponse(&_fileOffset, _request);
+// 	pause();
+// 	sendSuccessResponse(_clientFd, "/success.html");
+// 	// pause();
+// }
 
 
 // ====== location ======
@@ -302,9 +297,9 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 	std::string getpath = _request.getpath();
 
 	// Debug print
-	std::cout << "location.path: " << location_path << std::endl;
-	std::cout << "request.getpath: " << getpath << std::endl;
-	std::cout << "root: " << root << std::endl;
+	// std::cout << "location.path: " << location_path << std::endl;
+	// std::cout << "request.getpath: " << getpath << std::endl;
+	// std::cout << "root: " << root << std::endl;
 	_request.set_fake_path(getpath);
 
 	std::string relative_path = getpath;
@@ -319,17 +314,17 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 	// Compose full_path
 	full_path = join_paths(_request.my_root, join_paths(root, relative_path));
 
-	std::cout << ">>> Final full_path: " << full_path << std::endl;
+	// std::cout << ">>> Final full_path: " << full_path << std::endl;
 
 	if (is_directory(full_path)) {
 		
-		std::cout << "is dir: " << std::endl;
+		// std::cout << "is dir: " << std::endl;
 		if (loc && !loc->index.empty()) {
 			std::string index_path = join_paths(full_path, loc->index[0]);
-			std::cout << "index_path: " << index_path << std::endl;
+			// std::cout << "index_path: " << index_path << std::endl;
 			// 
 			if (file_exists(index_path)) {
-				std::cout << "---> index_path exist: " << index_path << std::endl;
+				// std::cout << "---> index_path exist: " << index_path << std::endl;
 				_request.setPath(index_path);
 				full_path.clear();
 				_request.set_status_code(200);
@@ -344,20 +339,20 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 			full_path.clear();
 			return 200;
 		}
-	std::cout << "-------- 403 Forbidden: --------" << std::endl;
+	// std::cout << "-------- 403 Forbidden: --------" << std::endl;
 		_request.set_status_code(403);
 		return 403;
 	}
 	else if (file_exists(full_path))
 	{
 		
-		std::cout << "-------- file exist: --------" << std::endl;
+		// std::cout << "-------- file exist: --------" << std::endl;
 		_request.setPath(full_path);
 		full_path.clear();
 		_request.set_status_code(200);
 		return 200;
 	}
-	std::cout << "-------- 404 Not Found: --------" << std::endl;
+	// std::cout << "-------- 404 Not Found: --------" << std::endl;
 	_request.set_status_code(404);
 	return 404;
 }

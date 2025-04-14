@@ -97,7 +97,7 @@ void Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request
 	_fileOffset = start;
 	file.seekg(_fileOffset, std::ios::beg);
 
-	std::cout << "contentlenttttt: " << content_length << std::endl;
+	std::cout << "content_length in header response : " << content_length << std::endl;
 
 	// if (content_length > CHUNK_SIZE)
 	if (content_length > CHUNK_SIZE)
@@ -111,7 +111,6 @@ void Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request
 		headers << "HTTP/1.1 200 OK\r\n";
 
 	headers << "Content-Type: " << content_type << "\r\n";
-	// headers << "Content-Length: " << content_length << "\r\n";
 	headers << "Content-Length: " << content_length << "\r\n";
 	headers << "Accept-Ranges: bytes\r\n";
 
@@ -144,14 +143,14 @@ int	Response::send_file_response(char *buffer, int bytes_read)
 		_fileOffset += sent;
 		if (file.eof()) 
 		{
-			// _responseSent = true;
-			// _header_falg = false;
-			// _fileOffset = 0;
-			// file.close();
-			// _isopen = false;
-			// fullPath.clear();
-			// flag_p = 0;
-			reset();
+			_responseSent = true;
+			_header_falg = false;
+			_fileOffset = 0;
+			file.close();
+			_isopen = false;
+			fullPath.clear();
+			flag_p = 0;
+			// reset();
 			std::cout << " end of file : File sent successfully" << std::endl;
 			return 2;
 		}
@@ -287,25 +286,22 @@ void Response::handleGetResponse(int *flag, Request &request) {
     std::cout << "==   path  = : " << path << std::endl;
 	if (flag_p == 0)
 	{
-
-		resolverequest_path22(path);
+		type_of_path(path);
 		  flag_p = 1;
 	}
     // Check if file exists
-	if (request.isCGI)
-	{
-			std::cout << "CGI" << std::endl;
-			pause();
-	}
-//    pause();
+	// if (request.isCGI)
+	// {
+	// 		std::cout << "CGI" << std::endl;
+	// }
     if (this->is_file) {
-        // File exists, serve it
-		std::cout << "is file   fullPath: " << path << std::endl;
-        // const size_t CHUNK_SIZE = 1024; // Increased chunk size for better performance
         if (_header_falg == false) {
-			std::cout << "_header_flag: " << _header_falg << std::endl;
 			if (open_file(flag, path, &request.code) == 1)
+			{
+				std::cout << "Error opening file ----------------------: " << path << std::endl;
+				std::cout << "flag = " << *flag << std::endl;
 			    return ;
+			}
 			send_header_response(CHUNK_SIZE, path, request);
         }
         if (_isopen) {
@@ -313,17 +309,8 @@ void Response::handleGetResponse(int *flag, Request &request) {
             char buffer[CHUNK_SIZE];
             file.read(buffer, CHUNK_SIZE);
             int bytes_read = file.gcount();
-			// write(1, "88888\n", 8);
             if (bytes_read > 0)
-			{
 				*flag = send_file_response(buffer, bytes_read);
-				// bytes_sent += bytes_read;
-				// if (*flag == 2)
-				// {
-				// 	std::cout << "bytes_sent: " << bytes_sent << std::endl;
-
-				// }
-			}
 			else 
 			{
 				std::cerr << "Error reading file: " << strerror(errno) << std::endl;
@@ -334,27 +321,22 @@ void Response::handleGetResponse(int *flag, Request &request) {
         }
     } else if (this->is_dir) {
         // Directory listing (optional, could redirect to index or show listing)
-        std::cout << "Directory listing not implemented" << std::endl;
 		std::cout << "-------- autoindex: --------" << std::endl;
-		std::cout << "-------- path: 444444444444444 : " << request.getpath() << std::endl;
-		std::cout << "-------- fake_path: 444444444444444 : " << request.get_fake_path() << std::endl;
+        std::cout << "Directory listing  implemented" << std::endl;
+		std::cout << "-------- path:: " << request.getpath() << std::endl;
+		std::cout << "-------- fake_path:: " << request.get_fake_path() << std::endl;
 
-
-		// 
 		std::string html = generateAutoIndex(request.getpath(), request.get_fake_path()); // real path, URI path
 		request.setContentLength(html.length());
-		std::cout << "conentlengh = "  << request.getContentLength() << std::endl;
         // send_header_response(CHUNK_SIZE, path, request);
-		// pause();
         send_header_response_autoIndex(path, request);
 		send(_clientFd, html.c_str(), html.length(), 0);
-		// reset();
+		reset();
         request.set_status_code(200);
         *flag = 2;
         return ;
     } else {
-		std::cout << "==   fullPath: " << path << std::endl;
-        // File not found
+		std::cout << "== File not found -->   fullPath : " << path << std::endl;
         request.set_status_code(404);
         *flag = 1;
         return ;
@@ -437,7 +419,7 @@ void Response::generate_error_response(int statusCode,  int client_fd) {
 
     std::string code_path = "";
 	code_path = get_code_error_path(statusCode);
-	std::string fullPath = "/Users/hben-laz/Desktop/webserve/web_merge/docs/errors" +  code_path;
+	std::string fullPath = "/Users/hben-laz/Desktop/webserve/push_web_last1/docs/errors" +  code_path;
 	std::ostringstream response;
 	// Check if file exists
 	struct stat fileStat;
@@ -565,7 +547,7 @@ bool file_exists(const std::string& path) {
 
 
 // state of path
-void Response::resolverequest_path22(std::string& path)
+void Response::type_of_path(std::string& path)
 {
 	if (file_exists(path))
 		is_file = 1;
