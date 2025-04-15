@@ -292,20 +292,21 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 	std::string getpath = _request.getpath();
 
 	_request.set_fake_path(getpath);
-
 	std::string relative_path = getpath;
 	if (getpath.find(location_path) == 0) {
 		relative_path = getpath.substr(location_path.length()); // strip location path
 	}
-
 	// Remove leading '/' to avoid double slashes when joining
 	if (!relative_path.empty() && relative_path[0] == '/')
 		relative_path = relative_path.substr(1);
-
 	// Compose full_path
 	full_path = join_paths(_request.my_root, join_paths(root, relative_path));
+	if (_request.isCGI)
+	{
+		std::cout << "CGI" << std::endl;
+		return 200;
+	}
 	if (is_directory(full_path)) {
-		
 		if (loc && !loc->index.empty()) {
 			std::string index_path = join_paths(full_path, loc->index[0]);
 			if (file_exists(index_path)) {
@@ -314,28 +315,28 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 				_request.set_status_code(200);
 				return 200;
 			}
+			else {
+				_request.set_status_code(404);
+				return 404;
+			}
 		}
 		else if (loc && loc->autoindex) {
-			std::cout << "-------- autoindex: --------" << std::endl;
 			_request.set_status_code(200);
 			_request.setPath(full_path);
 			full_path.clear();
 			return 200;
 		}
-	// std::cout << "-------- 403 Forbidden: --------" << std::endl;
 		_request.set_status_code(403);
 		return 403;
 	}
 	else if (file_exists(full_path))
 	{
-		
-		// std::cout << "-------- file exist: --------" << std::endl;
 		_request.setPath(full_path);
 		full_path.clear();
 		_request.set_status_code(200);
 		return 200;
 	}
-	// std::cout << "-------- 404 Not Found: --------" << std::endl;
+	std::cout << "-------- 404 Not Found: --------" << std::endl;
 	_request.set_status_code(404);
 	return 404;
 }

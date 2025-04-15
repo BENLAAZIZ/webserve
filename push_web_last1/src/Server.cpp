@@ -201,7 +201,7 @@ int Server::handleResponse(int client_fd, Client &client) {
 		if (flag == 1)
 		{
 			client._keepAlive = client._response._keepAlive;
-			client._response.generate_error_response(client._request.getStatusCode(), client_fd);
+			client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
 			return 1;
 		}
 		else if (flag == 0)
@@ -226,16 +226,20 @@ int Server::sendResponse(int client_fd, Client &client) {
 	client._response._clientFd = client_fd;
 	if (!client.is_resolved())
 	{
+
+		// this->serv_hldr
 		std::cout << "Resolving request path..." << std::endl;
 			if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
 			{
 				client._keepAlive = client._response._keepAlive;
-				client._response.generate_error_response(client._request.getStatusCode(), client_fd);
+				// client._response.generate_error_response(client._request.getStatusCode(), client_fd);
+				client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
 				return 1;
 			}
 			client.set_resolved(true);
 	}
 	std::string fullPath = client._request.getpath();
+	std::cout << "--- fullPath: " << fullPath << std::endl;
 	if (client._request.getMethod() == "POST")
 	{
 		std::cout << "POST request received" << std::endl;
@@ -256,7 +260,7 @@ int Server::sendResponse(int client_fd, Client &client) {
 	if (client._request.getStatusCode() >= 400)
 	{
 		client._keepAlive = client._response._keepAlive;
-		client._response.generate_error_response(client._request.getStatusCode(), client_fd);
+		client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
 		return 1;
 	}
 	return 0;

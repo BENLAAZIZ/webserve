@@ -39,11 +39,11 @@ class Response {
         // Methods
 
     
-        bool        sendResponse(int client_fd);
+        bool        send_Error_Response(int client_fd);
         bool        keepAlive() const;
         void        handleGetResponse(int *flag, Request &request);
         void        reset();
-        void        generate_error_response(int statusCode,  int client_fd);
+        void        generate_error_response(int statusCode,  int client_fd, Server_holder& serv_hldr);
         std::string	get_error_missage(int errorCode) const;
         std::string	get_code_error_path(int errorCode) const;
         std::string get_MimeType (const std::string& path);
@@ -54,6 +54,9 @@ class Response {
 
         void type_of_path(std::string& path);// mo2a
         void send_header_response_autoIndex(std::string path, Request &request);
+
+        void  there_is_error_file(std::string fullPath, int statusCode);
+        void generate_default_error_response(int statusCode);
 
 };
 

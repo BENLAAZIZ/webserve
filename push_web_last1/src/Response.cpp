@@ -289,10 +289,11 @@ void Response::handleGetResponse(int *flag, Request &request) {
 		  flag_p = 1;
 	}
     // Check if file exists
-	// if (request.isCGI)
-	// {
-	// 		std::cout << "CGI" << std::endl;
-	// }
+	if (request.isCGI)
+	{
+			std::cout << "CGI" << std::endl;
+			pause();
+	}
     if (this->is_file) {
         if (_header_falg == false) {
 			if (open_file(flag, path, &request.code) == 1)
@@ -321,10 +322,6 @@ void Response::handleGetResponse(int *flag, Request &request) {
     } else if (this->is_dir) {
         // Directory listing (optional, could redirect to index or show listing)
 		std::cout << "-------- autoindex: --------" << std::endl;
-        std::cout << "Directory listing  implemented" << std::endl;
-		std::cout << "-------- path:: " << request.getpath() << std::endl;
-		std::cout << "-------- fake_path:: " << request.get_fake_path() << std::endl;
-
 		std::string html = generateAutoIndex(request.getpath(), request.get_fake_path()); // real path, URI path
 		request.setContentLength(html.length());
         // send_header_response(CHUNK_SIZE, path, request);
@@ -414,22 +411,17 @@ std::string Response::get_MimeType (const std::string& path) {
 	return contentType;
 }
 
-void Response::generate_error_response(int statusCode,  int client_fd) {
-
-    std::string code_path = "";
-	code_path = get_code_error_path(statusCode);
-	std::string fullPath = "/Users/hben-laz/Desktop/webserve/push_web_last1/docs/errors" +  code_path;
+// ======================== generate error response ========================
+void  Response::there_is_error_file(std::string fullPath, int statusCode)
+{
 	std::ifstream file(fullPath, std::ios::binary);
 	if (!file.is_open()) {
 		std::cerr << "Error: Could not open success.html" << std::endl;
 		return;
 	}
-	// Read the file contents into a stringstream
 	std::stringstream buffer;
 	buffer << file.rdbuf();
 	std::string responseBody = buffer.str();
-	// Close the file
-	// file.close();
 	std::ostringstream response;
 	struct stat fileStat;
 	if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
@@ -456,12 +448,43 @@ void Response::generate_error_response(int statusCode,  int client_fd) {
 			_responseBuffer = response.str();
 		}
 	}
-	_keepAlive = false;  // Don't keep alive on errors
-	sendResponse(client_fd);
-	_responseBuffer.clear();
 }
 
-bool Response::sendResponse(int client_fd) {
+
+
+void Response::generate_default_error_response(int statusCode) {
+	std::ostringstream body;
+	std::string statusMessage = get_error_missage(statusCode);
+	// Basic HTML content
+	body << "<!DOCTYPE html>\n"
+		 << "<html lang=\"en\">\n"
+		 << "<head><meta charset=\"UTF-8\"><title>Error "
+		 << statusCode << "</title></head>\n"
+		 << "<body style=\"font-family:sans-serif;text-align:center;margin-top:50px;\">\n"
+		 << "<h1>" << statusCode << " - " << statusMessage << "</h1>\n"
+		 << "<p>Sorry, something went wrong.</p>\n"
+		 << "<hr><p>WebServ</p>\n"
+		 << "</body></html>";
+
+	std::string responseBody = body.str();
+	// Construct full HTTP response headers
+	std::ostringstream response;
+	response << "HTTP/1.1 " << statusCode << " " << statusMessage << "\r\n";
+	response << "Content-Type: text/html\r\n";
+	response << "Content-Length: " << responseBody.size() << "\r\n";
+	if (_keepAlive) {
+		response << "Connection: keep-alive\r\n";
+	} else {
+		response << "Connection: close\r\n";
+	}
+	response << "\r\n";
+	// Append body
+	response << responseBody;
+	// Store full response
+	_responseBuffer = response.str();
+}
+
+bool Response::send_Error_Response(int client_fd) {
 	if (_responseBuffer.empty())
 	{
 		_responseSent = true;
@@ -470,18 +493,13 @@ bool Response::sendResponse(int client_fd) {
 	ssize_t bytesSent = send(client_fd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
 	if (bytesSent < 0)
 	{
-		if (errno == EAGAIN || errno == EWOULDBLOCK) {
-			// Would block, try again later
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
 			return true;
-		}
 		std::cerr << "Error sending response: " << strerror(errno) << std::endl;
 		return false;
 	}
-	if (bytesSent > 0) {
-		// Remove sent data from buffer
+	if (bytesSent > 0)
 		_responseBuffer.erase(0, bytesSent);
-	}
-	// Check if we're done sending
 	if (_responseBuffer.empty())
 	{
 		_responseSent = true;
@@ -489,6 +507,25 @@ bool Response::sendResponse(int client_fd) {
 	}
 	return true;
 }
+
+void Response::generate_error_response(int statusCode,  int client_fd, Server_holder& serv_hldr) {
+
+	std::map<int, std::string>::iterator it = serv_hldr.error_pages.find(statusCode);
+	if (it != serv_hldr.error_pages.end()) {
+		std::string error_page_path = it->second;
+		std::cout << "Error page path: " << error_page_path << std::endl;
+		fullPath = "/Users/hben-laz/Desktop/webserve/push_web_last1/docs" + error_page_path;
+		there_is_error_file(fullPath, statusCode);
+	} else {
+		std::cout << "No custom error page found for status code: " << statusCode << std::endl;
+		generate_default_error_response(statusCode);
+	}
+	_keepAlive = false;  // Don't keep alive on errors
+	send_Error_Response(client_fd);
+	_responseBuffer.clear();
+}
+
+// ======================== end of generate error response ========================
 
 bool Response::keepAlive() const {
 	return _keepAlive;
