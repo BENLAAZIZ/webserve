@@ -1,8 +1,0 @@
-
-
-
-
----> void Response::generate_error_response(int statusCode,  int client_fd)    
-
---->  generateAutoIndex(request.getpath(), request.get_fake_path()); // real path, URI path
-
