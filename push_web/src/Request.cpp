@@ -295,12 +295,25 @@ bool Request::checkPath(std::string& path){
 		return (set_status_code(403), false);
 	}
 	size_t dotPos = path.find_last_of('.');
-	if (dotPos != std::string::npos) 
-		this->extension = path.substr(dotPos);
-	if (extension == ".php" || extension == ".py")
+	size_t cgiEndPos = std::string::npos;
+if (dotPos != std::string::npos)
+{
+	// Check for known CGI extensions
+	std::string ext = path.substr(dotPos, 4);  // get up to 4 characters to include .php, .py
+	if (ext == ".php" || ext == ".py")
 	{
+		this->extension = ext;
 		this->isCGI = true;
+		// Now locate the end of CGI script: ".php" or ".py"
+		cgiEndPos = path.find(ext) + ext.length();
+		// Split into actual script path and query-like tail
+		this->query = path.substr(cgiEndPos); // → /home/nnn
+		this->path = path.substr(0, cgiEndPos); // → upload/test.php
+		std::cout << "CGI script path: " << this->path << std::endl;
+		std::cout << "CGI script query: " << this->query << std::endl;
+		std::cout << "CGI script extension: " << this->extension << std::endl;
 	}
+}
 	return true;
 }
 

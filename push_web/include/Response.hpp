@@ -42,7 +42,7 @@ class Response {
         bool        keepAlive() const;
         void        handleGetResponse(int *flag, Request &request);
         void        reset();
-        std::string	get_error_missage(int errorCode) const;
+        std::string	get_status_missage(int errorCode) const;
         std::string	get_code_error_path(int errorCode) const;
         std::string get_MimeType (const std::string& path);
         void        send_header_response(size_t CHUNK_SIZE, std::string path, Request &request, int flag_autoindex);

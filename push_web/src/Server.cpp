@@ -1,32 +1,6 @@
 
 #include "../include/web.h"
 
-// Server::Server(int port) : port(port) {
-// 	struct sockaddr_in server_addr;
-
-// 	server_fd = socket(AF_INET, SOCK_STREAM, 0);
-// 	if (server_fd < 0)
-// 		throw std::runtime_error("Socket creation failed");
-
-// 	int reuse = 1;
-// 	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) < 0)
-// 		throw std::runtime_error("Setsockopt failed");
-
-// 	server_addr.sin_family = AF_INET;
-// 	server_addr.sin_addr.s_addr = INADDR_ANY;
-// 	server_addr.sin_port = htons(port);
-
-// 	if (bind(server_fd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
-// 		throw std::runtime_error("Bind failed");
-
-// 	if (listen(server_fd, MAX_CLIENTS) < 0)
-// 		throw std::runtime_error("Listen Failed");
-
-// 	setNonBlocking(server_fd);
-// 	std::cout << "Server fd: " << server_fd << " listening on port " << port << std::endl;
-// }
-
-
 Server::Server(int port, Server_holder& serv_hldr) : serv_hldr(serv_hldr), port(port) {
 	struct addrinfo hints, *res;
 	int status;
@@ -206,15 +180,44 @@ int Server::sendResponse(int client_fd, Client &client) {
 		std::cout << "-----------> >> filePath: " <<  client._request.getpath() << std::endl;
 		return (handleResponse(client_fd, client));
 	}
-	if (client._request.getMethod() == "GET" && client._request.getStatusCode() == 200)
+	if (client._request.getMethod() == "GET" && client._request.getStatusCode() < 400)
 	{
 		std::cout << "GET response received" << std::endl;
 		return (handleResponse(client_fd, client));
 	}
-	else if (client._request.getMethod() == "DELETE")
+else if (client._request.getMethod() == "DELETE")
+{
+    std::string targetPath = client._request.getpath(); // Already resolved and validated
+
+    if (access(targetPath.c_str(), W_OK) != 0) {
+        client._request.set_status_code(403);
+		client._keepAlive = client._response._keepAlive;
+        client._response.generate_error_response(403, client_fd, serv_hldr);
+        return 1;
+    }
+
+    if (remove(targetPath.c_str()) != 0) {
+		std::cerr << " ((((((((Error deleting file: " << strerror(errno) << std::endl;
+        client._request.set_status_code(500);
+		client._keepAlive = client._response._keepAlive;
+        client._response.generate_error_response(500, client_fd, serv_hldr);
+        return 1;
+    }
+
+    // Redirect user to the location's index.html
+    client._request.setPath("/delete/suc.html");
+	if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
 	{
-		// client._request.endOfRequest = false;
+		client._keepAlive = client._response._keepAlive;
+		client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
+		return 1;
 	}
+    client._request.set_status_code(202);
+	client._keepAlive = client._response._keepAlive;
+	std::cout << "Redirecting to == : " << client._request.getpath() << std::endl;
+    return (handleResponse(client_fd, client));
+}
+
 	if (client._request.getStatusCode() >= 400)
 	{
 		client._keepAlive = client._response._keepAlive;

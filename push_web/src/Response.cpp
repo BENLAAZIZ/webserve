@@ -110,7 +110,9 @@ void Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request
 	if (partial)
 		headers << "HTTP/1.1 206 Partial Content\r\n";
 	else
-		headers << "HTTP/1.1 200 OK\r\n";
+		headers << "HTTP/1.1 "  << get_status_missage(request.getStatusCode()) << "\r\n";
+	// else
+	// 	headers << "HTTP/1.1 200 OK\r\n";
 
 	headers << "Content-Type: " << content_type << "\r\n";
 	headers << "Content-Length: " << content_length << "\r\n";
@@ -127,9 +129,9 @@ void Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request
 	_responseBuffer = headers.str();
 	send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
 
-	// std::cout << "\n*********************** Headers response *********************" <<  std::endl;
-	// std::cout  << _responseBuffer ;
-	// std::cout << "*********************** end of header response *********************\n" <<  std::endl;
+	std::cout << "\n*********************** Headers response *********************" <<  std::endl;
+	std::cout  << _responseBuffer ;
+	std::cout << "*********************** end of header response *********************\n" <<  std::endl;
 	_responseBuffer.clear();
 }
 
@@ -390,7 +392,7 @@ void  Response::there_is_error_file(std::string fullPath, int statusCode)
 	if (stat(fullPath.c_str(), &fileStat) == 0 && S_ISREG(fileStat.st_mode)) {
 		if (file) {
 			std::ostringstream response;
-			response << "HTTP/1.1 "  << get_error_missage(statusCode) << "\r\n";
+			response << "HTTP/1.1 "  << get_status_missage(statusCode) << "\r\n";
 			response << "Content-Type: text/html\r\n";
 			response << "Content-Length: " << responseBody.size() << "\r\n";
 
@@ -417,7 +419,7 @@ void  Response::there_is_error_file(std::string fullPath, int statusCode)
 
 void Response::generate_default_error_response(int statusCode) {
 	std::ostringstream body;
-	std::string statusMessage = get_error_missage(statusCode);
+	std::string statusMessage = get_status_missage(statusCode);
 	// Basic HTML content
 	body << "<!DOCTYPE html>\n"
 		 << "<html lang=\"en\">\n"
@@ -508,10 +510,19 @@ std::string	Response::get_code_error_path(int errorCode) const {
 	return code_path;
 }
 
-std::string	Response::get_error_missage(int errorCode) const
+std::string	Response::get_status_missage(int errorCode) const
 {
 	std::string errorMessage = "";
 	switch (errorCode) {
+		case 200: errorMessage = "200 OK"; break;
+		case 201: errorMessage = "201 Created"; break;
+		case 204: errorMessage = "204 No Content"; break;
+		case 206: errorMessage = "206 Partial Content"; break;
+		case 301: errorMessage = "301 Moved Permanently"; break;
+		case 302: errorMessage = "302 Found"; break;
+		case 304: errorMessage = "304 Not Modified"; break;
+		case 307: errorMessage = "307 Temporary Redirect"; break;
+		case 308: errorMessage = "308 Permanent Redirect"; break;
 		case 400: errorMessage = "400 Bad Request"; break;
 		case 403: errorMessage = "403 Forbidden"; break;
 		case 404: errorMessage = "404 Not Found"; break;
