@@ -25,7 +25,7 @@ class Client {
 		// Helper methods for handling different HTTP methods
 		// void handleGetRequest();
 		// void handlePostRequest();
-		// void handleDeleteRequest();
+		// void handleDeleteResponse();
 
 		void handlePostRequest();
 		//response 
@@ -78,6 +78,8 @@ class Client {
 
 		bool is_resolved();
 		void set_resolved(bool resolved);
+
+		
 
 };
 #endif // CLIENT_HPP

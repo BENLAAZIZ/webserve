@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/12 13:05:47 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/04/16 17:47:03 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/04/17 00:43:41 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ class Server {
         void sendSuccessResponse(int clientSocket);
 
         int handleResponse(int client_fd, Client &client);
+        // bool handleDeleteResponse(Client &client);
         
         Server_holder serv_hldr;
         

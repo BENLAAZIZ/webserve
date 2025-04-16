@@ -2,7 +2,7 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
-
+#include "Client.hpp"
 #include "web.h"
 
 
@@ -57,6 +57,8 @@ class Response {
         void there_is_error_file(std::string fullPath, int statusCode);
         void generate_default_error_response(int statusCode);
         void generate_error_response(int statusCode,  int client_fd, Server_holder& serv_hldr);
+
+         bool handleDeleteResponse(Client &client, Server_holder &serv_hldr);
 
 };
 

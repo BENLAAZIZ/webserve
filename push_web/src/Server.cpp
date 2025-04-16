@@ -98,6 +98,7 @@ int Server::handleClientData(int client_fd, Client &client) {
 			return -1;
 		if (!client.is_Header_Complete())
 			client.parse_Header_Request();
+	
 		if (client.is_Header_Complete() && client._request.getMethod() != "POST") {
 			// std::cout << "================= header request ==================" << std::endl;
 			client._request.endOfRequest = true;
@@ -160,6 +161,12 @@ int Server::handleResponse(int client_fd, Client &client) {
 int Server::sendResponse(int client_fd, Client &client) {
 	client.setClientFd(client_fd);
 	client._response._clientFd = client_fd;
+	if (client._request.getStatusCode() >= 400)
+	{
+		client._keepAlive = client._response._keepAlive;
+		client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
+		return 1;
+	}
 	if (!client.is_resolved())
 	{
 		std::cout << "Resolving request path..." << std::endl;
@@ -185,38 +192,16 @@ int Server::sendResponse(int client_fd, Client &client) {
 		std::cout << "GET response received" << std::endl;
 		return (handleResponse(client_fd, client));
 	}
-else if (client._request.getMethod() == "DELETE")
-{
-    std::string targetPath = client._request.getpath(); // Already resolved and validated
-
-    if (access(targetPath.c_str(), W_OK) != 0) {
-        client._request.set_status_code(403);
-		client._keepAlive = client._response._keepAlive;
-        client._response.generate_error_response(403, client_fd, serv_hldr);
-        return 1;
-    }
-
-    if (remove(targetPath.c_str()) != 0) {
-		std::cerr << " ((((((((Error deleting file: " << strerror(errno) << std::endl;
-        client._request.set_status_code(500);
-		client._keepAlive = client._response._keepAlive;
-        client._response.generate_error_response(500, client_fd, serv_hldr);
-        return 1;
-    }
-
-    // Redirect user to the location's index.html
-    client._request.setPath("/delete/suc.html");
-	if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
+	else if (client._request.getMethod() == "DELETE")
 	{
-		client._keepAlive = client._response._keepAlive;
-		client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
-		return 1;
+		if (client._response.handleDeleteResponse(client, serv_hldr) == 1)
+		{
+			client._keepAlive = client._response._keepAlive;
+			client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
+			return 1;
+		}
+		return (handleResponse(client_fd, client));
 	}
-    client._request.set_status_code(202);
-	client._keepAlive = client._response._keepAlive;
-	std::cout << "Redirecting to == : " << client._request.getpath() << std::endl;
-    return (handleResponse(client_fd, client));
-}
 
 	if (client._request.getStatusCode() >= 400)
 	{
@@ -231,5 +216,24 @@ void Server::setConfig(ConfigFile *config)
 {
 	_config = config;
 }
+
+//  bool Server::handleDeleteResponse(Client &client)
+//  {
+// 	std::string targetPath = client._request.getpath(); // Already resolved and validated
+// 	if (unlink(targetPath.c_str()) != 0) 
+// 	{
+// 		if (errno == EACCES || errno == EPERM) {
+// 			std::cerr << "403 Forbidden: No permission to delete file\n";
+// 		} else {
+// 			std::cerr << "Error: " << strerror(errno) << "\n";
+// 		}
+// 	}
+// 	// Redirect user to the location's index.html
+// 	client._request.setPath("/delete/suc.html");
+// 	if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
+// 		return 1;
+// 	client._request.set_status_code(204);
+// 	return 0;
+//  }
 
 

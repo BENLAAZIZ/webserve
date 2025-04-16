@@ -110,7 +110,11 @@ void Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request
 	if (partial)
 		headers << "HTTP/1.1 206 Partial Content\r\n";
 	else
+	{
+		std::cout << "request.getStatusCode() : " << request.getStatusCode() << std::endl;
 		headers << "HTTP/1.1 "  << get_status_missage(request.getStatusCode()) << "\r\n";
+
+	}
 	// else
 	// 	headers << "HTTP/1.1 200 OK\r\n";
 
@@ -308,13 +312,24 @@ void Response::handleGetResponse(int *flag, Request &request) {
 
 
 
-// void Response::handleDeleteRequest() {
-// 	// Simple DELETE handler
-// 	// Generate response with method and URI
-// 	std::ostringstream response;
-// 	response << "HTTP/1.1 200 OK\r\n";
-// 	response << "Content-Type: text/plain\r\n";
-// }
+ bool Response::handleDeleteResponse(Client &client, Server_holder &serv_hldr)
+ {
+	std::string targetPath = client._request.getpath(); // Already resolved and validated
+	if (unlink(targetPath.c_str()) != 0) 
+	{
+		if (errno == EACCES || errno == EPERM) {
+			std::cerr << "403 Forbidden: No permission to delete file\n";
+		} else {
+			std::cerr << "Error: " << strerror(errno) << "\n";
+		}
+	}
+	// Redirect user to the location's index.html
+	client._request.setPath("/delete/suc.html");
+	if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
+		return 1;
+	client._request.set_status_code(204);
+	return 0;
+ }
 
 std::string Response::get_MimeType (const std::string& path) {
 	std::string contentType = "text/plain";
