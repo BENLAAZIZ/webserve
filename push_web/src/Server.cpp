@@ -190,6 +190,7 @@ int Server::sendResponse(int client_fd, Client &client) {
 	if (client._request.getMethod() == "GET" && client._request.getStatusCode() < 400)
 	{
 		std::cout << "GET response received" << std::endl;
+		// std::cout << "Current working directory: " << client._request.roooooot << std::endl;
 		return (handleResponse(client_fd, client, 0));
 	}
 	else if (client._request.getMethod() == "DELETE")

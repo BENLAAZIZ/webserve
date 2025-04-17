@@ -389,17 +389,19 @@ void Client::set_resolved(bool resolved)
  bool Client::handleDeleteResponse(Server_holder &serv_hldr)
  {
 	std::string targetPath = _request.getpath(); // Already resolved and validated
-	if (unlink(targetPath.c_str()) != 0) 
+	if (remove(targetPath.c_str()) != 0) 
 	{
-		if (errno == EACCES || errno == EPERM) {
-			std::cerr << "403 Forbidden: No permission to delete file\n";
+		// if (errno == EACCES || errno == EPERM) {
+		// 	std::cerr << "403 Forbidden: No permission to delete file\n";
+		// 	_request.set_status_code(403);
+		// 	return 1;
+		// } else {
+		// 	std::cerr << "Error: " << strerror(errno) << "\n";
+		// 	_request.set_status_code(500);
+		// 	return 1;
+		// }
 			_request.set_status_code(403);
 			return 1;
-		} else {
-			std::cerr << "Error: " << strerror(errno) << "\n";
-			_request.set_status_code(500);
-			return 1;
-		}
 	}
 	// Redirect user to the location's index.html
 	_request.setPath("/delete/suc.html");

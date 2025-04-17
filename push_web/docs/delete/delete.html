@@ -6,7 +6,7 @@
   <style>
     body { font-family: sans-serif; text-align: center; margin-top: 100px; }
     input, button { padding: 10px; margin: 10px; font-size: 16px; width: 300px; }
-    #status { margin-top: 20px; font-weight: bold; color: darkgreen; }
+    #status { margin-top: 20px; font-weight: bold; color: rgb(4, 234, 4); }
   </style>
 </head>
 <body>
@@ -17,19 +17,18 @@
   <div id="status"></div>
 
   <script>
+
     function sendDelete() {
       const path = document.getElementById('deletePath').value;
-      const url = `http://localhost:8080${path}`;
+      const url = `${window.location.origin}${path}`; // <-- no hardcoded localhost/8080
+
+      console.log('Sending DELETE request to:', url);
 
       fetch(url, { method: 'DELETE' })
         .then(res => {
           document.getElementById('status').textContent =
             `Status: ${res.status} ${res.statusText}`;
-          if (res.status === 204 || res.status === 200) {
-            document.getElementById('status').style.color = 'green';
-          } else {
-            document.getElementById('status').style.color = 'red';
-          }
+          document.getElementById('status').style.color = (res.status === 204 || res.status === 200) ? 'green' : 'red';
         })
         .catch(err => {
           document.getElementById('status').textContent = 'Request failed: ' + err;

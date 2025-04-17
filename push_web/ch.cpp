@@ -1,19 +1,20 @@
-	// in Server.cpp
+void Response::handleDelete(){
+    struct stat st;
 
-    int Server::sendResponse(int client_fd, Client &client) {
-    
-    else if (client._request.getMethod() == "DELETE")
-	{
-		if (handleDeleteResponse(client) == 1)
-		{
-			client._keepAlive = client._response._keepAlive;
-			client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
-			return 1;
-		}
-		return (handleResponse(client_fd, client));
-	}
-
-
+    if (stat(path.c_str(),  &st) < 0){
+        err = "404";
+        return;
     }
-
-
+    if (!S_ISDIR(st.st_mode) && !S_ISREG(st.st_mode)){
+        err = "404";
+        return;
+    }
+    if (remove(path.c_str())){
+        err = "403";
+        return;
+    }
+    res += "204 ";
+    res += statusCodes["204"];
+    res += getDate();
+    res += "\r\n";
+}

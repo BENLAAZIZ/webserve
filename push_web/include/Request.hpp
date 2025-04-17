@@ -67,6 +67,7 @@ class Request
 		int code;
 		bool 			endOfRequest;
 		bool 			isCGI;
+		std::string			roooooot;
 		std::string			my_root;
 		std::string 		strCGI;
 		std::map<std::string, std::string> encode;

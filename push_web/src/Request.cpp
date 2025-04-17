@@ -34,6 +34,8 @@ Request::Request()
 
 	// end of request
 	endOfRequest = false;
+	//get curent directory
+	roooooot = getcwd(NULL, 0);
 	my_root = "/Users/hben-laz/Desktop/push_web";
 }
 
@@ -298,26 +300,25 @@ bool Request::checkPath(std::string& path){
 	size_t cgiEndPos = std::string::npos;
 	if (dotPos != std::string::npos)
 	{
-		// Check for known CGI extensions
-		std::string ext = path.substr(dotPos, 4);  // get up to 4 characters to include .php, .py
-		std::cout << "extension: " << ext << std::endl;
+		std::string ext = path.substr(dotPos);
+		size_t dotq = ext.find('/');
+		// std::cout << "extension: " << ext << std::endl;
+		if (dotq != std::string::npos)
+			ext = ext.substr(0, dotq);
 		if (ext == ".php" || ext == ".py")
 		{
 			this->extension = ext;
 			this->isCGI = true;
-			// Now locate the end of CGI script: ".php" or ".py"
 			cgiEndPos = path.find(ext) + ext.length();
-			// Split into actual script path and query-like tail
 			this->query = path.substr(cgiEndPos); // → /home/nnn
 			this->path = path.substr(0, cgiEndPos); // → upload/test.php
-			std::cout << "CGI script path: " << this->path << std::endl;
-			std::cout << "CGI script query: " << this->query << std::endl;
-			std::cout << "CGI script extension: " << this->extension << std::endl;
+		// 	std::cout << "CGI script path: " << this->path << std::endl;
+		// 	std::cout << "CGI script query: " << this->query << std::endl;
+		// 	std::cout << "CGI script extension: " << this->extension << std::endl;
 		}
-			// pause();
 	}
-	std::cout << "path: " << path << std::endl;
-	pause();
+	// std::cout << "path: " << path << std::endl;
+	// // pause();
 	return true;
 }
 
