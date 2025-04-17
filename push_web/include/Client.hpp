@@ -2,6 +2,7 @@
 #ifndef CLIENT_HPP
 #define CLIENT_HPP
 
+// #include "Response.hpp"
 #include "web.h"
 
 class Client {
@@ -78,6 +79,8 @@ class Client {
 
 		bool is_resolved();
 		void set_resolved(bool resolved);
+
+		bool handleDeleteResponse(Server_holder &serv_hldr);
 
 		
 

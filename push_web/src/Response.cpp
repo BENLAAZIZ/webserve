@@ -241,7 +241,7 @@ std::string generateAutoIndex(const std::string& dirPath, const std::string& uri
 }
 
 
-void Response::handleGetResponse(int *flag, Request &request) {
+void Response::handleGetResponse(int *flag, Request &request, int flag_delete) {
 
     *flag = 0;
 
@@ -254,7 +254,7 @@ void Response::handleGetResponse(int *flag, Request &request) {
 		flag_p = 1;
 	}
     // Check if file exists
-	if (request.isCGI)
+	if (request.isCGI && flag_delete == 0)
 	{
 		std::cout << "CGI" << std::endl;
 		pause()	;
@@ -312,24 +312,28 @@ void Response::handleGetResponse(int *flag, Request &request) {
 
 
 
- bool Response::handleDeleteResponse(Client &client, Server_holder &serv_hldr)
- {
-	std::string targetPath = client._request.getpath(); // Already resolved and validated
-	if (unlink(targetPath.c_str()) != 0) 
-	{
-		if (errno == EACCES || errno == EPERM) {
-			std::cerr << "403 Forbidden: No permission to delete file\n";
-		} else {
-			std::cerr << "Error: " << strerror(errno) << "\n";
-		}
-	}
-	// Redirect user to the location's index.html
-	client._request.setPath("/delete/suc.html");
-	if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
-		return 1;
-	client._request.set_status_code(204);
-	return 0;
- }
+//  bool Response::handleDeleteResponse(Client &client, Server_holder &serv_hldr)
+//  {
+// 	std::string targetPath = client._request.getpath(); // Already resolved and validated
+// 	if (unlink(targetPath.c_str()) != 0) 
+// 	{
+// 		if (errno == EACCES || errno == EPERM) {
+// 			std::cerr << "403 Forbidden: No permission to delete file\n";
+// 			client._request.set_status_code(403);
+// 			return 1;
+// 		} else {
+// 			std::cerr << "Error: " << strerror(errno) << "\n";
+// 			client._request.set_status_code(500);
+// 			return 1;
+// 		}
+// 	}
+// 	// Redirect user to the location's index.html
+// 	client._request.setPath("/delete/suc.html");
+// 	if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
+// 		return 1;
+// 	client._request.set_status_code(204);
+// 	return 0;
+//  }
 
 std::string Response::get_MimeType (const std::string& path) {
 	std::string contentType = "text/plain";

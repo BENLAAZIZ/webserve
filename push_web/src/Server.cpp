@@ -130,10 +130,10 @@ int Server::handleClientData(int client_fd, Client &client) {
 
 
 
-int Server::handleResponse(int client_fd, Client &client) {
+int Server::handleResponse(int client_fd, Client &client, int flag_delete) {
 
 	int flag = -1;
-		client._response.handleGetResponse(&flag, client._request);
+		client._response.handleGetResponse(&flag, client._request, flag_delete);
 		std::cout << " here flag = " << flag << std::endl;
 		if (flag == 1)
 		{
@@ -185,22 +185,23 @@ int Server::sendResponse(int client_fd, Client &client) {
 		std::string fullPath = client._request.my_root + "/docs/upload/success.html";
 		client._request.setPath(fullPath);
 		std::cout << "-----------> >> filePath: " <<  client._request.getpath() << std::endl;
-		return (handleResponse(client_fd, client));
+		return (handleResponse(client_fd, client, 0));
 	}
 	if (client._request.getMethod() == "GET" && client._request.getStatusCode() < 400)
 	{
 		std::cout << "GET response received" << std::endl;
-		return (handleResponse(client_fd, client));
+		return (handleResponse(client_fd, client, 0));
 	}
 	else if (client._request.getMethod() == "DELETE")
 	{
-		if (client._response.handleDeleteResponse(client, serv_hldr) == 1)
+		if (client.handleDeleteResponse(serv_hldr) == 1)
 		{
 			client._keepAlive = client._response._keepAlive;
 			client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
 			return 1;
 		}
-		return (handleResponse(client_fd, client));
+		std::cout << "new file path: " << client._request.getpath() << std::endl;
+		return (handleResponse(client_fd, client, 1));
 	}
 
 	if (client._request.getStatusCode() >= 400)
@@ -216,24 +217,5 @@ void Server::setConfig(ConfigFile *config)
 {
 	_config = config;
 }
-
-//  bool Server::handleDeleteResponse(Client &client)
-//  {
-// 	std::string targetPath = client._request.getpath(); // Already resolved and validated
-// 	if (unlink(targetPath.c_str()) != 0) 
-// 	{
-// 		if (errno == EACCES || errno == EPERM) {
-// 			std::cerr << "403 Forbidden: No permission to delete file\n";
-// 		} else {
-// 			std::cerr << "Error: " << strerror(errno) << "\n";
-// 		}
-// 	}
-// 	// Redirect user to the location's index.html
-// 	client._request.setPath("/delete/suc.html");
-// 	if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
-// 		return 1;
-// 	client._request.set_status_code(204);
-// 	return 0;
-//  }
 
 

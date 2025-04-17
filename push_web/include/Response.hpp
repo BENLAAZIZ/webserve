@@ -2,7 +2,6 @@
 #ifndef RESPONSE_HPP
 #define RESPONSE_HPP
 
-#include "Client.hpp"
 #include "web.h"
 
 
@@ -40,7 +39,7 @@ class Response {
 
     
         bool        keepAlive() const;
-        void        handleGetResponse(int *flag, Request &request);
+        void        handleGetResponse(int *flag, Request &request, int flag_delete);
         void        reset();
         std::string	get_status_missage(int errorCode) const;
         std::string	get_code_error_path(int errorCode) const;
@@ -58,7 +57,7 @@ class Response {
         void generate_default_error_response(int statusCode);
         void generate_error_response(int statusCode,  int client_fd, Server_holder& serv_hldr);
 
-         bool handleDeleteResponse(Client &client, Server_holder &serv_hldr);
+        //  bool handleDeleteResponse(Client &client, Server_holder &serv_hldr);
 
 };
 
