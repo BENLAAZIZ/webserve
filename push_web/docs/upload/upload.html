@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebServ Project</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+</head>
+<body class="bg-dark text-light">
+
+  <!-- Navigation Bar -->
+  <nav class="navbar navbar-expand-lg bg-black">
+    <div class="container-fluid">
+        <a class="navbar-brand text-light" href="/">
+             <span class="navbar-brand text-info fw-bold">WebServ</span>
+        </a>
+    </div>
+  </nav>
+
+
+  <div class="container py-5">
+    <h1 class="text-info mb-4">📤 Upload a File</h1>
+    <form action="/upload" method="POST" enctype="multipart/form-data" class="border p-4 rounded bg-light text-dark">
+      <div class="mb-3">
+        <label for="file" class="form-label fw-semibold">Choose a file</label>
+        <input type="file" class="form-control" id="file" name="file" required>
+      </div>
+      <button type="submit" class="btn btn-success">Upload</button>
+    </form>
+  </div>
+</body>
+</html>

@@ -2,19 +2,46 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebServ Project</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
   <title>DELETE Request Tester</title>
   <style>
-    body { font-family: sans-serif; text-align: center; margin-top: 100px; }
-    input, button { padding: 10px; margin: 10px; font-size: 16px; width: 300px; }
+    /* body { font-family: sans-serif; text-align: center; margin-top: 100px; } */
+    /* input, button { padding: 10px; margin: 10px; font-size: 16px; width: 300px; } */
     #status { margin-top: 20px; font-weight: bold; color: rgb(4, 234, 4); }
   </style>
 </head>
-<body>
-  <h1>🗑️ DELETE File from WebServer</h1>
+<body class="bg-dark text-light">
+
+   <!-- Navigation Bar -->
+   <nav class="navbar navbar-expand-lg bg-black">
+    <div class="container-fluid">
+        <a class="navbar-brand text-light" href="/">
+             <span class="navbar-brand text-info fw-bold">WebServ</span>
+        </a>
+    </div>
+  </nav>
+
+
+  
+  <!-- <h1>🗑️ DELETE File from WebServer</h1>
   <input type="text" id="deletePath" placeholder="Enter path like /test.h/file.txt" />
   <br>
   <button onclick="sendDelete()">Delete File</button>
-  <div id="status"></div>
+  <div id="status"></div> -->
+  <div class="container text-center mt-5">
+    <h1 class="text-danger mb-4">🗑️ DELETE File from WebServer</h1>
+    <div class="mb-3">
+      <input type="text" class="form-control w-50 mx-auto" id="deletePath" placeholder="Enter path like /test.h/file.txt" />
+    </div>
+    <div class="mb-3">
+      <button class="btn btn-outline-danger" onclick="sendDelete()">Delete File</button>
+    </div>
+    <div id="status"></div>
+  </div>
 
   <script>
 

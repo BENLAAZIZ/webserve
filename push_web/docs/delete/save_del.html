@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DELETE Request Tester</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 100px; }
+    input, button { padding: 10px; margin: 10px; font-size: 16px; width: 300px; }
+    #status { margin-top: 20px; font-weight: bold; color: rgb(4, 234, 4); }
+  </style>
+</head>
+<body>
+  <h1>🗑️ DELETE File from WebServer</h1>
+  <input type="text" id="deletePath" placeholder="Enter path like /test.h/file.txt" />
+  <br>
+  <button onclick="sendDelete()">Delete File</button>
+  <div id="status"></div>
+
+  <script>
+
+    function sendDelete() {
+      const path = document.getElementById('deletePath').value;
+      const url = `${window.location.origin}${path}`; // <-- no hardcoded localhost/8080
+
+      console.log('Sending DELETE request to:', url);
+
+      fetch(url, { method: 'DELETE' })
+        .then(res => {
+          document.getElementById('status').textContent =
+            `Status: ${res.status} ${res.statusText}`;
+          document.getElementById('status').style.color = (res.status === 204 || res.status === 200) ? 'green' : 'red';
+        })
+        .catch(err => {
+          document.getElementById('status').textContent = 'Request failed: ' + err;
+          document.getElementById('status').style.color = 'red';
+        });
+    }
+  </script>
+</body>
+</html>
