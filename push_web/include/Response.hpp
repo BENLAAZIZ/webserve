@@ -59,6 +59,8 @@ class Response {
 
         //  bool handleDeleteResponse(Client &client, Server_holder &serv_hldr);
 
+        void generate_redirect_response(int statusCode,  const std::string& url);
+
 };
 
 #endif // RESPONSE_HPP

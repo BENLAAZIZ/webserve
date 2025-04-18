@@ -588,3 +588,28 @@ void Response::type_of_path(std::string& path)
 	   is_dir = 1;
 	return ;
 }
+
+// ========== end location ==========
+
+//client._response.generate_redirect_response(client._request.getStatusCode(), client_fd, serv_hldr);
+
+void Response::generate_redirect_response(int statusCode,  const std::string& url) {
+	// Check if the status code is a valid redirect code
+	if (statusCode != 301 && statusCode != 302 && statusCode != 307 && statusCode != 308) {
+		std::cerr << "Invalid redirect status code: " << statusCode << std::endl;
+		return;
+	}
+
+	// Generate the redirect response
+	  std::ostringstream res;
+    res << "HTTP/1.1 " << statusCode << " Moved Permanently\r\n";
+    res << "Location: " << url << "\r\n";
+    res << "Content-Length: 0\r\n";
+    res << "\r\n";
+
+	_responseBuffer = res.str();
+	_keepAlive = false;  // Don't keep alive on redirects
+	std::cout << "Redirect response: " << _responseBuffer << std::endl;
+	send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+	_responseBuffer.clear();
+}

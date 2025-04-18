@@ -170,12 +170,19 @@ int Server::sendResponse(int client_fd, Client &client) {
 	if (!client.is_resolved())
 	{
 		std::cout << "Resolving request path..." << std::endl;
-			if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
-			{
-				client._keepAlive = client._response._keepAlive;
-				client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
-				return 1;
-			}
+		if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
+		{
+			client._keepAlive = client._response._keepAlive;
+			client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
+			return 1;
+		}
+		if (client._request.getStatusCode() >= 300 && client._request.getStatusCode() < 400)
+		{
+			std::cout << "Redirecting..." << std::endl;
+			client._response._keepAlive = false;
+			client._response.generate_redirect_response(client._request.getStatusCode(), client._request.getpath());
+			return 1;
+		}
 			client.set_resolved(true);
 	}
 	std::string fullPath = client._request.getpath();

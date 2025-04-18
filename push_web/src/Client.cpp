@@ -250,12 +250,32 @@ int Client::read_data()
 
 // ====== location ======
 
+
+
 int  Client::resolve_request_path(Server_holder & serv_hldr) {
 	Location* loc = find_matching_location(_request, serv_hldr.locations);
 	std::string root = loc ? loc->root : serv_hldr.root;
 	std::string location_path = loc ? loc->path : "/";
 	std::string getpath = _request.getpath();
 	// check if alowed methods or not
+	// redirect path
+	if (loc && loc->redirect_code != 0) 
+	{
+		std::cout << "-------- redirect: --------" << std::endl;
+		std::cout << "redirect code: " << loc->redirect_code << std::endl;
+		std::cout << "redirect url: " << loc->redirect_url << std::endl;
+		if (loc->redirect_url.empty()) {
+			std::cout << "-------- 400 Bad Request: --------" << std::endl;
+			pause();
+			_request.set_status_code(400);
+			return 400;
+		}
+		_request.setPath(loc->redirect_url);
+    	_request.set_status_code(loc->redirect_code);
+		return loc->redirect_code;
+	}
+	// =========
+
 	if (loc && loc->allowed_methods.size() > 0)
 	{
 		std::string method = _request.getMethod();
