@@ -36,7 +36,8 @@ Request::Request()
 	endOfRequest = false;
 	//get curent directory
 	roooooot = getcwd(NULL, 0);
-	my_root = "/Users/hben-laz/Desktop/push_web";
+	my_root = roooooot;
+	// my_root = "/Users/hben-laz/Desktop/push_web";
 }
 
 Request::~Request()

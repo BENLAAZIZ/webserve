@@ -260,14 +260,19 @@ void Response::handleGetResponse(int *flag, Request &request, int flag_delete) {
 		Cgi cgi_script(request);
 		std::string	output;
 		cgi_script.execute_cgi(output);
-		std::cout << "****outputstring ***** \n" <<  output << std::endl; 
+		std::cout << "****outputstring ***** \n" << std::endl; 
+		// std::cout << "output : " << output << std::endl;
+		// std::cout << "****--------***** \n" << std::endl; 
 		request.setContentLength(output.length());
 		request.setContent_type("text/html");
+		// std::cout << "Content-Length: " << output.length() << std::endl;
+		// std::cout << "Content-Type: text/html" << std::endl;
+		// std::cout << "in fullPath: " << path << std::endl;
 		 
-		 send_header_response(CHUNK_SIZE, path, request, 1);
+		send_header_response(CHUNK_SIZE, path, request, 1);
 		send(_clientFd, output.c_str(), output.length(), 0);
 		
-		pause()	;
+		// pause()	;
 	}
     if (this->is_file) 
 	{
