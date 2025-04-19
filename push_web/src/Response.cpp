@@ -320,31 +320,6 @@ void Response::handleGetResponse(int *flag, Request &request, int flag_delete) {
 }
 
 
-
-
-//  bool Response::handleDeleteResponse(Client &client, Server_holder &serv_hldr)
-//  {
-// 	std::string targetPath = client._request.getpath(); // Already resolved and validated
-// 	if (unlink(targetPath.c_str()) != 0) 
-// 	{
-// 		if (errno == EACCES || errno == EPERM) {
-// 			std::cerr << "403 Forbidden: No permission to delete file\n";
-// 			client._request.set_status_code(403);
-// 			return 1;
-// 		} else {
-// 			std::cerr << "Error: " << strerror(errno) << "\n";
-// 			client._request.set_status_code(500);
-// 			return 1;
-// 		}
-// 	}
-// 	// Redirect user to the location's index.html
-// 	client._request.setPath("/delete/suc.html");
-// 	if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
-// 		return 1;
-// 	client._request.set_status_code(204);
-// 	return 0;
-//  }
-
 std::string Response::get_MimeType (const std::string& path) {
 	std::string contentType = "text/plain";
 	size_t dotPos = path.find_last_of('.');
@@ -450,15 +425,36 @@ void Response::generate_default_error_response(int statusCode) {
 	std::ostringstream body;
 	std::string statusMessage = get_status_missage(statusCode);
 	// Basic HTML content
-	body << "<!DOCTYPE html>\n"
-		 << "<html lang=\"en\">\n"
-		 << "<head><meta charset=\"UTF-8\"><title>Error "
-		 << statusCode << "</title></head>\n"
-		 << "<body style=\"font-family:sans-serif;text-align:center;margin-top:50px;\">\n"
-		 << "<h1>" << statusCode << " - " << statusMessage << "</h1>\n"
-		 << "<p>Sorry, something went wrong.</p>\n"
-		 << "<hr><p>WebServ</p>\n"
-		 << "</body></html>";
+	// body << "<!DOCTYPE html>\n"
+	// 	 << "<html lang=\"en\">\n"
+	// 	 << "<head><meta charset=\"UTF-8\"><title>Error "
+	// 	 << statusCode << "</title></head>\n"
+	// 	 << "<body style=\"font-family:sans-serif;text-align:center;margin-top:50px;\">\n"
+	// 	 << "<h1 style=\"color:red\">" << statusCode << " - " << statusMessage << "</h1>\n"
+	// 	 << "<p>Sorry, something went wrong.</p>\n"
+	// 	 << "<hr><p>WebServ</p>\n"
+	// 	 << "</body></html>";
+		body << "<!DOCTYPE html>\n"
+	     << "<html lang=\"en\">\n"
+	     << "<head>\n"
+	     << "  <meta charset=\"UTF-8\">\n"
+	     << "  <title>Error " << statusCode << "</title>\n"
+	     << "  <link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css\" rel=\"stylesheet\">\n"
+	     << "</head>\n"
+	     << "<body class=\"bg-dark\">\n"
+	     << "  <div class=\"container text-center text-light py-5\">\n"
+	     << "    <div class=\"row justify-content-center\">\n"
+	     << "      <div class=\"col-lg-6\">\n"
+	     << "        <h1 class=\"display-1 fw-bold text-danger\">" << statusCode << "</h1>\n"
+	     << "        <h2 class=\"mb-3 fw-bold\">" << statusCode << " - " << statusMessage << "</h2>\n"
+	     << "        <p class=\"lead\">Sorry, something went wrong with your request. The server couldn't process it or the resource may not exist.</p>\n"
+	     << "        <hr class=\"my-4 border-light\">\n"
+	     << "        <p class=\"text-secondary\">WebServ</p>\n"
+	     << "      </div>\n"
+	     << "    </div>\n"
+	     << "  </div>\n"
+	     << "</body>\n"
+	     << "</html>";
 
 	std::string responseBody = body.str();
 	// Construct full HTTP response headers

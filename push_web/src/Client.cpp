@@ -306,6 +306,13 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 		return 200;
 	}
 	if (is_directory(full_path)) {
+
+		if (_request.getMethod() == "DELETE")
+		{
+			std::cout << "-------- 403 Forbidden: --------" << std::endl;
+			_request.set_status_code(403);
+			return 403;
+		}
 		
 		if (loc && !loc->index.empty()) {
 			std::string index_path = join_paths(full_path, loc->index[0]);
