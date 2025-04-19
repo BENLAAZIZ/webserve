@@ -56,7 +56,6 @@ class Request
 		std::string	path;
 		std::string	version;
 		std::string	extension;
-		std::string query;
 		 std::string fake_path;
 		std::map<std::string, std::string> headers;
 		
@@ -64,6 +63,8 @@ class Request
 		bool flag_end_of_headers;
 		bool headersParsed;
 	public:
+		std::string query;
+		std::string path_info;
 		int code;
 		bool 			endOfRequest;
 		bool 			isCGI;

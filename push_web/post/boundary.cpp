@@ -6,7 +6,7 @@
 /*   By: hben-laz <hben-laz@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/14 22:55:08 by hben-laz          #+#    #+#             */
-/*   Updated: 2025/04/16 17:47:03 by hben-laz         ###   ########.fr       */
+/*   Updated: 2025/04/18 23:52:46 by hben-laz         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,8 +57,12 @@ void getHeaderBody(Request& request) {
 	std::cout << "Filename: " << filename << std::endl;
 
 	request.formData.fd = open(filename.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
-	if (request.formData.fd == -1)
-		throw std::runtime_error("Error opening file");
+	if (request.formData.fd == -1) {
+        request.set_status_code(500);
+        request.endOfRequest = true;
+        return;
+    }
+		// throw std::runtime_error("Error opening file");
 	
 	request.buffer.erase(0, headersEndPos + 4);
 	request.formData.flag = 1;

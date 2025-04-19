@@ -202,6 +202,8 @@ int Server::sendResponse(int client_fd, Client &client) {
 	}
 	else if (client._request.getMethod() == "DELETE")
 	{
+		// std::cout << "DELETE response received" << std::endl;
+		// std::cout << "+++++ + fullPath: " << client._request.getpath() << std::endl;
 		if (client.handleDeleteResponse(serv_hldr) == 1)
 		{
 			client._keepAlive = client._response._keepAlive;

@@ -406,27 +406,61 @@ void Client::set_resolved(bool resolved)
 
 
 
- bool Client::handleDeleteResponse(Server_holder &serv_hldr)
- {
-	std::string targetPath = _request.getpath(); // Already resolved and validated
-	if (remove(targetPath.c_str()) != 0) 
-	{
-		// if (errno == EACCES || errno == EPERM) {
-		// 	std::cerr << "403 Forbidden: No permission to delete file\n";
-		// 	_request.set_status_code(403);
-		// 	return 1;
-		// } else {
-		// 	std::cerr << "Error: " << strerror(errno) << "\n";
-		// 	_request.set_status_code(500);
-		// 	return 1;
-		// }
-			_request.set_status_code(403);
-			return 1;
+//  bool Client::handleDeleteResponse(Server_holder &serv_hldr)
+//  {
+// 	std::string targetPath = _request.getpath(); // Already resolved and validated
+// 	  if (S_ISDIR(st.st_mode))
+// 	  {
+//        _request.set_status_code(403);
+// 			return 1;
+//     }
+// 	if (remove(targetPath.c_str()) != 0) 
+// 	{
+// 			_request.set_status_code(403);
+// 			return 1;
+// 	}
+// 	// Redirect user to the location's index.html
+// 	_request.setPath("/delete/suc.html");
+// 	if (resolve_request_path(serv_hldr) >= 400 || _request.getStatusCode() >= 400)
+// 		return 1;
+// 	_request.set_status_code(204);
+// 	return 0;
+//  }
+
+bool Client::handleDeleteResponse(Server_holder &serv_hldr)
+{
+	std::string targetPath = _request.getpath();
+
+	std::cout << "targetPath: " << targetPath << std::endl;
+	// pause();
+	// STEP 1: Check if it's a directory
+	struct stat st;
+	if (stat(targetPath.c_str(), &st) != 0) {
+		_request.set_status_code(404);
+		return true;
 	}
-	// Redirect user to the location's index.html
+	if (S_ISDIR(st.st_mode)) {
+		_request.set_status_code(403);  // Forbidden: trying to delete a directory
+		return true;
+	}
+
+	// STEP 2: Attempt to delete file
+	if (remove(targetPath.c_str()) != 0) {
+		_request.set_status_code(500);  // Internal Server Error
+		return true;
+	}
+
+	// STEP 3: Set redirection to success page
 	_request.setPath("/delete/suc.html");
-	if (resolve_request_path(serv_hldr) >= 400 || _request.getStatusCode() >= 400)
-		return 1;
-	_request.set_status_code(204);
-	return 0;
- }
+
+	// Validate that the success page exists
+	if (resolve_request_path(serv_hldr) >= 400 || _request.getStatusCode() >= 400) {
+		_request.set_status_code(500);
+		return true;
+	}
+
+	// STEP 4: Success
+	_request.set_status_code(204);  // No Content (for DELETE)
+	return false; // everything is okay
+}
+

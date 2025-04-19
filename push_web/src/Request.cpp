@@ -300,27 +300,75 @@ bool Request::checkPath(std::string& path){
 	size_t cgiEndPos = std::string::npos;
 	if (dotPos != std::string::npos)
 	{
-		std::string ext = path.substr(dotPos);
-		size_t dotq = ext.find('/');
-		// std::cout << "extension: " << ext << std::endl;
-		if (dotq != std::string::npos)
-			ext = ext.substr(0, dotq);
+        std::string ext = path.substr(dotPos);  // get up to 4 characters to include .php, .py
+        // Check for known CGI extensions
+        size_t dotq = ext.find('/');
+        if (dotq != std::string::npos)
+            ext = ext.substr(0, dotq);
 		if (ext == ".php" || ext == ".py")
 		{
 			this->extension = ext;
 			this->isCGI = true;
+			// Now locate the end of CGI script: ".php" or ".py"
 			cgiEndPos = path.find(ext) + ext.length();
-			this->query = path.substr(cgiEndPos); // → /home/nnn
+			// Split into actual script path and query-like tail
+			this->path_info = path.substr(cgiEndPos); // → /home/nnn
 			this->path = path.substr(0, cgiEndPos); // → upload/test.php
-		// 	std::cout << "CGI script path: " << this->path << std::endl;
-		// 	std::cout << "CGI script query: " << this->query << std::endl;
-		// 	std::cout << "CGI script extension: " << this->extension << std::endl;
 		}
 	}
-	// std::cout << "path: " << path << std::endl;
-	// // pause();
 	return true;
 }
+
+// bool Request::checkPath(std::string& path){
+// 	if (path.size() > 2048)
+// 		return (set_status_code(414), false);
+// 	if (path.empty() || path[0] != '/') 
+// 		return (set_status_code(400), false);
+// 	for (size_t i = 0; path[i]; ++i){
+// 			if ((path[i] >= 'A' && path[i] <= 'Z') || (path[i] >= 'a' && path[i] <= 'z') || (path[i] >= '0' && path[i] <= '9'))
+// 				continue;
+// 			if (path[i] == '~' || path[i] == '!' || (path[i] >= '#' && path[i] <= '/') || path[i] == ':' || path[i] == ';' || path[i] == '=' || path[i] == '?' || path[i] == '@')
+// 				continue;
+// 			if (path[i] == '[' || path[i] == ']' || path[i] == '_')
+// 				continue;
+// 			return (set_status_code(400), false);
+// 	}
+// 	path = urlDecode(path);
+// 	size_t queryPos = path.find('?');
+// 	if (queryPos != std::string::npos)
+// 	{
+// 		this->query  = path.substr(queryPos, path.size());
+// 		path = path.substr(0, queryPos);
+// 	}
+// 	if (path.find("..") != std::string::npos) {
+// 		std::cerr << "Directory traversal attempt: " << path << std::endl;
+// 		return (set_status_code(403), false);
+// 	}
+// 	size_t dotPos = path.find_last_of('.');
+// 	size_t cgiEndPos = std::string::npos;
+// 	if (dotPos != std::string::npos)
+// 	{
+// 		std::string ext = path.substr(dotPos);
+// 		size_t dotq = ext.find('/');
+// 		// std::cout << "extension: " << ext << std::endl;
+// 		if (dotq != std::string::npos)
+// 			ext = ext.substr(0, dotq);
+// 		if (ext == ".php" || ext == ".py")
+// 		{
+// 			this->extension = ext;
+// 			this->isCGI = true;
+// 			cgiEndPos = path.find(ext) + ext.length();
+// 			this->query = path.substr(cgiEndPos); // → /home/nnn
+// 			this->path = path.substr(0, cgiEndPos); // → upload/test.php
+// 		// 	std::cout << "CGI script path: " << this->path << std::endl;
+// 		// 	std::cout << "CGI script query: " << this->query << std::endl;
+// 		// 	std::cout << "CGI script extension: " << this->extension << std::endl;
+// 		}
+// 	}
+// 	// std::cout << "path: " << path << std::endl;
+// 	// // pause();
+// 	return true;
+// }
 
 std::string Request::urlDecode(const std::string& str) {
 	std::string decoded;

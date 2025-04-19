@@ -170,6 +170,14 @@ void	ConfigParser::cheke_format_server_block(std::vector<std::string>& serv)
 	}
 }
 
+void	chek_server_essentails(Server_holder & server)
+{
+	if (server.host.empty())
+		throw::std::runtime_error("invalid server block host missing");
+	if (server.port.empty())
+		throw::std::runtime_error("invalid server block port missing");
+}
+
 void	ConfigParser::pars_config_centent()
 {
 	for (size_t i = 0; i < serv_blocs.size(); i++)
@@ -177,6 +185,8 @@ void	ConfigParser::pars_config_centent()
 		Server_holder server;
 		cheke_format_server_block(serv_blocs[i]);
 		pars_server(serv_blocs[i], server);
+		// check esentials to be in server
+		chek_server_essentails(server);
 		servers.push_back(server);
 	}
 }
@@ -262,5 +272,5 @@ void	ConfigParser::process_config(int ac, char **av)
 	// 	}
 	// }
 	pars_config_centent();
-	// config.prints_serves_configuration();
+	// prints_serves_configuration();
 }

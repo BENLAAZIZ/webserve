@@ -257,6 +257,16 @@ void Response::handleGetResponse(int *flag, Request &request, int flag_delete) {
 	if (request.isCGI && flag_delete == 0)
 	{
 		std::cout << "CGI" << std::endl;
+		Cgi cgi_script(request);
+		std::string	output;
+		cgi_script.execute_cgi(output);
+		std::cout << "****outputstring ***** \n" <<  output << std::endl; 
+		request.setContentLength(output.length());
+		request.setContent_type("text/html");
+		 
+		 send_header_response(CHUNK_SIZE, path, request, 1);
+		send(_clientFd, output.c_str(), output.length(), 0);
+		
 		pause()	;
 	}
     if (this->is_file) 
@@ -281,8 +291,8 @@ void Response::handleGetResponse(int *flag, Request &request, int flag_delete) {
 			{
 				std::cerr << "Error reading file: " << strerror(errno) << std::endl;
 				reset();
-                *flag = 1;
-                return ;
+				*flag = 1;
+				return ;
             }
         }
     } 

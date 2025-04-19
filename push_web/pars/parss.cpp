@@ -159,8 +159,10 @@ void	pars_location(std::vector<std::string>& tokens, Location &loc)
 			loc.redirect_code = std::atoi(tokens[1].c_str());
 		else
 			throw::std::runtime_error("invalid redirect code " + tokens[1]);
-		if (tokens.size() == 2)
+		if (tokens.size() == 3)
+		{
 			loc.redirect_url = tokens[2];
+		}
 	}
 	else if (tokens[0] == "index")
 	{
@@ -261,3 +263,6 @@ void	pars_server(std::vector<std::string>& serv, Server_holder & server)
 			throw::std::runtime_error("unkowng directive" + tokens[0] + "for server block");
 	}
 }
+
+
+// fix redirect url

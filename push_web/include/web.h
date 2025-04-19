@@ -29,6 +29,6 @@
 #include "Server.hpp"
 #include "Client.hpp"
 #include "Config.hpp"
-// #include "CGI.hpp"
+#include "CgiHandler.hpp"
 
 // #include "MimeTypes.hpp"
