@@ -71,3 +71,54 @@ void Response::generate_error_response(int statusCode,  int client_fd, Server_ho
 	send_Error_Response(client_fd);
 	_responseBuffer.clear();
 }
+
+
+
+
+=============================================
+
+int check_white_space(const std::string& str, int *white_space)
+{
+	int space = 0;
+	for (size_t i = 0; str[i]; ++i)
+	{
+		if ((str[i] >= 9 && str[i] <= 13) || str[i] == 32) 
+		{
+			if (str[i] == 32)
+				space++;
+			else
+				(*white_space)++;
+		}
+	}
+	return space;
+}
+
+bool Request::parseFirstLine(const std::string& line)
+{
+	int white_space = 0;
+	if (check_white_space(line, &white_space) == 2)
+	{
+		if (white_space != 0)
+			return (set_status_code(400), false);
+	}
+	else
+		return (set_status_code(400), false);
+	std::istringstream iss(line);
+	std::string method, path, version;
+	if (!(iss >> method >> path >> version))
+		return (set_status_code(400), false);
+
+	if (method != "GET" && method != "POST" && method != "DELETE")
+		return (set_status_code(405), false);
+	if (version != "HTTP/1.1")
+		return (set_status_code(505), false);
+	if (checkPath(path))
+	{
+		setMethod(method);
+		setPath(path);
+		setVersion(version);
+	}
+	else
+		return false;
+	return true;
+}
