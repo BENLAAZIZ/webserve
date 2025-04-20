@@ -151,12 +151,8 @@ int Server::handleResponse(int client_fd, Client &client, int flag_delete) {
 			client._response._fileOffset = 0;
 			client._response.file.close();
 			client._response._isopen = false;
-			// client._response.reset();
-			// client._keepAlive = client._response._keepAlive;
-			if (client._request.getMethod() == "DELETE")  // update  ****************
-				client._keepAlive = false;
-			else
-				client._keepAlive = client._response._keepAlive;
+			client._response.fullPath.clear();
+			client._keepAlive = client._response._keepAlive;
 			return 1;
 		}
 	return -1;
@@ -206,6 +202,8 @@ int Server::sendResponse(int client_fd, Client &client) {
 	}
 	else if (client._request.getMethod() == "DELETE")
 	{
+		// std::cout << "DELETE response received" << std::endl;
+		// std::cout << "+++++ + fullPath: " << client._request.getpath() << std::endl;
 		if (client.handleDeleteResponse(serv_hldr) == 1)
 		{
 			client._keepAlive = client._response._keepAlive;
