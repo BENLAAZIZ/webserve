@@ -123,9 +123,9 @@ void Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request
 	headers << "Accept-Ranges: bytes\r\n";
 	if (partial)
 		headers << "Content-Range: bytes " << start << "-" << end << "/" << file_size << "\r\n";
-	if (_keepAlive)
-		headers << "Connection: keep-alive\r\n";
-	else
+	// if (_keepAlive)
+	// 	headers << "Connection: keep-alive\r\n";
+	// else
 		headers << "Connection: close\r\n";
 	headers << "\r\n";
 
