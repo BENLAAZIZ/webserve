@@ -261,8 +261,8 @@ void Response::handleGetResponse(int *flag, Request &request, int flag_delete) {
 		std::string	output;
 		cgi_script.execute_cgi(output);
 		std::cout << "****outputstring ***** \n" << std::endl; 
-		// std::cout << "output : " << output << std::endl;
-		// std::cout << "****--------***** \n" << std::endl; 
+		std::cout << "output : " << output << std::endl;
+		std::cout << "****--------***** \n" << std::endl; 
 		request.setContentLength(output.length());
 		request.setContent_type("text/html");
 		// std::cout << "Content-Length: " << output.length() << std::endl;
@@ -503,12 +503,13 @@ bool Response::send_Error_Response(int client_fd) {
 	return true;
 }
 
-void Response::generate_error_response(int statusCode,  int client_fd, Server_holder& serv_hldr) {
+void Response::generate_error_response(int statusCode,  int client_fd, Server_holder& serv_hldr, const std::string& my_root) {
 	std::map<int, std::string>::iterator it = serv_hldr.error_pages.find(statusCode);
 	if (it != serv_hldr.error_pages.end()) {
 		std::string error_page_path = it->second;
 		std::cout << "Error page path: " << error_page_path << std::endl;
-		fullPath = "/Users/hben-laz/Desktop/push_web/docs" + error_page_path;
+		// fullPath = "/Users/hben-laz/Desktop/push_web/docs" + error_page_path;
+		fullPath = my_root + "/docs" + error_page_path;
 		there_is_error_file(fullPath, statusCode);
 	} else {
 		std::cout << "No custom error page found for status code: " << statusCode << std::endl;

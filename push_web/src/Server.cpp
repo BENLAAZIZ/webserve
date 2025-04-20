@@ -138,7 +138,7 @@ int Server::handleResponse(int client_fd, Client &client, int flag_delete) {
 		if (flag == 1)
 		{
 			client._keepAlive = client._response._keepAlive;
-			client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
+			client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr, client._request.my_root);
 			return 1;
 		}
 		else if (flag == 0)
@@ -164,7 +164,7 @@ int Server::sendResponse(int client_fd, Client &client) {
 	if (client._request.getStatusCode() >= 400)
 	{
 		client._keepAlive = client._response._keepAlive;
-		client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
+		client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr, client._request.my_root);
 		return 1;
 	}
 	if (!client.is_resolved())
@@ -173,7 +173,7 @@ int Server::sendResponse(int client_fd, Client &client) {
 		if (client.resolve_request_path(serv_hldr) >= 400 || client._request.getStatusCode() >= 400)
 		{
 			client._keepAlive = client._response._keepAlive;
-			client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
+			client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr, client._request.my_root);
 			return 1;
 		}
 		if (client._request.getStatusCode() >= 300 && client._request.getStatusCode() < 400)
@@ -207,7 +207,7 @@ int Server::sendResponse(int client_fd, Client &client) {
 		if (client.handleDeleteResponse(serv_hldr) == 1)
 		{
 			client._keepAlive = client._response._keepAlive;
-			client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
+			client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr, client._request.my_root);
 			return 1;
 		}
 		std::cout << "new file path: " << client._request.getpath() << std::endl;
@@ -217,7 +217,7 @@ int Server::sendResponse(int client_fd, Client &client) {
 	if (client._request.getStatusCode() >= 400)
 	{
 		client._keepAlive = client._response._keepAlive;
-		client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr);
+		client._response.generate_error_response(client._request.getStatusCode(), client_fd, serv_hldr, client._request.my_root);
 		return 1;
 	}
 	return 0;

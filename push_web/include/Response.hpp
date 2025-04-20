@@ -55,7 +55,7 @@ class Response {
         bool send_Error_Response(int client_fd);
         void there_is_error_file(std::string fullPath, int statusCode);
         void generate_default_error_response(int statusCode);
-        void generate_error_response(int statusCode,  int client_fd, Server_holder& serv_hldr);
+        void generate_error_response(int statusCode,  int client_fd, Server_holder& serv_hldr, const std::string& my_root);
 
         //  bool handleDeleteResponse(Client &client, Server_holder &serv_hldr);
 
