@@ -257,6 +257,30 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 	std::string location_path = loc ? loc->path : "/";
 	std::string getpath = _request.getpath();
 	// check if alowed methods or not
+	if (loc && loc->root.empty() && serv_hldr.root.empty()) {
+		std::cout << "dosen't exist any root - full_path = " << full_path << std::endl;
+		_request.set_status_code(400);
+		return 400;
+	}
+	// if not found location
+	if (loc == NULL) {
+		full_path = join_paths(_request.my_root, join_paths(serv_hldr.root, getpath));
+		if (is_directory(full_path))
+			full_path = join_paths(full_path, "index.html");
+		std::cout << "Location not found - full_path = " << full_path << std::endl;
+		if (file_exists(full_path)) {
+			_request.setPath(full_path);
+			full_path.clear();
+			_request.set_status_code(200);
+			return 200;
+		}
+		else
+		{
+			_request.set_status_code(404);
+			return 404;
+		}
+	}
+	std::cout << "Location found - full_path = " << full_path << std::endl;
 	// redirect path
 	if (loc && loc->redirect_code != 0) 
 	{
@@ -440,13 +464,21 @@ bool Client::handleDeleteResponse(Server_holder &serv_hldr)
 	std::cout << "targetPath: " << targetPath << std::endl;
 	// pause();
 	// STEP 1: Check if it's a directory
-	struct stat st;
-	if (stat(targetPath.c_str(), &st) != 0) {
-		_request.set_status_code(404);
-		return true;
-	}
-	if (S_ISDIR(st.st_mode)) {
-		_request.set_status_code(403);  // Forbidden: trying to delete a directory
+	// struct stat st;
+	// if (stat(targetPath.c_str(), &st) != 0) {
+	// 	_request.set_status_code(404);
+	// 	return true;
+	// }
+	// if (S_ISDIR(st.st_mode)) {
+	// 	_request.set_status_code(403);  // Forbidden: trying to delete a directory
+	// 	return true;
+	// }
+
+	// add   
+	// Check is access to file is allowed
+	if (access(targetPath.c_str(), W_OK) != 0) {
+		std::cout << "-------- 4  0 3 Forbidden: --------" << std::endl;
+		_request.set_status_code(403);  // Forbidden: no write access
 		return true;
 	}
 

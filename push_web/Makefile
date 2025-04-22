@@ -1,5 +1,5 @@
 NAME = webserv
-CPP = c++
+CPP = c++ -g -fsanitize=address
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 SRC = main.cpp src/Server.cpp src/Request.cpp  src/Response.cpp src/Config.cpp src/Client.cpp  \
 	post/chunked.cpp post/boundary.cpp pars/ConfigParser.cpp pars/parss.cpp pars/CgiHandler.cpp

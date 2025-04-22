@@ -55,7 +55,7 @@ void Response::reset() {
 
 // ========== send header response ==========
 
-void Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request &request, int flag_autoindex) 
+ssize_t Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request &request, int flag_autoindex) 
 {
 	std::string content_type;
 	_isopen = true;
@@ -132,18 +132,31 @@ void Response::send_header_response(size_t CHUNK_SIZE, std::string path, Request
 
 	_header_falg = true;
 	_responseBuffer = headers.str();
-	send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+	// check return of send
+	ssize_t bytesSent = send(_clientFd, _responseBuffer.c_str(), _responseBuffer.size(), 0);
+	if (bytesSent < 0) {
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return false; // Socket not ready yet
+		std::cerr << "Error sending response: " << strerror(errno) << std::endl;
+		return true;
+	}
+	if (bytesSent == 0)
+	{
+		std::cerr << "No data sent" << std::endl;
+		return true;
+	}
 
 	std::cout << "\n*********************** Headers response *********************" <<  std::endl;
 	std::cout  << _responseBuffer ;
 	std::cout << "*********************** end of header response *********************\n" <<  std::endl;
 	_responseBuffer.clear();
+	return false;
 }
 
 int	Response::send_file_response(char *buffer, int bytes_read)
 {
 		ssize_t sent = send(_clientFd, buffer, bytes_read, 0);
-		buffer[bytes_read] = '\0'; // Null-terminate the buffer for safety
+		// buffer[bytes_read] = '\0'; // Null-terminate the buffer for safety
 	if (sent >= 0) {
 		_fileOffset += sent;
 		if (file.eof()) 
@@ -244,6 +257,7 @@ std::string generateAutoIndex(const std::string& dirPath, const std::string& uri
 
 void Response::handleGetResponse(int *flag, Request &request, int flag_delete) {
 
+	ssize_t bytesSent;
     *flag = 0;
 
     std::string path = request.getpath();
@@ -261,19 +275,27 @@ void Response::handleGetResponse(int *flag, Request &request, int flag_delete) {
 		Cgi cgi_script(request);
 		std::string	output;
 		cgi_script.execute_cgi(output);
-		std::cout << "****outputstring ***** \n" << std::endl; 
-		std::cout << "output : " << output << std::endl;
-		std::cout << "****--------***** \n" << std::endl; 
+
 		request.setContentLength(output.length());
 		request.setContent_type("text/html");
-		// std::cout << "Content-Length: " << output.length() << std::endl;
-		// std::cout << "Content-Type: text/html" << std::endl;
-		// std::cout << "in fullPath: " << path << std::endl;
-		 
-		send_header_response(CHUNK_SIZE, path, request, 1);
-		send(_clientFd, output.c_str(), output.length(), 0);
-		
-		// pause()	;
+		if (send_header_response(CHUNK_SIZE, path, request, 1) == 1)
+		{
+			std::cout << "Error sending header response" << std::endl;
+			*flag = 1;
+			return ;
+		}
+		// check return of send
+		bytesSent = send(_clientFd, output.c_str(), output.length(), 0);
+		if (bytesSent < 0) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK) {
+				std::cout << "Socket not ready yet, try again later." << std::endl;
+				*flag = 0;  // retry later
+				return;
+			}
+			std::cerr << "Error sending response: " << strerror(errno) << std::endl;
+			*flag = 1;  // fatal error
+			return;
+		}
 	}
     if (this->is_file) 
 	{
@@ -284,7 +306,12 @@ void Response::handleGetResponse(int *flag, Request &request, int flag_delete) {
 				std::cout << "flag = " << *flag << std::endl;
 			    return ;
 			}
-			send_header_response(CHUNK_SIZE, path, request, 0);
+			if (send_header_response(CHUNK_SIZE, path, request, 0) == 1)
+			{
+				std::cout << "Error sending header response" << std::endl;
+				*flag = 1;
+				return ;
+			}
         }
         if (_isopen) {
             file.seekg(_fileOffset, std::ios::beg);
@@ -308,8 +335,24 @@ void Response::handleGetResponse(int *flag, Request &request, int flag_delete) {
 		std::string html = generateAutoIndex(request.getpath(), request.get_fake_path()); // real path, URI path
 		request.setContentLength(html.length());
 		request.setContent_type("text/html");
-        send_header_response(CHUNK_SIZE, path, request, 1);
-		send(_clientFd, html.c_str(), html.length(), 0);
+        if (send_header_response(CHUNK_SIZE, path, request, 1) == 1)
+		{
+			std::cout << "Error sending header response" << std::endl;
+			*flag = 1;
+			return ;
+		}
+		bytesSent = send(_clientFd, html.c_str(), html.length(), 0);
+		if (bytesSent < 0) {
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+			{
+				std::cout << "Socket not ready yet, try again later" << std::endl;
+				*flag = 0;
+				return; // Socket not ready yet
+			}
+			std::cerr << "Error sending response: " << strerror(errno) << std::endl;
+			*flag = 1;
+			return;
+		}
 		reset();
         request.set_status_code(200);
         *flag = 2;

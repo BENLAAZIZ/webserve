@@ -1,0 +1,31 @@
+
+
+✅ 1. HTTP (HyperText Transfer Protocol)
+
+A request-response protocol used for communication between clients (like browsers) and servers over the web.
+
+--> It defines methods like GET, POST, DELETE, etc.
+
+--> WebServ is an HTTP/1.1 compliant server.
+
+✅ 2. RFCs
+
+-->  "Request for Comments" — official documents that define how internet protocols should work.
+
+-----------------------
+For WebServ, key RFCs:
+-----------------------
+RFC 7230: HTTP/1.1 message syntax and routing
+
+RFC 2616: Legacy HTTP/1.1
+
+RFC 3875: CGI
+------------------------
+
+✅ 3. Socket
+
+A socket is an endpoint for communication between two machines.
+
+* Created using socket(), bind(), listen(), accept()
+
+* In WebServ, sockets let you accept incoming connections from clients.

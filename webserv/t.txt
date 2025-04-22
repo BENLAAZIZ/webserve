@@ -1,0 +1,23 @@
+Server fd: 3, go to ===> http://127.0.0.1:8080
+Server on port 8080 accepted new connection: FD 4 from 127.0.0.1:55074
+Location not found - full_path = /Users/hben-laz/Desktop/webserv/docs/image/index.html
+Error page path: /errors/404.html
+Content-Length: 803
+in fullPath: /Users/hben-laz/Desktop/webserv/docs/errors/404.html
+HTTP/1.1 404 Not Found
+Content-Type: text/html
+Content-Length: 803
+Connection: close
+
+------Closing connection-----
+Server on port 8080 accepted new connection: FD 4 from 127.0.0.1:55075
+Location not found - full_path = /Users/hben-laz/Desktop/webserv/docs/favicon.ico
+Error page path: /errors/404.html
+Content-Length: 803
+in fullPath: /Users/hben-laz/Desktop/webserv/docs/errors/404.html
+HTTP/1.1 404 Not Found
+Content-Type: text/html
+Content-Length: 803
+Connection: close
+
+------Closing connection-----
