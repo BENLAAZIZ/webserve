@@ -293,7 +293,21 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 	}
 	// if root of location is empty use server root
 	if (loc && root.empty())
+	{
 		root = serv_hldr.root;
+		full_path = join_paths(_request.my_root, join_paths(root, getpath));
+	}
+	else
+	{
+		std::string relative_path = getpath;
+		if (getpath.find(location_path) == 0)
+			relative_path = getpath.substr(location_path.length()); // strip location path
+		// Remove leading '/' to avoid double slashes when joining
+		if (!relative_path.empty() && relative_path[0] == '/')
+			relative_path = relative_path.substr(1);
+		// Compose full_path
+		full_path = join_paths(_request.my_root, join_paths(root, relative_path));
+	}
 	// redirect path
 	if (loc && loc->redirect_code != 0) 
 	{
@@ -308,14 +322,6 @@ int  Client::resolve_request_path(Server_holder & serv_hldr) {
 		if (std::find(loc->allowed_methods.begin(), loc->allowed_methods.end(), method) == loc->allowed_methods.end())
 			return (_request.set_status_code(405), 405);
 	}
-	std::string relative_path = getpath;
-	if (getpath.find(location_path) == 0)
-		relative_path = getpath.substr(location_path.length()); // strip location path
-	// Remove leading '/' to avoid double slashes when joining
-	if (!relative_path.empty() && relative_path[0] == '/')
-		relative_path = relative_path.substr(1);
-	// Compose full_path
-	full_path = join_paths(_request.my_root, join_paths(root, relative_path));
 	if (_request.isCGI)
 		return (_request.setPath(full_path), 200);
 	// Check if full_path is a directory or a file

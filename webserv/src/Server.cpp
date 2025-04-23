@@ -131,8 +131,10 @@ int Server::handleClientData(int client_fd, Client &client) {
 		}
 		else if (client.is_Header_Complete() && client._request.getMethod() == "POST")
 		{
-			std::cout << "-------- POST request received----------" << std::endl;
-			client.handlePostRequest();
+			if (client._request.getStatusCode() >= 400)
+				client._request.endOfRequest = true;
+			else
+				client.handlePostRequest();
 			if (client._request.endOfRequest)
 				return 2;
 		}
