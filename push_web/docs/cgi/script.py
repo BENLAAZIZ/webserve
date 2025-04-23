@@ -4,7 +4,7 @@ import cgi
 import sys
 
 # Set the content type to HTML
-print("Content-Type: text/html")
+# print("Content-Type: text/html")
 print()  # Empty line to signal the end of the headers
 
 # Print the HTML content
