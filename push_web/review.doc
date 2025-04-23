@@ -29,3 +29,92 @@ A socket is an endpoint for communication between two machines.
 * Created using socket(), bind(), listen(), accept()
 
 * In WebServ, sockets let you accept incoming connections from clients.
+
+✅ 4. Server
+
+A process that listens for client requests and serves responses.
+
+---> Your webserv listens on a port (e.g. 8080) and handles requests.
+
+
+✅ 5. Client
+
+The user or tool (like a browser or curl) that sends a request to a server.
+
+✅ 6. HTTP Methods
+
+Method    -    What it does
+GET       -    Retrieve resource
+POST      -    Send data to the server (form upload, etc.)
+DELETE    -    Remove a resource
+
+✅ 7. CGI (Common Gateway Interface)
+
+A way to run scripts (like PHP or Python) from the server.
+
+=> CGI executes external programs and returns the output as HTTP response.
+
+=> WebServ must support .php and .py via CGI.
+
+✅ 8. Config File
+
+Describes server blocks, ports, roots, locations, methods, and error pages.
+
+===============================================================================================
+
+🧠 Q1: What is a socket and how is it used?
+-------------------------------------------
+
+✅ A: A socket is a communication endpoint. The server uses socket(), bind(), listen(), and accept() to handle connections from clients.
+
+🧠 Q2: What’s the difference between GET, POST, and DELETE?
+-----------------------------------------------------------
+
+✅ A:
+
+---> GET: Asks for data from the server.
+
+---> POST: Sends data (e.g. forms) to be processed.
+
+---> DELETE: Requests to delete a resource on the server.
+
+🧠 Q3: What is CGI, and how did you implement it?
+---------------------------------------------------
+
+✅ A: CGI is a protocol for running external scripts. We used fork() and execve() to run .php or .py files, 
+passing environment variables like REQUEST_METHOD, PATH_INFO, etc.
+
+🧠 Q4: How did you parse and route requests?
+---------------------------------------------------
+
+✅ A: We parsed HTTP headers line by line, matched the path to a location in the config, validated the method,
+ and built the file path to serve or execute.
+
+🧠 Q5: How do you handle errors (403, 404, etc.)?
+---------------------------------------------------
+
+✅ A: If a file isn’t found, or the method isn’t allowed, we set the proper status code (like 403 or 404) 
+and serve a custom error page defined in the config.
+
+🧠 Q6: What is the purpose of the config file?
+---------------------------------------------------
+
+✅ A: The config file allows defining servers, ports, roots, allowed methods, error pages, upload directories, and CGI settings dynamically.
+
+🧠 Q7: How does autoindex work?
+---------------------------------------------------
+
+✅ A: If a directory is requested and no index is found, and autoindex is on, we generate an HTML listing of files in the directory.
+
+🧠 PART 3: Why This Project Is Important
+---------------------------------------------------
+
+✅ 🔧 You built your own HTTP server from scratch.
+That means:
+
+--> Parsing raw TCP data
+
+--> Handling real-world protocols
+
+--> Supporting file uploads, deletions, and dynamic scripts (CGI)
+
