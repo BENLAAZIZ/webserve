@@ -35,10 +35,10 @@ Request::Request()
 	// end of request
 	endOfRequest = false;
 	// rooot = getcwd();
-	my_root = getcwd(NULL, 0);
+	// my_root = getcwd(NULL, 0);
 	
 	// std::cout << "my_root:---------------- " << my_root << std::endl;
-	// my_root = "/Users/aben-cha/Desktop/db/push_web_last1";
+	my_root =".";
 }
 
 Request::~Request()

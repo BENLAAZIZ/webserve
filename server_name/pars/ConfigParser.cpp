@@ -163,9 +163,10 @@ void	ConfigParser::format_config_content(int ac, char **av)
         config_file = av[1];
 
     std::ifstream file(config_file.c_str());
+	if (is_directory_func(config_file))
+		throw std::runtime_error("config file is a directory");
     if (!file.is_open())
         throw std::runtime_error("Cannot open config file: " + config_file);
-
 	std::ostringstream ss;
 	ss << file.rdbuf();
 	file.close();
