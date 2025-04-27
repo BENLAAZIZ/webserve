@@ -1,14 +1,13 @@
 
 
+ #   Webserv
+This project is here to help you write your own HTTP server. You will be able to test it with a real browser. HTTP is one of the most used protocols on the internet. Knowing its intricacies will be useful, even if you won’t be working on a website.
 
 
-
-
-
-# * Key Features to Implement*
+## Key Features to Implement
 ______________________________
 
-    `1. Basic HTTP/1.1 Protocol Handling`
+    1. Basic HTTP/1.1 Protocol Handling
     --------------------------------
 
         - Parsing HTTP requests (GET, POST, DELETE, etc.).
@@ -48,7 +47,7 @@ ______________________________
         - Efficiently handling multiple clients simultaneously (non-blocking IO).
     
 
-Recommended Tools and Resources
+## Recommended Tools and Resources
 _____________________________________
 
     C++ STL: Use libraries like std::map, std::vector, std::string for parsing and data management.
@@ -64,8 +63,8 @@ _____________________________________
     -----------------
 
 
-Common Challenges
-_________________
+## Common Challenges
+__________________________
 
     1. Parsing HTTP Requests:
     --------------------------
