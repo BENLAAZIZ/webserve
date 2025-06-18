@@ -1,0 +1,81 @@
+ 
+======================================================= 
+==========          Webserv Testing          ==========
+======================================================= 
+
+********************************************************
+=====  🌐 General Server Tests (Browser + Postman) =====
+********************************************************
+
+✅ Test default root /
+    --> http://localhost:8080/
+
+✅ Test index.html in /upload
+    --> URL: http://localhost:8080/upload/
+
+✅ Test autoindex in /upload/
+
+✅ Test redirection /newpage
+    --> URL: http://localhost:8080/newpage
+    Expected: HTTP 302 redirect to github
+
+******************************************************
+=====  🌐 GET Method Tests (Postman or Browser)  =====
+******************************************************
+
+✅ GET existing file
+
+✅ GET non-existing file
+
+✅ GET existing file in /cgi
+    --> http://localhost:8080/cgi/hello.py
+
+
+********************************************
+=====  🌐 POST Method Tests (Postman)  =====
+********************************************
+
+✅ POST to /upload/ (Upload a file)
+
+  * POST to http://localhost:8080/upload/ with:
+
+       --> Body → form-data → file: test.txt
+
+  * Expected: File uploaded to /docs/upload/.
+
+  ✅ POST with large body > client_max_body_size
+
+    --> POST to /upload/ with file > ~45MB
+
+    Expected: Returns 413 Payload Too Large.
+
+  ✅ POST to /cgi/hello.py with form data
+
+    POST with key name=Hamza
+
+    Expected: CGI script prints Hello Hamza (if script supports it).   
+
+***************************************************
+=====  🗑️ DELETE Method Tests (Postman only)  =====
+***************************************************
+
+  ✅ DELETE existing file in /delete/
+
+  ✅ DELETE non-existing file
+     DELETE http://localhost:8080/delete/abc.txt
+     Expected: Returns 404.
+
+
+***************************************************
+=========     ⚠️ Error Handling Tests     =========
+***************************************************
+
+✅ Invalid method to /cgi/
+
+    ==> PUT or PATCH request
+    -> Expected: 405 Method Not Allowed.
+
+✅ Requesting unknown location
+
+    ==> URL: http://localhost:8080/unknown
+    -> Expected: 404 page served.
